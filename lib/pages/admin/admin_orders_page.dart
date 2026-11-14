@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 
@@ -141,6 +142,25 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                                         store.updateOrderStatus(order, value);
                                       }
                                     },
+                                  ),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton.icon(
+                                      onPressed: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => OrderDetailPage(
+                                            order: order,
+                                            isAdmin: true,
+                                          ),
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.receipt_long_outlined,
+                                        size: 18,
+                                      ),
+                                      label: const Text('Lihat Detail'),
+                                    ),
                                   ),
                                 ],
                               ),

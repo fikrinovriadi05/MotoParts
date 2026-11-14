@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
+import 'package:motopart/widgets/status_badge.dart';
 
 class OrdersPage extends StatelessWidget {
   const OrdersPage({super.key});
@@ -21,60 +23,46 @@ class OrdersPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final order = store.orders[index];
               return GlassCard(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.blue.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(14),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrderDetailPage(order: order),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.receipt_long,
-                      color: AppColors.blue,
+                    leading: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.blue.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long,
+                        color: AppColors.blue,
+                      ),
                     ),
-                  ),
-                  title: Text(
-                    order.code,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Text(
-                      '${formatRupiah(order.total)} • ${order.customer}',
-                      style: const TextStyle(color: AppColors.grey),
+                    title: Text(
+                      order.code,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        '${formatRupiah(order.total)} • ${order.customer}',
+                        style: const TextStyle(color: AppColors.grey),
+                      ),
+                    ),
+                    trailing: StatusBadge(order.status),
                   ),
-                  trailing: _statusBadge(order.status),
                 ),
               );
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _statusBadge(String status) {
-    Color color = AppColors.blue;
-    if (status == 'Selesai') color = AppColors.green;
-    if (status == 'Dikirim') color = AppColors.orange;
-    if (status == 'Dibatalkan') color = AppColors.red;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w800,
-          fontSize: 11,
-        ),
       ),
     );
   }
