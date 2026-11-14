@@ -1,9 +1,78 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/product.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Store extends ChangeNotifier {
+  static const storageKey = 'motopart_state_v1';
+
+  SharedPreferences? _prefs;
+
+  /// Menghubungkan [Store] ke penyimpanan lokal: memuat data tersimpan (jika
+  /// ada), lalu menyimpan otomatis setiap kali data berubah.
+  /// Tanpa memanggil ini, [Store] hanya bekerja di memori (dipakai di tes).
+  Future<void> attach(SharedPreferences prefs) async {
+    _prefs = prefs;
+    final raw = prefs.getString(storageKey);
+    if (raw == null) return;
+    try {
+      _restore(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (_) {
+      // Data rusak/tidak cocok: abaikan dan pakai data bawaan.
+    }
+    super.notifyListeners();
+  }
+
+  void _restore(Map<String, dynamic> data) {
+    final loadedProducts = (data['products'] as List)
+        .map((e) => Product.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final loadedOrders = (data['orders'] as List)
+        .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
+        .toList();
+    final loadedCart = <CartItem>[];
+    for (final e in data['cart'] as List) {
+      final map = e as Map<String, dynamic>;
+      final index = loadedProducts.indexWhere((p) => p.id == map['productId']);
+      if (index < 0) continue;
+      final product = loadedProducts[index];
+      final qty = (map['qty'] as int).clamp(0, product.stock);
+      if (qty > 0) loadedCart.add(CartItem(product: product, qty: qty));
+    }
+
+    products
+      ..clear()
+      ..addAll(loadedProducts);
+    orders
+      ..clear()
+      ..addAll(loadedOrders);
+    cart
+      ..clear()
+      ..addAll(loadedCart);
+  }
+
+  void _save() {
+    final prefs = _prefs;
+    if (prefs == null) return;
+    final data = {
+      'products': products.map((e) => e.toJson()).toList(),
+      'cart': cart
+          .map((e) => {'productId': e.product.id, 'qty': e.qty})
+          .toList(),
+      'orders': orders.map((e) => e.toJson()).toList(),
+    };
+    prefs.setString(storageKey, jsonEncode(data));
+  }
+
+  @override
+  void notifyListeners() {
+    _save();
+    super.notifyListeners();
+  }
+
   final List<Product> products = [
     Product(
       id: 1,
@@ -164,10 +233,7 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  void checkout({
-    required String customer,
-    required int shippingCost,
-  }) {
+  void checkout({required String customer, required int shippingCost}) {
     final orderCode = 'MP-${DateTime.now().millisecondsSinceEpoch}';
     for (final item in cart) {
       item.product.stock = (item.product.stock - item.qty).clamp(0, 1 << 30);

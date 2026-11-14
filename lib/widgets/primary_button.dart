@@ -3,7 +3,7 @@ import 'package:motopart/core/app_colors.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final IconData? icon;
   final bool outline;
 

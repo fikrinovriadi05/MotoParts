@@ -9,10 +9,7 @@ import 'package:motopart/widgets/primary_button.dart';
 class ProductDetailPage extends StatelessWidget {
   final Product product;
 
-  const ProductDetailPage({
-    super.key,
-    required this.product,
-  });
+  const ProductDetailPage({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +17,7 @@ class ProductDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Detail Produk'),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.favorite_border),
-          )
+          IconButton(onPressed: () {}, icon: const Icon(Icons.favorite_border)),
         ],
       ),
       body: ListView(
@@ -40,11 +34,7 @@ class ProductDetailPage extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(28),
             ),
-            child: Icon(
-              product.icon,
-              color: AppColors.blue,
-              size: 100,
-            ),
+            child: Icon(product.icon, color: AppColors.blue, size: 100),
           ),
           const SizedBox(height: 22),
           Text(
@@ -69,10 +59,7 @@ class ProductDetailPage extends StatelessWidget {
             children: [
               const Icon(Icons.star, color: Colors.amber, size: 18),
               const SizedBox(width: 6),
-              const Text(
-                '4.8',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
+              const Text('4.8', style: TextStyle(fontWeight: FontWeight.w700)),
               const SizedBox(width: 10),
               Container(
                 width: 5,
@@ -99,10 +86,7 @@ class ProductDetailPage extends StatelessWidget {
               children: [
                 const Text(
                   'Informasi Produk',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 14),
                 _detailRow('Kategori', product.category),
@@ -118,38 +102,35 @@ class ProductDetailPage extends StatelessWidget {
               children: [
                 const Text(
                   'Deskripsi',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   product.description,
-                  style: const TextStyle(
-                    color: AppColors.grey,
-                    height: 1.6,
-                  ),
+                  style: const TextStyle(color: AppColors.grey, height: 1.6),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
           PrimaryButton(
-            text: 'Masukkan ke Keranjang',
+            text: product.stock > 0 ? 'Masukkan ke Keranjang' : 'Stok Habis',
             icon: Icons.shopping_cart_outlined,
-            onPressed: () {
-              final added = store.addToCart(product);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    added
-                        ? '${product.name} ditambahkan ke keranjang.'
-                        : 'Stok ${product.name} hanya ${product.stock} unit.',
-                  ),
-                ),
-              );
-            },
+            outline: product.stock <= 0,
+            onPressed: product.stock <= 0
+                ? null
+                : () {
+                    final added = store.addToCart(product);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          added
+                              ? '${product.name} ditambahkan ke keranjang.'
+                              : 'Stok ${product.name} hanya ${product.stock} unit.',
+                        ),
+                      ),
+                    );
+                  },
           ),
         ],
       ),
@@ -162,10 +143,7 @@ class ProductDetailPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: const TextStyle(color: AppColors.grey),
-          ),
+          Text(title, style: const TextStyle(color: AppColors.grey)),
           Flexible(
             child: Text(
               value,
