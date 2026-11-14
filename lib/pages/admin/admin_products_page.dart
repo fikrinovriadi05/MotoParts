@@ -9,11 +9,30 @@ import 'package:motopart/widgets/primary_button.dart';
 class AdminProductsPage extends StatelessWidget {
   const AdminProductsPage({super.key});
 
-  void addProductDialog(BuildContext context) {
-    final name = TextEditingController();
-    final price = TextEditingController();
-    final stock = TextEditingController();
-    String category = 'Mesin';
+  static const _categories = [
+    'Mesin',
+    'Kelistrikan',
+    'Rem',
+    'Body',
+    'Transmisi',
+  ];
+
+  /// Dialog tambah produk (jika [product] null) atau edit produk.
+  void productDialog(BuildContext context, {Product? product}) {
+    final isEdit = product != null;
+    final name = TextEditingController(text: product?.name ?? '');
+    final price = TextEditingController(text: product?.price.toString() ?? '');
+    final stock = TextEditingController(text: product?.stock.toString() ?? '');
+    final type = TextEditingController(text: product?.type ?? 'Universal');
+    final description = TextEditingController(
+      text: product?.description ?? 'Produk baru dari admin.',
+    );
+    final categories = [
+      ..._categories,
+      if (isEdit && !_categories.contains(product.category)) product.category,
+    ];
+    String category = product?.category ?? 'Mesin';
+    String? error;
 
     showDialog(
       context: context,
@@ -21,7 +40,7 @@ class AdminProductsPage extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setDialog) {
             return AlertDialog(
-              title: const Text('Tambah Produk'),
+              title: Text(isEdit ? 'Edit Produk' : 'Tambah Produk'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -35,30 +54,10 @@ class AdminProductsPage extends StatelessWidget {
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       initialValue: category,
-                      decoration: const InputDecoration(
-                        labelText: 'Kategori',
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Mesin',
-                          child: Text('Mesin'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Kelistrikan',
-                          child: Text('Kelistrikan'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Rem',
-                          child: Text('Rem'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Body',
-                          child: Text('Body'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Transmisi',
-                          child: Text('Transmisi'),
-                        ),
+                      decoration: const InputDecoration(labelText: 'Kategori'),
+                      items: [
+                        for (final c in categories)
+                          DropdownMenuItem(value: c, child: Text(c)),
                       ],
                       onChanged: (value) {
                         setDialog(() => category = value!);
@@ -66,20 +65,42 @@ class AdminProductsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextField(
+                      controller: type,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipe Motor',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
                       controller: price,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Harga',
-                      ),
+                      decoration: const InputDecoration(labelText: 'Harga'),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: stock,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Stok',
-                      ),
+                      decoration: const InputDecoration(labelText: 'Stok'),
                     ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: description,
+                      maxLines: 3,
+                      decoration: const InputDecoration(labelText: 'Deskripsi'),
+                    ),
+                    if (error != null) ...[
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          error!,
+                          style: const TextStyle(
+                            color: AppColors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -90,31 +111,56 @@ class AdminProductsPage extends StatelessWidget {
                 ),
                 FilledButton(
                   onPressed: () {
-                    final parsedPrice = int.tryParse(price.text);
-                    final parsedStock = int.tryParse(stock.text);
+                    final parsedPrice = int.tryParse(price.text.trim());
+                    final parsedStock = int.tryParse(stock.text.trim());
 
-                    if (name.text.trim().isEmpty ||
-                        parsedPrice == null ||
-                        parsedStock == null) {
+                    if (name.text.trim().isEmpty) {
+                      setDialog(() => error = 'Nama produk wajib diisi.');
+                      return;
+                    }
+                    if (parsedPrice == null || parsedPrice <= 0) {
+                      setDialog(
+                        () => error = 'Harga harus angka lebih dari 0.',
+                      );
+                      return;
+                    }
+                    if (parsedStock == null || parsedStock < 0) {
+                      setDialog(() => error = 'Stok harus angka 0 atau lebih.');
                       return;
                     }
 
-                    store.addProduct(
-                      Product(
-                        id: DateTime.now().millisecondsSinceEpoch,
+                    final typeText = type.text.trim().isEmpty
+                        ? 'Universal'
+                        : type.text.trim();
+
+                    if (isEdit) {
+                      store.updateProduct(
+                        product,
                         name: name.text.trim(),
                         category: category,
-                        type: 'Universal',
+                        type: typeText,
                         price: parsedPrice,
                         stock: parsedStock,
-                        icon: Icons.build,
-                        description: 'Produk baru dari admin.',
-                      ),
-                    );
+                        description: description.text.trim(),
+                      );
+                    } else {
+                      store.addProduct(
+                        Product(
+                          id: DateTime.now().millisecondsSinceEpoch,
+                          name: name.text.trim(),
+                          category: category,
+                          type: typeText,
+                          price: parsedPrice,
+                          stock: parsedStock,
+                          icon: Icons.build,
+                          description: description.text.trim(),
+                        ),
+                      );
+                    }
 
                     Navigator.pop(dialogContext);
                   },
-                  child: const Text('Simpan'),
+                  child: Text(isEdit ? 'Simpan Perubahan' : 'Simpan'),
                 ),
               ],
             );
@@ -127,9 +173,7 @@ class AdminProductsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kelola Produk'),
-      ),
+      appBar: AppBar(title: const Text('Kelola Produk')),
       body: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
@@ -139,7 +183,7 @@ class AdminProductsPage extends StatelessWidget {
               PrimaryButton(
                 text: 'Tambah Produk',
                 icon: Icons.add,
-                onPressed: () => addProductDialog(context),
+                onPressed: () => productDialog(context),
               ),
               const SizedBox(height: 14),
               ...store.products.map(
@@ -155,10 +199,7 @@ class AdminProductsPage extends StatelessWidget {
                             color: AppColors.blue.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Icon(
-                            product.icon,
-                            color: AppColors.blue,
-                          ),
+                          child: Icon(product.icon, color: AppColors.blue),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -183,6 +224,16 @@ class AdminProductsPage extends StatelessWidget {
                           ),
                         ),
                         IconButton(
+                          tooltip: 'Edit',
+                          onPressed: () =>
+                              productDialog(context, product: product),
+                          icon: const Icon(
+                            Icons.edit_outlined,
+                            color: AppColors.blue,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Hapus',
                           onPressed: () {
                             store.deleteProduct(product);
                           },

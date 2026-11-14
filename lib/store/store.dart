@@ -223,6 +223,34 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Mengubah data produk. Hanya argumen yang diisi yang diubah. Keranjang
+  /// ikut disesuaikan: qty dipangkas ke stok baru, dan item dikeluarkan jika
+  /// stok menjadi 0.
+  void updateProduct(
+    Product product, {
+    String? name,
+    String? category,
+    String? type,
+    int? price,
+    int? stock,
+    String? description,
+  }) {
+    if (name != null) product.name = name;
+    if (category != null) product.category = category;
+    if (type != null) product.type = type;
+    if (price != null) product.price = price;
+    if (stock != null) product.stock = stock < 0 ? 0 : stock;
+    if (description != null) product.description = description;
+
+    for (final item in cart) {
+      if (item.product.id == product.id && item.qty > product.stock) {
+        item.qty = product.stock;
+      }
+    }
+    cart.removeWhere((item) => item.qty <= 0);
+    notifyListeners();
+  }
+
   void deleteProduct(Product product) {
     products.removeWhere((e) => e.id == product.id);
     notifyListeners();

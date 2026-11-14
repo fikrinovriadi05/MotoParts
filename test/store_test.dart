@@ -35,15 +35,17 @@ void main() {
       expect(store.cartCount, 1);
     });
 
-    test('addToCart pada produk yang sama menaikkan qty, bukan menambah baris',
-        () {
-      final product = store.products[0];
-      store.addToCart(product);
-      store.addToCart(product);
+    test(
+      'addToCart pada produk yang sama menaikkan qty, bukan menambah baris',
+      () {
+        final product = store.products[0];
+        store.addToCart(product);
+        store.addToCart(product);
 
-      expect(store.cart.length, 1);
-      expect(store.cart.first.qty, 2);
-    });
+        expect(store.cart.length, 1);
+        expect(store.cart.first.qty, 2);
+      },
+    );
 
     test('cartCount dan cartTotal menghitung semua item', () {
       final a = store.products[0]; // 45.000
@@ -76,17 +78,19 @@ void main() {
       expect(store.cart, isEmpty);
     });
 
-    test('increaseQty dan decreaseQty pada produk di luar keranjang diabaikan',
-        () {
-      var notified = 0;
-      store.addListener(() => notified++);
+    test(
+      'increaseQty dan decreaseQty pada produk di luar keranjang diabaikan',
+      () {
+        var notified = 0;
+        store.addListener(() => notified++);
 
-      store.increaseQty(store.products[0]);
-      store.decreaseQty(store.products[0]);
+        store.increaseQty(store.products[0]);
+        store.decreaseQty(store.products[0]);
 
-      expect(store.cart, isEmpty);
-      expect(notified, 0);
-    });
+        expect(store.cart, isEmpty);
+        expect(notified, 0);
+      },
+    );
 
     test('removeCart menghapus seluruh qty satu produk', () {
       final a = store.products[0];
@@ -167,17 +171,70 @@ void main() {
     });
   });
 
+  group('edit produk (admin)', () {
+    test('updateProduct hanya mengubah field yang diisi', () {
+      final product = store.products[0];
+      final category = product.category;
+
+      store.updateProduct(product, name: 'Kampas Baru', price: 50000);
+
+      expect(product.name, 'Kampas Baru');
+      expect(product.price, 50000);
+      expect(product.category, category);
+      expect(product.stock, 24);
+    });
+
+    test('cartTotal mengikuti harga baru', () {
+      final product = store.products[0];
+      store.addToCart(product);
+
+      store.updateProduct(product, price: 60000);
+
+      expect(store.cartTotal, 60000);
+    });
+
+    test('stok baru lebih kecil memangkas qty di keranjang', () {
+      final product = store.products[0];
+      for (var i = 0; i < 5; i++) {
+        store.addToCart(product);
+      }
+
+      store.updateProduct(product, stock: 3);
+
+      expect(store.qtyInCart(product), 3);
+    });
+
+    test('stok baru 0 mengeluarkan produk dari keranjang', () {
+      final product = store.products[0];
+      store.addToCart(product);
+
+      store.updateProduct(product, stock: 0);
+
+      expect(store.cart, isEmpty);
+    });
+
+    test('stok negatif dijadikan 0 dan listener dipanggil', () {
+      var notified = 0;
+      store.addListener(() => notified++);
+
+      store.updateProduct(store.products[0], stock: -5);
+
+      expect(store.products[0].stock, 0);
+      expect(notified, 1);
+    });
+  });
+
   group('produk (admin)', () {
     Product newProduct(int id) => Product(
-          id: id,
-          name: 'Produk Tes',
-          category: 'Mesin',
-          type: 'Universal',
-          price: 10000,
-          stock: 5,
-          icon: Icons.settings,
-          description: 'Produk untuk pengujian.',
-        );
+      id: id,
+      name: 'Produk Tes',
+      category: 'Mesin',
+      type: 'Universal',
+      price: 10000,
+      stock: 5,
+      icon: Icons.settings,
+      description: 'Produk untuk pengujian.',
+    );
 
     test('addProduct menambah produk ke daftar', () {
       final before = store.products.length;
@@ -198,21 +255,23 @@ void main() {
   });
 
   group('pesanan', () {
-    test('checkout membuat pesanan baru di urutan teratas dan menghitung total',
-        () {
-      store.addToCart(store.products[0]); // 45.000
-      store.addToCart(store.products[1]); // 25.000
-      final before = store.orders.length;
+    test(
+      'checkout membuat pesanan baru di urutan teratas dan menghitung total',
+      () {
+        store.addToCart(store.products[0]); // 45.000
+        store.addToCart(store.products[1]); // 25.000
+        final before = store.orders.length;
 
-      store.checkout(customer: 'Siti', shippingCost: 10000);
+        store.checkout(customer: 'Siti', shippingCost: 10000);
 
-      expect(store.orders.length, before + 1);
-      final order = store.orders.first;
-      expect(order.customer, 'Siti');
-      expect(order.total, 45000 + 25000 + 10000);
-      expect(order.status, 'Diproses');
-      expect(order.code, startsWith('MP-'));
-    });
+        expect(store.orders.length, before + 1);
+        final order = store.orders.first;
+        expect(order.customer, 'Siti');
+        expect(order.total, 45000 + 25000 + 10000);
+        expect(order.status, 'Diproses');
+        expect(order.code, startsWith('MP-'));
+      },
+    );
 
     test('checkout mengosongkan keranjang', () {
       store.addToCart(store.products[0]);

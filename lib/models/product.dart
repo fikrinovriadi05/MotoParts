@@ -14,13 +14,13 @@ class Product {
   };
 
   final int id;
-  final String name;
-  final String category;
-  final String type;
-  final int price;
+  String name;
+  String category;
+  String type;
+  int price;
   int stock;
   final IconData icon;
-  final String description;
+  String description;
 
   Product({
     required this.id,
