@@ -52,7 +52,8 @@ class OrdersPage extends StatelessWidget {
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
-                        '${formatRupiah(order.total)} • ${order.customer}',
+                        '${formatRupiah(order.total)} • ${order.customer}'
+                        '${order.createdAt == null ? '' : '\n${formatTanggal(order.createdAt!)}'}',
                         style: const TextStyle(color: AppColors.grey),
                       ),
                     ),

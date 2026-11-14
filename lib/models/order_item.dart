@@ -40,12 +40,17 @@ class OrderItem {
   /// mencatat barangnya.
   final List<OrderLine> lines;
 
+  /// Waktu pesanan dibuat. Null untuk pesanan lama/contoh yang tidak
+  /// mencatat waktunya.
+  final DateTime? createdAt;
+
   OrderItem({
     required this.code,
     required this.customer,
     required this.total,
     required this.status,
     this.lines = const [],
+    this.createdAt,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -57,6 +62,7 @@ class OrderItem {
       lines: ((json['lines'] as List?) ?? const [])
           .map((e) => OrderLine.fromJson(e as Map<String, dynamic>))
           .toList(),
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
     );
   }
 
@@ -66,5 +72,6 @@ class OrderItem {
     'total': total,
     'status': status,
     'lines': lines.map((e) => e.toJson()).toList(),
+    'createdAt': createdAt?.toIso8601String(),
   };
 }

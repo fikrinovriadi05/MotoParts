@@ -124,6 +124,16 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                                       color: AppColors.grey,
                                     ),
                                   ),
+                                  if (order.createdAt != null) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      formatTanggal(order.createdAt!),
+                                      style: const TextStyle(
+                                        color: AppColors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                   const SizedBox(height: 12),
                                   DropdownButtonFormField<String>(
                                     initialValue: order.status,

@@ -301,8 +301,13 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  void checkout({required String customer, required int shippingCost}) {
-    final orderCode = 'MP-${DateTime.now().millisecondsSinceEpoch}';
+  void checkout({
+    required String customer,
+    required int shippingCost,
+    DateTime? now,
+  }) {
+    final createdAt = now ?? DateTime.now();
+    final orderCode = 'MP-${createdAt.millisecondsSinceEpoch}';
     for (final item in cart) {
       item.product.stock = (item.product.stock - item.qty).clamp(0, 1 << 30);
     }
@@ -313,6 +318,7 @@ class Store extends ChangeNotifier {
         customer: customer,
         total: cartTotal + shippingCost,
         status: 'Diproses',
+        createdAt: createdAt,
         lines: [
           for (final item in cart)
             OrderLine(

@@ -53,6 +53,11 @@ class OrderDetailPage extends StatelessWidget {
                       'Pelanggan: ${order.customer}',
                       style: const TextStyle(color: AppColors.grey),
                     ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Tanggal: ${order.createdAt == null ? '-' : formatTanggal(order.createdAt!)}',
+                      style: const TextStyle(color: AppColors.grey),
+                    ),
                   ],
                 ),
               ),
