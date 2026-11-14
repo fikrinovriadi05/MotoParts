@@ -256,6 +256,26 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  static const orderStatuses = [
+    'Diproses',
+    'Dikemas',
+    'Dikirim',
+    'Selesai',
+    'Dibatalkan',
+  ];
+
+  /// Pesanan yang cocok dengan [query] (kode atau nama pelanggan, tanpa
+  /// membedakan huruf besar/kecil) dan [status] (null = semua status).
+  List<OrderItem> filterOrders({String query = '', String? status}) {
+    final q = query.trim().toLowerCase();
+    return orders.where((o) {
+      if (status != null && o.status != status) return false;
+      if (q.isEmpty) return true;
+      return o.code.toLowerCase().contains(q) ||
+          o.customer.toLowerCase().contains(q);
+    }).toList();
+  }
+
   void updateOrderStatus(OrderItem order, String status) {
     order.status = status;
     notifyListeners();

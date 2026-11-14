@@ -28,7 +28,7 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 | Sisi User | `UserShell` (bottom nav): `HomePage`, `CategoryPage`, `CatalogPage`, `ProductDetailPage`, `CartPage`, `CheckoutPage`, `PaymentPage`, `PaymentSuccessPage`, `OrdersPage`, `ProfilePage`. |
 | Sisi Admin | `AdminShell`: `AdminDashboardPage`, `AdminProductsPage`, `AdminOrdersPage`, `AdminReportsPage`. |
 
-Status pesanan yang dipakai: `Diproses`, `Dikirim`, `Selesai`, `Dibatalkan` (cek kode sebelum menambah status baru). Kode pesanan berformat `MP-<timestamp>`.
+Status pesanan yang dipakai: `Diproses`, `Dikemas`, `Dikirim`, `Selesai`, `Dibatalkan` (daftar tetap: `Store.orderStatuses`) (cek kode sebelum menambah status baru). Kode pesanan berformat `MP-<timestamp>`.
 
 ## Konvensi wajib
 
