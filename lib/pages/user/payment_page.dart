@@ -31,9 +31,7 @@ class _PaymentPageState extends State<PaymentPage> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (_) => const PaymentSuccessPage(),
-      ),
+      MaterialPageRoute(builder: (_) => const PaymentSuccessPage()),
       (route) => route.isFirst,
     );
   }
@@ -49,10 +47,7 @@ class _PaymentPageState extends State<PaymentPage> {
         children: [
           const Text(
             'Pilih Metode Pembayaran',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 12),
           RadioGroup<String>(
@@ -61,8 +56,7 @@ class _PaymentPageState extends State<PaymentPage> {
             child: Column(
               children: [
                 _paymentTile('Transfer Bank', Icons.account_balance),
-                _paymentTile(
-                    'E-Wallet', Icons.account_balance_wallet_outlined),
+                _paymentTile('E-Wallet', Icons.account_balance_wallet_outlined),
                 _paymentTile('Virtual Account', Icons.receipt_long),
                 _paymentTile('COD', Icons.payments_outlined),
               ],
@@ -99,17 +93,11 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
             child: const Text(
               'Ini hanya simulasi pembayaran untuk tugas kuliah, bukan transaksi nyata.',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.black,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.black),
             ),
           ),
           const SizedBox(height: 18),
-          PrimaryButton(
-            text: 'Bayar Sekarang',
-            onPressed: pay,
-          ),
+          PrimaryButton(text: 'Bayar Sekarang', onPressed: pay),
         ],
       ),
     );
@@ -120,10 +108,7 @@ class _PaymentPageState extends State<PaymentPage> {
       child: RadioListTile<String>(
         value: title,
         activeColor: AppColors.blue,
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w700),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
         secondary: Icon(icon, color: AppColors.blue),
       ),
     );

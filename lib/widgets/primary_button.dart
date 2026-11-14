@@ -50,7 +50,7 @@ class PrimaryButton extends StatelessWidget {
               color: AppColors.blue.withValues(alpha: 0.25),
               blurRadius: 16,
               offset: const Offset(0, 8),
-            )
+            ),
           ],
         ),
         child: FilledButton.icon(

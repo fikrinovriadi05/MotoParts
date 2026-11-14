@@ -46,9 +46,7 @@ class ProfilePage extends StatelessWidget {
                       SizedBox(height: 4),
                       Text(
                         'budi@email.com',
-                        style: TextStyle(
-                          color: AppColors.grey,
-                        ),
+                        style: TextStyle(color: AppColors.grey),
                       ),
                     ],
                   ),
@@ -69,9 +67,7 @@ class ProfilePage extends StatelessWidget {
             onPressed: () {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginPage(),
-                ),
+                MaterialPageRoute(builder: (_) => const LoginPage()),
                 (route) => false,
               );
             },
@@ -90,9 +86,7 @@ class ProfilePage extends StatelessWidget {
           leading: Icon(icon, color: AppColors.blue),
           title: Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           trailing: const Icon(Icons.chevron_right),
         ),

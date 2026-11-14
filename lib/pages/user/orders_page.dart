@@ -37,9 +37,7 @@ class OrdersPage extends StatelessWidget {
                   ),
                   title: Text(
                     order.code,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 6),

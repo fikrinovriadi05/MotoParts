@@ -30,9 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   void login() {
     if (email.text.trim().isEmpty || password.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email dan password wajib diisi.'),
-        ),
+        const SnackBar(content: Text('Email dan password wajib diisi.')),
       );
       return;
     }
@@ -53,11 +51,7 @@ class _LoginPageState extends State<LoginPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              AppColors.black,
-              AppColors.dark,
-              AppColors.bg,
-            ],
+            colors: [AppColors.black, AppColors.dark, AppColors.bg],
             stops: [0.0, 0.28, 0.28],
           ),
         ),
@@ -66,9 +60,7 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.all(22),
             children: [
               const SizedBox(height: 18),
-              const Center(
-                child: AppLogo(light: true, size: 30),
-              ),
+              const Center(child: AppLogo(light: true, size: 30)),
               const SizedBox(height: 28),
               GlassCard(
                 padding: const EdgeInsets.all(22),
@@ -106,8 +98,9 @@ class _LoginPageState extends State<LoginPage> {
                             child: GestureDetector(
                               onTap: () => setState(() => admin = false),
                               child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: !admin
                                       ? AppColors.blue
@@ -131,8 +124,9 @@ class _LoginPageState extends State<LoginPage> {
                             child: GestureDetector(
                               onTap: () => setState(() => admin = true),
                               child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: admin
                                       ? AppColors.black
@@ -143,8 +137,9 @@ class _LoginPageState extends State<LoginPage> {
                                   'Admin',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    color:
-                                        admin ? Colors.white : AppColors.black,
+                                    color: admin
+                                        ? Colors.white
+                                        : AppColors.black,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -211,9 +206,7 @@ class _LoginPageState extends State<LoginPage> {
                           },
                           child: const Text(
                             'Belum punya akun? Daftar',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
                       ),
@@ -226,12 +219,9 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       child: const Text(
                         'Mode demo: isi email dan password apa saja, lalu tekan masuk.',
-                        style: TextStyle(
-                          color: AppColors.black,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: AppColors.black, fontSize: 12),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),

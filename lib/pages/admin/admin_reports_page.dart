@@ -44,9 +44,7 @@ class AdminReportsPage extends StatelessWidget {
                 SizedBox(height: 8),
                 Text(
                   'Naik 10% dibanding bulan lalu',
-                  style: TextStyle(
-                    color: Colors.white70,
-                  ),
+                  style: TextStyle(color: Colors.white70),
                 ),
               ],
             ),
@@ -58,10 +56,7 @@ class AdminReportsPage extends StatelessWidget {
               children: [
                 const Text(
                   'Grafik Penjualan Mingguan',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -80,10 +75,7 @@ class AdminReportsPage extends StatelessWidget {
                               gradient: const LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
-                                colors: [
-                                  AppColors.blue,
-                                  AppColors.blueSoft,
-                                ],
+                                colors: [AppColors.blue, AppColors.blueSoft],
                               ),
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -100,7 +92,7 @@ class AdminReportsPage extends StatelessWidget {
                       );
                     }),
                   ),
-                )
+                ),
               ],
             ),
           ),

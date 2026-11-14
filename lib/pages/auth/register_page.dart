@@ -30,18 +30,14 @@ class _RegisterPageState extends State<RegisterPage> {
         phone.text.trim().isEmpty ||
         password.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lengkapi semua data terlebih dahulu.'),
-        ),
+        const SnackBar(content: Text('Lengkapi semua data terlebih dahulu.')),
       );
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pendaftaran demo berhasil.'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Pendaftaran demo berhasil.')));
 
     Navigator.pop(context);
   }
@@ -93,10 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(icon),
-        ),
+        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
       ),
     );
   }

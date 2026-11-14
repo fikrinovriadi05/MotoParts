@@ -4,9 +4,7 @@ import 'package:motopart/pages/auth/onboarding_page.dart';
 import 'package:motopart/pages/auth/splash_page.dart';
 
 void main() {
-  testWidgets('MotoPart app berjalan dengan baik',
-      (WidgetTester tester) async {
-    
+  testWidgets('MotoPart app berjalan dengan baik', (WidgetTester tester) async {
     // Menjalankan aplikasi MotoPart
     await tester.pumpWidget(const MotoPartApp());
 

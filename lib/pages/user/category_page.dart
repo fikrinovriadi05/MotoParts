@@ -34,9 +34,8 @@ class CategoryPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => CatalogPage(
-                    selectedCategory: item['name'] as String,
-                  ),
+                  builder: (_) =>
+                      CatalogPage(selectedCategory: item['name'] as String),
                 ),
               );
             },

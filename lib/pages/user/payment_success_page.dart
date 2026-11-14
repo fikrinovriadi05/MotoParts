@@ -42,10 +42,7 @@ class PaymentSuccessPage extends StatelessWidget {
               const Text(
                 'Pesanan kamu telah diterima dan sedang diproses.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.grey,
-                  height: 1.6,
-                ),
+                style: TextStyle(color: AppColors.grey, height: 1.6),
               ),
               const SizedBox(height: 30),
               PrimaryButton(
@@ -53,9 +50,7 @@ class PaymentSuccessPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const UserShell(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const UserShell()),
                     (route) => false,
                   );
                 },

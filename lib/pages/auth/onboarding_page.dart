@@ -57,11 +57,7 @@ class OnboardingPage extends StatelessWidget {
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _dot(true),
-                  _dot(false),
-                  _dot(false),
-                ],
+                children: [_dot(true), _dot(false), _dot(false)],
               ),
               const SizedBox(height: 22),
               PrimaryButton(

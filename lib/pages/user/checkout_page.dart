@@ -43,10 +43,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PaymentPage(
-          customerName: name.text,
-          shippingCost: shippingCost,
-        ),
+        builder: (_) =>
+            PaymentPage(customerName: name.text, shippingCost: shippingCost),
       ),
     );
   }
@@ -62,10 +60,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         children: [
           const Text(
             'Alamat Pengiriman',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -97,10 +92,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           const SizedBox(height: 22),
           const Text(
             'Kurir Pengiriman',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           RadioGroup<String>(
@@ -154,10 +146,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
           const SizedBox(height: 18),
-          PrimaryButton(
-            text: 'Lanjutkan Pembayaran',
-            onPressed: next,
-          ),
+          PrimaryButton(text: 'Lanjutkan Pembayaran', onPressed: next),
         ],
       ),
     );

@@ -80,10 +80,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 6),
                   const Text(
                     'Cari sparepart motor terbaik untuk kendaraanmu.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      height: 1.5,
-                    ),
+                    style: TextStyle(color: Colors.white70, height: 1.5),
                   ),
                   const SizedBox(height: 20),
                   TextField(
@@ -187,9 +184,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const CategoryPage(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const CategoryPage()),
                   );
                 },
               ),
@@ -217,9 +212,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const CatalogPage(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const CatalogPage()),
                   );
                 },
               ),
@@ -230,8 +223,7 @@ class _HomePageState extends State<HomePage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: products.length,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   mainAxisSpacing: 14,
                   crossAxisSpacing: 14,

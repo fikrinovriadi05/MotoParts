@@ -32,11 +32,7 @@ class _SplashPageState extends State<SplashPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppColors.black,
-              AppColors.dark,
-              AppColors.blue,
-            ],
+            colors: [AppColors.black, AppColors.dark, AppColors.blue],
           ),
         ),
         child: Stack(

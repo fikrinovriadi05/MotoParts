@@ -28,10 +28,7 @@ class _UserShellState extends State<UserShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: index,
-        children: pages,
-      ),
+      body: IndexedStack(index: index, children: pages),
       bottomNavigationBar: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
@@ -58,14 +55,15 @@ class _UserShellState extends State<UserShell> {
                   label: Text('${store.cartCount}'),
                   child: const Icon(Icons.shopping_bag_outlined),
                 ),
-                selectedIcon:
-                    const Icon(Icons.shopping_bag, color: AppColors.blue),
+                selectedIcon: const Icon(
+                  Icons.shopping_bag,
+                  color: AppColors.blue,
+                ),
                 label: 'Keranjang',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.receipt_long_outlined),
-                selectedIcon:
-                    Icon(Icons.receipt_long, color: AppColors.blue),
+                selectedIcon: Icon(Icons.receipt_long, color: AppColors.blue),
                 label: 'Pesanan',
               ),
               const NavigationDestination(

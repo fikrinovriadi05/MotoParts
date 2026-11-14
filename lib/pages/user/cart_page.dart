@@ -20,10 +20,7 @@ class CartPage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Keranjang masih kosong',
-                style: TextStyle(
-                  color: AppColors.grey,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppColors.grey, fontSize: 16),
               ),
             );
           }
@@ -89,7 +86,8 @@ class CartPage extends StatelessWidget {
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 12),
+                                        horizontal: 12,
+                                      ),
                                       child: Text(
                                         '${item.qty}',
                                         style: const TextStyle(
@@ -101,8 +99,9 @@ class CartPage extends StatelessWidget {
                                       icon: Icons.add,
                                       onTap: () {
                                         if (!store.increaseQty(item.product)) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             SnackBar(
                                               content: Text(
                                                 'Stok ${item.product.name} hanya ${item.product.stock} unit.',
@@ -136,9 +135,7 @@ class CartPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 20),
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  border: Border(
-                    top: BorderSide(color: AppColors.border),
-                  ),
+                  border: Border(top: BorderSide(color: AppColors.border)),
                 ),
                 child: Column(
                   children: [
@@ -172,7 +169,7 @@ class CartPage extends StatelessWidget {
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           );
         },
@@ -180,10 +177,7 @@ class CartPage extends StatelessWidget {
     );
   }
 
-  Widget _qtyButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _qtyButton({required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -192,11 +186,7 @@ class CartPage extends StatelessWidget {
           color: AppColors.blue.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: AppColors.blue,
-        ),
+        child: Icon(icon, size: 16, color: AppColors.blue),
       ),
     );
   }

@@ -8,11 +8,7 @@ class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
 
-  const ProductCard({
-    super.key,
-    required this.product,
-    required this.onTap,
-  });
+  const ProductCard({super.key, required this.product, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +31,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: Icon(
-                product.icon,
-                size: 54,
-                color: AppColors.blue,
-              ),
+              child: Icon(product.icon, size: 54, color: AppColors.blue),
             ),
             const SizedBox(height: 12),
             Text(
@@ -56,10 +48,7 @@ class ProductCard extends StatelessWidget {
               product.type,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppColors.grey,
-                fontSize: 11,
-              ),
+              style: const TextStyle(color: AppColors.grey, fontSize: 11),
             ),
             const Spacer(),
             Text(

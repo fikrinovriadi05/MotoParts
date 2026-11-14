@@ -5,11 +5,7 @@ class AppLogo extends StatelessWidget {
   final bool light;
   final double size;
 
-  const AppLogo({
-    super.key,
-    this.light = false,
-    this.size = 34,
-  });
+  const AppLogo({super.key, this.light = false, this.size = 34});
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +27,10 @@ class AppLogo extends StatelessWidget {
                 color: AppColors.blue.withValues(alpha: 0.25),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
-              )
+              ),
             ],
           ),
-          child: const Icon(
-            Icons.settings,
-            color: Colors.white,
-            size: 28,
-          ),
+          child: const Icon(Icons.settings, color: Colors.white, size: 28),
         ),
         const SizedBox(width: 10),
         RichText(

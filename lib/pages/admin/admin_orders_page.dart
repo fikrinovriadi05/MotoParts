@@ -35,9 +35,7 @@ class AdminOrdersPage extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         '${order.customer} • ${formatRupiah(order.total)}',
-                        style: const TextStyle(
-                          color: AppColors.grey,
-                        ),
+                        style: const TextStyle(color: AppColors.grey),
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(

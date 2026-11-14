@@ -60,16 +60,18 @@ void main() {
   test('produk tambahan dan penghapusan produk tersimpan', () async {
     final store = await _newStore();
     store.deleteProduct(store.products[0]);
-    store.addProduct(Product(
-      id: 99,
-      name: 'Produk Baru',
-      category: 'Mesin',
-      type: 'Universal',
-      price: 12345,
-      stock: 7,
-      icon: Icons.build,
-      description: 'Deskripsi',
-    ));
+    store.addProduct(
+      Product(
+        id: 99,
+        name: 'Produk Baru',
+        category: 'Mesin',
+        type: 'Universal',
+        price: 12345,
+        stock: 7,
+        icon: Icons.build,
+        description: 'Deskripsi',
+      ),
+    );
 
     final reloaded = await _reload(store);
 
@@ -95,15 +97,15 @@ void main() {
     final raw =
         jsonDecode(store.products.isEmpty ? '{}' : _snapshot(store)) as Map;
     (raw['cart'] as List).add({'productId': 6, 'qty': 999});
-    SharedPreferences.setMockInitialValues({
-      Store.storageKey: jsonEncode(raw),
-    });
+    SharedPreferences.setMockInitialValues({Store.storageKey: jsonEncode(raw)});
 
     final reloaded = Store();
     await reloaded.attach(await SharedPreferences.getInstance());
 
-    expect(reloaded.qtyInCart(reloaded.products.firstWhere((p) => p.id == 6)),
-        8); // stok Gear Set = 8
+    expect(
+      reloaded.qtyInCart(reloaded.products.firstWhere((p) => p.id == 6)),
+      8,
+    ); // stok Gear Set = 8
   });
 
   test('data rusak diabaikan dan memakai data bawaan', () async {

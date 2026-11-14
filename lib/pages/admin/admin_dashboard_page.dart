@@ -62,10 +62,7 @@ class AdminDashboardPage extends StatelessWidget {
                             (route) => false,
                           );
                         },
-                        icon: const Icon(
-                          Icons.logout,
-                          color: Colors.white,
-                        ),
+                        icon: const Icon(Icons.logout, color: Colors.white),
                       ),
                     ],
                   ),
@@ -109,24 +106,24 @@ class AdminDashboardPage extends StatelessWidget {
                 const SizedBox(height: 18),
                 const SectionTitle(title: 'Pesanan Terbaru'),
                 const SizedBox(height: 10),
-                ...store.orders.take(3).map(
-                  (order) => GlassCard(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        order.code,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
+                ...store.orders
+                    .take(3)
+                    .map(
+                      (order) => GlassCard(
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            order.code,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          subtitle: Text(
+                            '${order.customer} • ${formatRupiah(order.total)}',
+                            style: const TextStyle(color: AppColors.grey),
+                          ),
+                          trailing: _badge(order.status),
                         ),
                       ),
-                      subtitle: Text(
-                        '${order.customer} • ${formatRupiah(order.total)}',
-                        style: const TextStyle(color: AppColors.grey),
-                      ),
-                      trailing: _badge(order.status),
                     ),
-                  ),
-                ),
               ],
             ),
           );

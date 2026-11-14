@@ -6,12 +6,7 @@ class SectionTitle extends StatelessWidget {
   final String? action;
   final VoidCallback? onTap;
 
-  const SectionTitle({
-    super.key,
-    required this.title,
-    this.action,
-    this.onTap,
-  });
+  const SectionTitle({super.key, required this.title, this.action, this.onTap});
 
   @override
   Widget build(BuildContext context) {

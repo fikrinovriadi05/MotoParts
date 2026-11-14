@@ -24,7 +24,7 @@ class GlassCard extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 6),
-          )
+          ),
         ],
       ),
       child: child,

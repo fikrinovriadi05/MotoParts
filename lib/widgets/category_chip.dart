@@ -5,11 +5,7 @@ class CategoryChip extends StatelessWidget {
   final String title;
   final IconData icon;
 
-  const CategoryChip({
-    super.key,
-    required this.title,
-    required this.icon,
-  });
+  const CategoryChip({super.key, required this.title, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +26,7 @@ class CategoryChip extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Icon(
-              icon,
-              color: AppColors.blue,
-              size: 28,
-            ),
+            child: Icon(icon, color: AppColors.blue, size: 28),
           ),
           const SizedBox(height: 8),
           Text(
