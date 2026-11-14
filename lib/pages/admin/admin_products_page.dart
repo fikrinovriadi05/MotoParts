@@ -170,6 +170,32 @@ class AdminProductsPage extends StatelessWidget {
     );
   }
 
+  void confirmDelete(BuildContext context, Product product) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Produk'),
+          content: Text('Hapus "${product.name}" dari daftar produk?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.red),
+              onPressed: () {
+                store.deleteProduct(product);
+                Navigator.pop(dialogContext);
+              },
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,9 +260,7 @@ class AdminProductsPage extends StatelessWidget {
                         ),
                         IconButton(
                           tooltip: 'Hapus',
-                          onPressed: () {
-                            store.deleteProduct(product);
-                          },
+                          onPressed: () => confirmDelete(context, product),
                           icon: const Icon(
                             Icons.delete_outline,
                             color: AppColors.red,
