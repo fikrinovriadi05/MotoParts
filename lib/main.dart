@@ -324,7 +324,7 @@ class AppLogo extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.blue.withOpacity(0.25),
+                color: AppColors.blue.withValues(alpha: 0.25),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               )
@@ -448,7 +448,7 @@ class PrimaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.blue.withOpacity(0.25),
+              color: AppColors.blue.withValues(alpha: 0.25),
               blurRadius: 16,
               offset: const Offset(0, 8),
             )
@@ -495,7 +495,7 @@ class GlassCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 6),
           )
@@ -551,7 +551,7 @@ class _SplashPageState extends State<SplashPage> {
                 width: 220,
                 height: 220,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
+                  color: Colors.white.withValues(alpha: 0.06),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -563,7 +563,7 @@ class _SplashPageState extends State<SplashPage> {
                 width: 260,
                 height: 260,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -632,8 +632,8 @@ class OnboardingPage extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.blue.withOpacity(0.12),
-                      AppColors.black.withOpacity(0.06),
+                      AppColors.blue.withValues(alpha: 0.12),
+                      AppColors.black.withValues(alpha: 0.06),
                     ],
                   ),
                 ),
@@ -696,7 +696,7 @@ class OnboardingPage extends StatelessWidget {
       height: 8,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: active ? AppColors.blue : AppColors.grey.withOpacity(0.4),
+        color: active ? AppColors.blue : AppColors.grey.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
       ),
     );
@@ -917,7 +917,7 @@ class _LoginPageState extends State<LoginPage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.blue.withOpacity(0.08),
+                        color: AppColors.blue.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Text(
@@ -1072,7 +1072,7 @@ class _UserShellState extends State<UserShell> {
             selectedIndex: index,
             onDestinationSelected: (value) => setState(() => index = value),
             backgroundColor: Colors.white,
-            indicatorColor: AppColors.blue.withOpacity(0.12),
+            indicatorColor: AppColors.blue.withValues(alpha: 0.12),
             destinations: [
               const NavigationDestination(
                 icon: Icon(Icons.home_outlined),
@@ -1162,7 +1162,7 @@ class _HomePageState extends State<HomePage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.10),
+                          color: Colors.white.withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(
@@ -1224,7 +1224,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blue.withOpacity(0.18),
+                      color: AppColors.blue.withValues(alpha: 0.18),
                       blurRadius: 18,
                       offset: const Offset(0, 8),
                     ),
@@ -1270,7 +1270,7 @@ class _HomePageState extends State<HomePage> {
                       width: 84,
                       height: 84,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.10),
+                        color: Colors.white.withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -1388,8 +1388,8 @@ class CategoryChip extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.blue.withOpacity(0.15),
-                  AppColors.black.withOpacity(0.06),
+                  AppColors.blue.withValues(alpha: 0.15),
+                  AppColors.black.withValues(alpha: 0.06),
                 ],
               ),
               borderRadius: BorderRadius.circular(18),
@@ -1440,8 +1440,8 @@ class ProductCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.blue.withOpacity(0.12),
-                    AppColors.black.withOpacity(0.05),
+                    AppColors.blue.withValues(alpha: 0.12),
+                    AppColors.black.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(18),
@@ -1619,7 +1619,7 @@ class _CatalogPageState extends State<CatalogPage> {
                     onSelected: (_) {
                       setState(() => currentCategory = category);
                     },
-                    selectedColor: AppColors.blue.withOpacity(0.15),
+                    selectedColor: AppColors.blue.withValues(alpha: 0.15),
                     labelStyle: TextStyle(
                       color: selected ? AppColors.blue : AppColors.black,
                       fontWeight: FontWeight.w700,
@@ -1690,8 +1690,8 @@ class ProductDetailPage extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.blue.withOpacity(0.14),
-                  AppColors.black.withOpacity(0.06),
+                  AppColors.blue.withValues(alpha: 0.14),
+                  AppColors.black.withValues(alpha: 0.06),
                 ],
               ),
               borderRadius: BorderRadius.circular(28),
@@ -1862,7 +1862,7 @@ class CartPage extends StatelessWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(18),
                   itemCount: store.cart.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = store.cart[index];
                     return GlassCard(
@@ -1874,8 +1874,8 @@ class CartPage extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  AppColors.blue.withOpacity(0.12),
-                                  AppColors.black.withOpacity(0.05),
+                                  AppColors.blue.withValues(alpha: 0.12),
+                                  AppColors.black.withValues(alpha: 0.05),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(18),
@@ -2008,7 +2008,7 @@ class CartPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: AppColors.blue.withOpacity(0.12),
+          color: AppColors.blue.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(
@@ -2118,33 +2118,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ),
           ),
           const SizedBox(height: 8),
-          RadioListTile<String>(
-            value: 'JNE Regular',
+          RadioGroup<String>(
             groupValue: shipping,
-            activeColor: AppColors.blue,
-            title: const Text('JNE Regular'),
-            subtitle: const Text('Estimasi 2–4 hari'),
-            secondary: const Text('Rp10.000'),
             onChanged: (value) {
               setState(() {
                 shipping = value!;
-                shippingCost = 10000;
+                shippingCost = value == 'JNE Regular' ? 10000 : 12000;
               });
             },
-          ),
-          RadioListTile<String>(
-            value: 'J&T Express',
-            groupValue: shipping,
-            activeColor: AppColors.blue,
-            title: const Text('J&T Express'),
-            subtitle: const Text('Estimasi 2–3 hari'),
-            secondary: const Text('Rp12.000'),
-            onChanged: (value) {
-              setState(() {
-                shipping = value!;
-                shippingCost = 12000;
-              });
-            },
+            child: const Column(
+              children: [
+                RadioListTile<String>(
+                  value: 'JNE Regular',
+                  activeColor: AppColors.blue,
+                  title: Text('JNE Regular'),
+                  subtitle: Text('Estimasi 2–4 hari'),
+                  secondary: Text('Rp10.000'),
+                ),
+                RadioListTile<String>(
+                  value: 'J&T Express',
+                  activeColor: AppColors.blue,
+                  title: Text('J&T Express'),
+                  subtitle: Text('Estimasi 2–3 hari'),
+                  secondary: Text('Rp12.000'),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           GlassCard(
@@ -2229,10 +2228,19 @@ class _PaymentPageState extends State<PaymentPage> {
             ),
           ),
           const SizedBox(height: 12),
-          _paymentTile('Transfer Bank', Icons.account_balance),
-          _paymentTile('E-Wallet', Icons.account_balance_wallet_outlined),
-          _paymentTile('Virtual Account', Icons.receipt_long),
-          _paymentTile('COD', Icons.payments_outlined),
+          RadioGroup<String>(
+            groupValue: method,
+            onChanged: (value) => setState(() => method = value!),
+            child: Column(
+              children: [
+                _paymentTile('Transfer Bank', Icons.account_balance),
+                _paymentTile(
+                    'E-Wallet', Icons.account_balance_wallet_outlined),
+                _paymentTile('Virtual Account', Icons.receipt_long),
+                _paymentTile('COD', Icons.payments_outlined),
+              ],
+            ),
+          ),
           const SizedBox(height: 18),
           GlassCard(
             child: Row(
@@ -2259,7 +2267,7 @@ class _PaymentPageState extends State<PaymentPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.blue.withOpacity(0.08),
+              color: AppColors.blue.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Text(
@@ -2284,16 +2292,12 @@ class _PaymentPageState extends State<PaymentPage> {
     return Card(
       child: RadioListTile<String>(
         value: title,
-        groupValue: method,
         activeColor: AppColors.blue,
         title: Text(
           title,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
         secondary: Icon(icon, color: AppColors.blue),
-        onChanged: (value) {
-          setState(() => method = value!);
-        },
       ),
     );
   }
@@ -2316,7 +2320,7 @@ class PaymentSuccessPage extends StatelessWidget {
                 height: 110,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.green.withOpacity(0.12),
+                  color: AppColors.green.withValues(alpha: 0.12),
                 ),
                 child: const Icon(
                   Icons.check_circle,
@@ -2377,7 +2381,7 @@ class OrdersPage extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(18),
             itemCount: store.orders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final order = store.orders[index];
               return GlassCard(
@@ -2387,7 +2391,7 @@ class OrdersPage extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.blue.withOpacity(0.10),
+                      color: AppColors.blue.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
@@ -2427,7 +2431,7 @@ class OrdersPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -2460,7 +2464,7 @@ class ProfilePage extends StatelessWidget {
                   height: 72,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.blue.withOpacity(0.12),
+                    color: AppColors.blue.withValues(alpha: 0.12),
                   ),
                   child: const Icon(
                     Icons.person,
@@ -2565,7 +2569,7 @@ class _AdminShellState extends State<AdminShell> {
         onDestinationSelected: (value) => setState(() => index = value),
         height: 72,
         backgroundColor: Colors.white,
-        indicatorColor: AppColors.blue.withOpacity(0.12),
+        indicatorColor: AppColors.blue.withValues(alpha: 0.12),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
@@ -2763,7 +2767,7 @@ class AdminDashboardPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -2806,7 +2810,7 @@ class AdminProductsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
-                      value: category,
+                      initialValue: category,
                       decoration: const InputDecoration(
                         labelText: 'Kategori',
                       ),
@@ -2924,7 +2928,7 @@ class AdminProductsPage extends StatelessWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.blue.withOpacity(0.12),
+                            color: AppColors.blue.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Icon(
@@ -3013,7 +3017,7 @@ class AdminOrdersPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
-                        value: order.status,
+                        initialValue: order.status,
                         decoration: const InputDecoration(
                           labelText: 'Status Pesanan',
                         ),
