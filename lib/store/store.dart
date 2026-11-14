@@ -276,8 +276,28 @@ class Store extends ChangeNotifier {
     }).toList();
   }
 
+  static const cancelledStatus = 'Dibatalkan';
+
+  /// Mengubah status pesanan. Stok dikembalikan saat pesanan menjadi
+  /// "Dibatalkan", dan dikurangi lagi jika pesanan diaktifkan kembali.
+  /// Produk yang sudah dihapus dilewati.
   void updateOrderStatus(OrderItem order, String status) {
+    final wasCancelled = order.status == cancelledStatus;
+    final isCancelled = status == cancelledStatus;
     order.status = status;
+
+    if (wasCancelled != isCancelled) {
+      final direction = isCancelled ? 1 : -1;
+      for (final line in order.lines) {
+        final index = products.indexWhere((p) => p.id == line.productId);
+        if (index < 0) continue;
+        final product = products[index];
+        product.stock = (product.stock + direction * line.qty).clamp(
+          0,
+          1 << 30,
+        );
+      }
+    }
     notifyListeners();
   }
 
@@ -293,6 +313,15 @@ class Store extends ChangeNotifier {
         customer: customer,
         total: cartTotal + shippingCost,
         status: 'Diproses',
+        lines: [
+          for (final item in cart)
+            OrderLine(
+              productId: item.product.id,
+              name: item.product.name,
+              qty: item.qty,
+              price: item.product.price,
+            ),
+        ],
       ),
     );
     clearCart();

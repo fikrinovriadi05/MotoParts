@@ -1,14 +1,51 @@
+/// Satu baris barang dalam pesanan (disalin saat checkout, jadi tidak ikut
+/// berubah jika produknya kemudian diedit atau dihapus).
+class OrderLine {
+  final int productId;
+  final String name;
+  final int qty;
+  final int price;
+
+  const OrderLine({
+    required this.productId,
+    required this.name,
+    required this.qty,
+    required this.price,
+  });
+
+  factory OrderLine.fromJson(Map<String, dynamic> json) {
+    return OrderLine(
+      productId: json['productId'] as int,
+      name: json['name'] as String,
+      qty: json['qty'] as int,
+      price: json['price'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'productId': productId,
+    'name': name,
+    'qty': qty,
+    'price': price,
+  };
+}
+
 class OrderItem {
   final String code;
   final String customer;
   final int total;
   String status;
 
+  /// Barang yang dipesan. Kosong untuk pesanan lama/contoh yang tidak
+  /// mencatat barangnya.
+  final List<OrderLine> lines;
+
   OrderItem({
     required this.code,
     required this.customer,
     required this.total,
     required this.status,
+    this.lines = const [],
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -17,6 +54,9 @@ class OrderItem {
       customer: json['customer'] as String,
       total: json['total'] as int,
       status: json['status'] as String,
+      lines: ((json['lines'] as List?) ?? const [])
+          .map((e) => OrderLine.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -25,5 +65,6 @@ class OrderItem {
     'customer': customer,
     'total': total,
     'status': status,
+    'lines': lines.map((e) => e.toJson()).toList(),
   };
 }
