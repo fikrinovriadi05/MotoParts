@@ -1,6 +1,7 @@
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:motopart/main.dart';
+import 'package:motopart/app.dart';
+import 'package:motopart/pages/auth/onboarding_page.dart';
+import 'package:motopart/pages/auth/splash_page.dart';
 
 void main() {
   testWidgets('MotoPart app berjalan dengan baik',
