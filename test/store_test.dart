@@ -112,6 +112,61 @@ void main() {
     });
   });
 
+  group('stok', () {
+    test('addToCart ditolak saat qty sudah sama dengan stok', () {
+      final product = store.products[5]; // stok 8
+      for (var i = 0; i < product.stock; i++) {
+        expect(store.addToCart(product), isTrue);
+      }
+
+      expect(store.addToCart(product), isFalse);
+      expect(store.qtyInCart(product), product.stock);
+    });
+
+    test('increaseQty ditolak saat qty sudah sama dengan stok', () {
+      final product = store.products[5];
+      store.addToCart(product);
+      while (store.increaseQty(product)) {}
+
+      expect(store.qtyInCart(product), product.stock);
+      expect(store.increaseQty(product), isFalse);
+    });
+
+    test('produk dengan stok 0 tidak bisa dimasukkan ke keranjang', () {
+      final product = store.products[0];
+      product.stock = 0;
+
+      expect(store.addToCart(product), isFalse);
+      expect(store.cart, isEmpty);
+    });
+
+    test('penolakan tidak memanggil listener', () {
+      final product = store.products[0];
+      product.stock = 0;
+      var notified = 0;
+      store.addListener(() => notified++);
+
+      store.addToCart(product);
+
+      expect(notified, 0);
+    });
+
+    test('checkout mengurangi stok sesuai qty di keranjang', () {
+      final a = store.products[0];
+      final b = store.products[1];
+      final stockA = a.stock;
+      final stockB = b.stock;
+      store.addToCart(a);
+      store.addToCart(a);
+      store.addToCart(b);
+
+      store.checkout(customer: 'Siti', shippingCost: 10000);
+
+      expect(a.stock, stockA - 2);
+      expect(b.stock, stockB - 1);
+    });
+  });
+
   group('produk (admin)', () {
     Product newProduct(int id) => Product(
           id: id,

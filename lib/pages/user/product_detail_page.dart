@@ -139,10 +139,14 @@ class ProductDetailPage extends StatelessWidget {
             text: 'Masukkan ke Keranjang',
             icon: Icons.shopping_cart_outlined,
             onPressed: () {
-              store.addToCart(product);
+              final added = store.addToCart(product);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('${product.name} ditambahkan ke keranjang.'),
+                  content: Text(
+                    added
+                        ? '${product.name} ditambahkan ke keranjang.'
+                        : 'Stok ${product.name} hanya ${product.stock} unit.',
+                  ),
                 ),
               );
             },

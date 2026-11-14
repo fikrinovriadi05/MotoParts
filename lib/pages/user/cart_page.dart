@@ -100,7 +100,16 @@ class CartPage extends StatelessWidget {
                                     _qtyButton(
                                       icon: Icons.add,
                                       onTap: () {
-                                        store.increaseQty(item.product);
+                                        if (!store.increaseQty(item.product)) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Stok ${item.product.name} hanya ${item.product.stock} unit.',
+                                              ),
+                                            ),
+                                          );
+                                        }
                                       },
                                     ),
                                   ],

@@ -95,7 +95,17 @@ class Store extends ChangeNotifier {
   int get cartTotal =>
       cart.fold(0, (sum, item) => sum + (item.product.price * item.qty));
 
-  void addToCart(Product product) {
+  /// Jumlah produk [product] yang sudah ada di keranjang.
+  int qtyInCart(Product product) {
+    final index = cart.indexWhere((e) => e.product.id == product.id);
+    return index >= 0 ? cart[index].qty : 0;
+  }
+
+  /// Menambah produk ke keranjang. Mengembalikan `false` (dan tidak mengubah
+  /// apa pun) jika jumlah di keranjang sudah mencapai stok.
+  bool addToCart(Product product) {
+    if (qtyInCart(product) >= product.stock) return false;
+
     final index = cart.indexWhere((e) => e.product.id == product.id);
     if (index >= 0) {
       cart[index].qty++;
@@ -103,14 +113,18 @@ class Store extends ChangeNotifier {
       cart.add(CartItem(product: product));
     }
     notifyListeners();
+    return true;
   }
 
-  void increaseQty(Product product) {
+  /// Menaikkan qty item di keranjang. Mengembalikan `false` jika produk tidak
+  /// ada di keranjang atau qty sudah mencapai stok.
+  bool increaseQty(Product product) {
     final index = cart.indexWhere((e) => e.product.id == product.id);
-    if (index >= 0) {
-      cart[index].qty++;
-      notifyListeners();
-    }
+    if (index < 0 || cart[index].qty >= product.stock) return false;
+
+    cart[index].qty++;
+    notifyListeners();
+    return true;
   }
 
   void decreaseQty(Product product) {
@@ -155,6 +169,9 @@ class Store extends ChangeNotifier {
     required int shippingCost,
   }) {
     final orderCode = 'MP-${DateTime.now().millisecondsSinceEpoch}';
+    for (final item in cart) {
+      item.product.stock = (item.product.stock - item.qty).clamp(0, 1 << 30);
+    }
     orders.insert(
       0,
       OrderItem(
