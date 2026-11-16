@@ -5,6 +5,7 @@ import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/widgets/review_section.dart';
 import 'package:motopart/widgets/wishlist_button.dart';
 
 class ProductDetailPage extends StatelessWidget {
@@ -56,9 +57,7 @@ class ProductDetailPage extends StatelessWidget {
           const SizedBox(height: 14),
           Row(
             children: [
-              const Icon(Icons.star, color: Colors.amber, size: 18),
-              const SizedBox(width: 6),
-              const Text('4.8', style: TextStyle(fontWeight: FontWeight.w700)),
+              RatingSummary(product: product),
               const SizedBox(width: 10),
               Container(
                 width: 5,
@@ -111,6 +110,8 @@ class ProductDetailPage extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          ReviewSection(product: product),
           const SizedBox(height: 24),
           PrimaryButton(
             text: product.stock > 0 ? 'Masukkan ke Keranjang' : 'Stok Habis',

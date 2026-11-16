@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/product.dart';
+import 'package:motopart/models/review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ProductSort {
@@ -71,9 +72,17 @@ class Store extends ChangeNotifier {
       };
     }
 
+    final loadedReviews = <Review>[
+      for (final e in (data['reviews'] as List?) ?? const [])
+        Review.fromJson(e as Map<String, dynamic>),
+    ].where((r) => loadedProducts.any((p) => p.id == r.productId)).toList();
+
     products
       ..clear()
       ..addAll(loadedProducts);
+    reviews
+      ..clear()
+      ..addAll(loadedReviews);
     orders
       ..clear()
       ..addAll(loadedOrders);
@@ -97,6 +106,7 @@ class Store extends ChangeNotifier {
               .toList(),
       },
       'orders': orders.map((e) => e.toJson()).toList(),
+      'reviews': reviews.map((e) => e.toJson()).toList(),
       'wishlists': {
         for (final entry in _wishlists.entries) entry.key: entry.value.toList(),
       },
@@ -318,6 +328,7 @@ class Store extends ChangeNotifier {
 
   void deleteProduct(Product product) {
     products.removeWhere((e) => e.id == product.id);
+    reviews.removeWhere((r) => r.productId == product.id);
     for (final items in _carts.values) {
       items.removeWhere((e) => e.product.id == product.id);
     }
@@ -342,6 +353,90 @@ class Store extends ChangeNotifier {
     if (!added) wishlistIds.remove(product.id);
     notifyListeners();
     return added;
+  }
+
+  // ------------------------------------------------------------ ulasan
+
+  static const maxCommentLength = 300;
+
+  /// Semua ulasan, urutan = urutan dibuat.
+  final List<Review> reviews = [];
+
+  /// Ulasan satu produk, yang terbaru di atas.
+  List<Review> reviewsFor(Product product) {
+    final list = reviews.where((r) => r.productId == product.id).toList();
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return list;
+  }
+
+  /// Rata-rata rating produk, atau null jika belum ada ulasan.
+  double? averageRating(Product product) {
+    final list = reviews.where((r) => r.productId == product.id).toList();
+    if (list.isEmpty) return null;
+    return list.fold<int>(0, (sum, r) => sum + r.rating) / list.length;
+  }
+
+  /// Ulasan milik akun yang sedang aktif untuk [product], jika ada.
+  Review? myReviewFor(Product product) {
+    for (final r in reviews) {
+      if (r.productId == product.id && r.accountId == currentAccountId) {
+        return r;
+      }
+    }
+    return null;
+  }
+
+  /// Hanya akun yang sudah login dan punya pesanan berstatus "Selesai" yang
+  /// memuat produk ini yang boleh mengulas.
+  bool canReview(Product product) {
+    if (currentAccountId == guestId) return false;
+    return orders.any(
+      (o) =>
+          o.accountId == currentAccountId &&
+          o.status == 'Selesai' &&
+          o.lines.any((l) => l.productId == product.id),
+    );
+  }
+
+  /// Membuat atau mengganti ulasan akun aktif untuk [product]. Mengembalikan
+  /// pesan kesalahan, atau `null` jika berhasil.
+  String? submitReview(
+    Product product, {
+    required int rating,
+    required String comment,
+    required String authorName,
+    DateTime? now,
+  }) {
+    if (!canReview(product)) {
+      return 'Ulasan hanya untuk pembeli yang pesanannya sudah selesai.';
+    }
+    if (rating < 1 || rating > 5) return 'Pilih rating 1 sampai 5 bintang.';
+    final text = comment.trim();
+    if (text.length > maxCommentLength) {
+      return 'Komentar maksimal $maxCommentLength karakter.';
+    }
+
+    reviews.removeWhere(
+      (r) => r.productId == product.id && r.accountId == currentAccountId,
+    );
+    reviews.add(
+      Review(
+        productId: product.id,
+        accountId: currentAccountId,
+        authorName: authorName,
+        rating: rating,
+        comment: text,
+        createdAt: now ?? DateTime.now(),
+      ),
+    );
+    notifyListeners();
+    return null;
+  }
+
+  /// Menghapus ulasan (dipakai admin untuk ulasan yang tidak pantas).
+  void deleteReview(Review review) {
+    reviews.remove(review);
+    notifyListeners();
   }
 
   /// Mencari produk untuk katalog. [category] 'Semua'/null = semua kategori;

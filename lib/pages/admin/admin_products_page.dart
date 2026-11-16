@@ -5,6 +5,7 @@ import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/widgets/review_section.dart';
 
 class AdminProductsPage extends StatelessWidget {
   const AdminProductsPage({super.key});
@@ -170,6 +171,46 @@ class AdminProductsPage extends StatelessWidget {
     );
   }
 
+  /// Daftar ulasan satu produk; admin bisa menghapus yang tidak pantas.
+  void reviewsDialog(BuildContext context, Product product) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Ulasan: ${product.name}'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: AnimatedBuilder(
+              animation: store,
+              builder: (context, _) {
+                final reviews = store.reviewsFor(product);
+                if (reviews.isEmpty) {
+                  return const Text('Belum ada ulasan.');
+                }
+                return ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final review in reviews)
+                      ReviewTile(
+                        review: review,
+                        onDelete: () => store.deleteReview(review),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tutup'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void confirmDelete(BuildContext context, Product product) {
     showDialog(
       context: context,
@@ -247,6 +288,14 @@ class AdminProductsPage extends StatelessWidget {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Ulasan',
+                          onPressed: () => reviewsDialog(context, product),
+                          icon: const Icon(
+                            Icons.rate_review_outlined,
+                            color: AppColors.grey,
                           ),
                         ),
                         IconButton(
