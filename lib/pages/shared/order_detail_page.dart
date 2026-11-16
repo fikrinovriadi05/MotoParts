@@ -5,6 +5,7 @@ import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/order_timeline.dart';
+import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
 /// Detail satu pesanan. Dipakai pembeli (hanya lihat) dan admin
@@ -147,25 +148,21 @@ class OrderDetailPage extends StatelessWidget {
 
   Widget _lineRow(BuildContext context, OrderLine line) {
     final palette = context.palette;
-    // Ikon diambil dari produknya; produk yang sudah dihapus memakai ikon umum.
+    // Gambar diambil dari produknya; produk yang sudah dihapus memakai ikon umum.
     final index = store.products.indexWhere((p) => p.id == line.productId);
-    final icon = index >= 0
-        ? store.products[index].icon
-        : Icons.inventory_2_rounded;
+    final product = index >= 0 ? store.products[index] : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
+          ProductPicture.forProduct(
+            product,
             width: 44,
             height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Icon(icon, size: 22, color: palette.primaryText),
+            iconSize: 22,
+            radius: AppRadius.sm,
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

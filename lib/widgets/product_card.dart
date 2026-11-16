@@ -4,12 +4,14 @@ import 'package:motopart/models/product.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/cart_feedback.dart';
 import 'package:motopart/widgets/press_scale.dart';
+import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/wishlist_button.dart';
 
 /// Tag Hero yang sama dipakai kartu dan halaman detail agar gambar "terbang".
 String productHeroTag(Product product) => 'product-${product.id}';
 
-/// Gambar produk (ikon di atas gradien). Dipakai kartu dan halaman detail.
+/// Gambar produk (foto, atau ikon di atas gradien). Dipakai kartu dan halaman
+/// detail; tag Hero yang sama membuatnya "terbang" di antara keduanya.
 class ProductImage extends StatelessWidget {
   final Product product;
   final double height;
@@ -26,24 +28,14 @@ class ProductImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = context.palette;
     return Hero(
       tag: productHeroTag(product),
-      child: Container(
-        height: height,
+      child: ProductPicture.forProduct(
+        product,
         width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.primary.withValues(alpha: 0.22),
-              palette.surfaceAlt,
-            ],
-          ),
-          borderRadius: BorderRadius.circular(radius),
-        ),
-        child: Icon(product.icon, size: iconSize, color: palette.primaryText),
+        height: height,
+        iconSize: iconSize,
+        radius: radius,
       ),
     );
   }

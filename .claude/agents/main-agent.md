@@ -10,7 +10,7 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 ## Gambaran proyek
 
 - Flutter, Dart SDK `^3.13.4`, Material 3, lint `flutter_lints`.
-- Dependensi: `shared_preferences` (penyimpanan lokal), `crypto` (hash password), `google_fonts` (Poppins & Montserrat; diunduh saat pertama dipakai), `intl` (format Rupiah), `cupertino_icons`. Tidak ada backend dan tidak ada package state management.
+- Dependensi: `shared_preferences` (penyimpanan lokal), `crypto` (hash password), `google_fonts` (Poppins & Montserrat; diunduh saat pertama dipakai), `intl` (format Rupiah), `image_picker` + `path_provider` (foto produk), `cupertino_icons`. Tidak ada backend dan tidak ada package state management.
 - Semua data tersimpan di perangkat lewat `SharedPreferences` (JSON). Teks UI, nama status, dan komentar memakai Bahasa Indonesia.
 - Repo git sudah ada (branch `main`). Commit berbahasa Indonesia, satu topik per commit.
 
@@ -70,6 +70,8 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 - **Widget `const` yang membaca `store`/`auth` tidak ikut dibangun ulang** oleh `AnimatedBuilder` pembungkusnya (instance `const` identik dilewati). Ringkasan keranjang pernah menampilkan angka basi karena ini. Beri widget itu `AnimatedBuilder(animation: store, ...)` sendiri, atau jangan `const`. Tes widget harus mengubah data lalu `pump()` dan memeriksa teksnya, bukan hanya `store`.
 - **Laporan penjualan** memakai data nyata (`Store.totalSales`, `salesOrders`, `totalUnitsSold`, `salesLast7Days`). Pesanan contoh (Budi/Andi) punya total tapi tanpa rincian barang/tanggal, jadi masuk total penjualan tetapi tidak masuk "Barang Terjual" dan grafik harian. Jangan menulis angka tetap di UI; cari teks/angka tetap dengan grep sebelum menyatakan selesai.
 - `test/full_redesign_test.dart` menyapu 14 halaman di 320x568, teks 1,3x, terang & gelap untuk mendeteksi overflow. Tambahkan halaman baru ke daftar itu.
+
+- **Foto produk**: `Product.imagePath` (opsional, kompatibel mundur). Tampilkan gambar produk selalu lewat `ProductPicture` (foto jika file ada, selain itu ikon; `errorBuilder` menangani file rusak), jangan memakai `Icon(product.icon)` langsung. File disalin ke `<app documents>/product_images/` lewat `productImageStorage` (`core/product_image_storage.dart`; di tes diganti `FakeImageStorage`). Hanya file di folder itu yang boleh dihapus. Foto yang dipilih tapi tidak jadi disimpan, foto lama yang diganti, dan foto produk yang dihapus harus dihapus filenya. Di Android pemilih foto sistem tidak butuh izin tambahan.
 
 ## Cara kerja
 

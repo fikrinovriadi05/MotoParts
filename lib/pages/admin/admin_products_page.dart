@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/categories.dart';
+import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/review_section.dart';
 
 class AdminProductsPage extends StatelessWidget {
@@ -28,8 +30,13 @@ class AdminProductsPage extends StatelessWidget {
     ];
     String category = product?.category ?? 'Mesin';
     String? error;
+    final oldImagePath = product?.imagePath;
+    String? imagePath = oldImagePath;
+    // Foto yang dipilih selama dialog ini terbuka (disalin ke penyimpanan app).
+    final pickedPaths = <String>[];
+    var saved = false;
 
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
@@ -40,6 +47,23 @@ class AdminProductsPage extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    _PhotoField(
+                      imagePath: imagePath,
+                      icon: product?.icon ?? Icons.build_rounded,
+                      onPick: () async {
+                        final path = await productImageStorage
+                            .pickFromGallery();
+                        if (path == null) return;
+                        if (!dialogContext.mounted) {
+                          productImageStorage.delete(path);
+                          return;
+                        }
+                        pickedPaths.add(path);
+                        setDialog(() => imagePath = path);
+                      },
+                      onRemove: () => setDialog(() => imagePath = null),
+                    ),
+                    const SizedBox(height: 14),
                     TextField(
                       controller: name,
                       decoration: const InputDecoration(
@@ -137,6 +161,8 @@ class AdminProductsPage extends StatelessWidget {
                         price: parsedPrice,
                         stock: parsedStock,
                         description: description.text.trim(),
+                        imagePath: imagePath,
+                        clearImage: imagePath == null,
                       );
                     } else {
                       store.addProduct(
@@ -149,10 +175,16 @@ class AdminProductsPage extends StatelessWidget {
                           stock: parsedStock,
                           icon: Icons.build_rounded,
                           description: description.text.trim(),
+                          imagePath: imagePath,
                         ),
                       );
                     }
 
+                    // Foto lama yang diganti/dihapus tidak dipakai lagi.
+                    if (oldImagePath != null && oldImagePath != imagePath) {
+                      productImageStorage.delete(oldImagePath);
+                    }
+                    saved = true;
                     Navigator.pop(dialogContext);
                   },
                   child: Text(isEdit ? 'Simpan Perubahan' : 'Simpan'),
@@ -162,7 +194,12 @@ class AdminProductsPage extends StatelessWidget {
           },
         );
       },
-    );
+    ).then((_) {
+      // Foto yang dipilih tetapi tidak jadi dipakai dihapus dari penyimpanan.
+      for (final path in pickedPaths) {
+        if (!saved || path != imagePath) productImageStorage.delete(path);
+      }
+    });
   }
 
   /// Daftar ulasan satu produk; admin bisa menghapus yang tidak pantas.
@@ -221,6 +258,7 @@ class AdminProductsPage extends StatelessWidget {
               style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
               onPressed: () {
                 store.deleteProduct(product);
+                productImageStorage.delete(product.imagePath);
                 Navigator.pop(dialogContext);
               },
               child: const Text('Hapus'),
@@ -376,22 +414,7 @@ class _ProductTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.22),
-                      palette.surfaceAlt,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(product.icon, color: palette.primaryText),
-              ),
+              ProductPicture.forProduct(product, width: 56, height: 56),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -458,6 +481,58 @@ class _ProductTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Bagian foto di dialog produk: pratinjau, pilih/ganti, dan hapus foto.
+class _PhotoField extends StatelessWidget {
+  final String? imagePath;
+  final IconData icon;
+  final VoidCallback onPick;
+  final VoidCallback onRemove;
+
+  const _PhotoField({
+    required this.imagePath,
+    required this.icon,
+    required this.onPick,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPhoto = ProductPicture.hasPhoto(imagePath);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ProductPicture(
+          key: const ValueKey('photo-preview'),
+          imagePath: imagePath,
+          icon: icon,
+          height: 140,
+          iconSize: 56,
+          radius: AppRadius.md,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: AppSpacing.sm,
+          children: [
+            OutlinedButton.icon(
+              onPressed: onPick,
+              icon: const Icon(Icons.photo_library_rounded, size: 18),
+              label: Text(hasPhoto ? 'Ganti Foto' : 'Pilih Foto'),
+            ),
+            if (imagePath != null)
+              TextButton.icon(
+                onPressed: onRemove,
+                icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                label: const Text('Hapus Foto'),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

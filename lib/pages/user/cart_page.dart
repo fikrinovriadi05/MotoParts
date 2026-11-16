@@ -6,6 +6,7 @@ import 'package:motopart/pages/user/checkout_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/widgets/product_picture.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -188,22 +189,7 @@ class _CartItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary.withValues(alpha: 0.22),
-                  palette.surfaceAlt,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Icon(product.icon, color: palette.primaryText, size: 32),
-          ),
+          ProductPicture.forProduct(product, width: 64, height: 64),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(

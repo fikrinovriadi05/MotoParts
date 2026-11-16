@@ -307,6 +307,8 @@ class Store extends ChangeNotifier {
     int? price,
     int? stock,
     String? description,
+    String? imagePath,
+    bool clearImage = false,
   }) {
     if (name != null) product.name = name;
     if (category != null) product.category = category;
@@ -314,6 +316,11 @@ class Store extends ChangeNotifier {
     if (price != null) product.price = price;
     if (stock != null) product.stock = stock < 0 ? 0 : stock;
     if (description != null) product.description = description;
+    if (clearImage) {
+      product.imagePath = null;
+    } else if (imagePath != null) {
+      product.imagePath = imagePath;
+    }
 
     for (final items in _carts.values) {
       for (final item in items) {

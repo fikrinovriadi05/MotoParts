@@ -22,6 +22,9 @@ class Product {
   final IconData icon;
   String description;
 
+  /// Jalur file foto produk di perangkat (null = tanpa foto, pakai ikon).
+  String? imagePath;
+
   Product({
     required this.id,
     required this.name,
@@ -31,6 +34,7 @@ class Product {
     required this.stock,
     required this.icon,
     required this.description,
+    this.imagePath,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -43,6 +47,7 @@ class Product {
       stock: json['stock'] as int,
       icon: icons[json['icon']] ?? Icons.build_rounded,
       description: json['description'] as String,
+      imagePath: json['imagePath'] as String?,
     );
   }
 
@@ -62,6 +67,7 @@ class Product {
       'stock': stock,
       'icon': iconName,
       'description': description,
+      'imagePath': imagePath,
     };
   }
 }
