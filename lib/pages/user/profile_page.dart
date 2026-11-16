@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/pages/auth/login_page.dart';
+import 'package:motopart/pages/user/wishlist_page.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
@@ -55,6 +56,14 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
+          _menu(
+            Icons.favorite_border,
+            'Wishlist',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WishlistPage()),
+            ),
+          ),
           _menu(Icons.person_outline, 'Data Akun'),
           _menu(Icons.location_on_outlined, 'Alamat Pengiriman'),
           _menu(Icons.credit_card, 'Metode Pembayaran'),
@@ -77,18 +86,23 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _menu(IconData icon, String title) {
+  Widget _menu(IconData icon, String title, {VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       child: GlassCard(
-        child: ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: Icon(icon, color: AppColors.blue),
-          title: Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.w700),
+        // Material sendiri agar efek tap ListTile tidak tertutup warna kartu.
+        child: Material(
+          type: MaterialType.transparency,
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            onTap: onTap,
+            leading: Icon(icon, color: AppColors.blue),
+            title: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            trailing: const Icon(Icons.chevron_right),
           ),
-          trailing: const Icon(Icons.chevron_right),
         ),
       ),
     );

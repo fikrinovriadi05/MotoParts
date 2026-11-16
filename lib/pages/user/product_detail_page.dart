@@ -5,6 +5,7 @@ import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/widgets/wishlist_button.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Product product;
@@ -16,9 +17,7 @@ class ProductDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Produk'),
-        actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.favorite_border)),
-        ],
+        actions: [WishlistButton(product: product)],
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),

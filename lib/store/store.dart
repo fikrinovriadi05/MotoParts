@@ -53,6 +53,11 @@ class Store extends ChangeNotifier {
       if (qty > 0) loadedCart.add(CartItem(product: product, qty: qty));
     }
 
+    final loadedWishlist = <int>{
+      for (final id in (data['wishlist'] as List?) ?? const [])
+        if (id is int && loadedProducts.any((p) => p.id == id)) id,
+    };
+
     products
       ..clear()
       ..addAll(loadedProducts);
@@ -62,6 +67,9 @@ class Store extends ChangeNotifier {
     cart
       ..clear()
       ..addAll(loadedCart);
+    wishlistIds
+      ..clear()
+      ..addAll(loadedWishlist);
   }
 
   void _save() {
@@ -73,6 +81,7 @@ class Store extends ChangeNotifier {
           .map((e) => {'productId': e.product.id, 'qty': e.qty})
           .toList(),
       'orders': orders.map((e) => e.toJson()).toList(),
+      'wishlist': wishlistIds.toList(),
     };
     prefs.setString(storageKey, jsonEncode(data));
   }
@@ -263,7 +272,29 @@ class Store extends ChangeNotifier {
 
   void deleteProduct(Product product) {
     products.removeWhere((e) => e.id == product.id);
+    cart.removeWhere((e) => e.product.id == product.id);
+    wishlistIds.remove(product.id);
     notifyListeners();
+  }
+
+  /// Id produk yang ada di wishlist (urutan = urutan ditambahkan).
+  final Set<int> wishlistIds = {};
+
+  bool isWishlisted(Product product) => wishlistIds.contains(product.id);
+
+  /// Produk wishlist, yang terakhir ditambahkan di paling atas.
+  List<Product> get wishlistProducts => [
+    for (final id in wishlistIds.toList().reversed)
+      ...products.where((p) => p.id == id),
+  ];
+
+  /// Menambah/menghapus produk dari wishlist. Mengembalikan `true` jika
+  /// sekarang produk ada di wishlist.
+  bool toggleWishlist(Product product) {
+    final added = wishlistIds.add(product.id);
+    if (!added) wishlistIds.remove(product.id);
+    notifyListeners();
+    return added;
   }
 
   /// Mencari produk untuk katalog. [category] 'Semua'/null = semua kategori;

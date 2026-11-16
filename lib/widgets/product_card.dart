@@ -3,6 +3,7 @@ import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/widgets/glass_card.dart';
+import 'package:motopart/widgets/wishlist_button.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -19,19 +20,28 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 110,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.blue.withValues(alpha: 0.12),
-                    AppColors.black.withValues(alpha: 0.05),
-                  ],
+            Stack(
+              children: [
+                Container(
+                  height: 110,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.blue.withValues(alpha: 0.12),
+                        AppColors.black.withValues(alpha: 0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(product.icon, size: 54, color: AppColors.blue),
                 ),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(product.icon, size: 54, color: AppColors.blue),
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: WishlistButton(product: product, size: 20),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Text(
