@@ -158,6 +158,99 @@ class AuthStore extends ChangeNotifier {
     return null;
   }
 
+  // ------------------------------------------------------- kelola akun
+
+  void _replace(Account updated) {
+    final index = accounts.indexWhere((a) => a.id == updated.id);
+    if (index < 0) return;
+    accounts[index] = updated;
+    if (_current?.id == updated.id) _current = updated;
+  }
+
+  /// Apakah akun admin masih memakai password awal bawaan.
+  bool get adminUsesDefaultPassword => accounts.any(
+    (a) => a.isAdmin && _passwordMatches(a, adminInitialPassword),
+  );
+
+  /// Mengubah password akun yang sedang login. Mengembalikan pesan
+  /// kesalahan, atau `null` jika berhasil.
+  String? changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    if (!_passwordMatches(account, oldPassword)) {
+      return 'Password lama salah.';
+    }
+    if (newPassword.length < minPasswordLength) {
+      return 'Password baru minimal $minPasswordLength karakter.';
+    }
+    if (newPassword == oldPassword) {
+      return 'Password baru harus berbeda dari password lama.';
+    }
+
+    final salt = _newSalt();
+    _replace(
+      account.copyWith(
+        salt: salt,
+        passwordHash: hashPassword(newPassword, salt),
+      ),
+    );
+    notifyListeners();
+    return null;
+  }
+
+  /// Mengubah nama dan nomor telepon akun yang sedang login (email tetap).
+  String? updateProfile({required String name, required String phone}) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    if (name.trim().isEmpty || phone.trim().isEmpty) {
+      return 'Nama dan nomor telepon wajib diisi.';
+    }
+    if (phone.replaceAll(RegExp(r'\D'), '').length < 8) {
+      return 'Nomor telepon tidak valid.';
+    }
+
+    _replace(account.copyWith(name: name.trim(), phone: phone.trim()));
+    notifyListeners();
+    return null;
+  }
+
+  /// Akun pembeli (tanpa admin), untuk halaman kelola pengguna.
+  List<Account> get userAccounts => accounts.where((a) => !a.isAdmin).toList();
+
+  /// Password sementara acak (tanpa karakter yang mudah tertukar).
+  String generateTemporaryPassword() {
+    const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
+    return List.generate(
+      8,
+      (_) => alphabet[_random.nextInt(alphabet.length)],
+    ).join();
+  }
+
+  /// Admin mengatur ulang password pembeli (pengganti "lupa password" karena
+  /// belum ada server/email). Hanya bisa dilakukan oleh admin yang login.
+  String? resetPassword(Account target, String newPassword) {
+    if (!isAdmin) return 'Hanya admin yang dapat mengatur ulang password.';
+    if (target.isAdmin) return 'Password admin diubah lewat Ganti Password.';
+    if (newPassword.length < minPasswordLength) {
+      return 'Password minimal $minPasswordLength karakter.';
+    }
+    final index = accounts.indexWhere((a) => a.id == target.id);
+    if (index < 0) return 'Akun tidak ditemukan.';
+
+    final salt = _newSalt();
+    _replace(
+      accounts[index].copyWith(
+        salt: salt,
+        passwordHash: hashPassword(newPassword, salt),
+      ),
+    );
+    notifyListeners();
+    return null;
+  }
+
   void logout() {
     _current = null;
     _store?.setCurrentAccount(null);

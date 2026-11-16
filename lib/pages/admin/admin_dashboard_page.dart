@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/pages/admin/admin_users_page.dart';
 import 'package:motopart/pages/auth/login_page.dart';
+import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
@@ -14,7 +16,7 @@ class AdminDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AnimatedBuilder(
-        animation: store,
+        animation: Listenable.merge([store, auth]),
         builder: (context, _) {
           return SafeArea(
             child: ListView(
@@ -68,6 +70,74 @@ class AdminDashboardPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                if (auth.adminUsesDefaultPassword) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.orange.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: AppColors.orange,
+                        ),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            'Anda masih memakai password admin bawaan. '
+                            'Segera ganti demi keamanan.',
+                            style: TextStyle(fontSize: 12, height: 1.4),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ChangePasswordPage(),
+                            ),
+                          ),
+                          child: const Text('Ganti'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AdminUsersPage(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.group_outlined),
+                        label: const Text('Kelola Pengguna'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChangePasswordPage(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.lock_outline),
+                        label: const Text('Ganti Password'),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 18),
                 GridView.count(

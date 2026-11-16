@@ -29,6 +29,30 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  void _showForgotPassword() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Lupa Password'),
+        content: Text(
+          admin
+              ? 'Password admin diubah lewat menu Ganti Password setelah masuk. '
+                    'Jika password terlupa, hapus data aplikasi untuk mengembalikan '
+                    'akun admin ke pengaturan awal.'
+              : 'Hubungi admin toko untuk mengatur ulang password Anda. '
+                    'Admin akan memberi password sementara yang bisa Anda ganti '
+                    'lewat Profil > Ganti Password.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void login() {
     final error = auth.login(
       email: email.text,
@@ -198,7 +222,13 @@ class _LoginPageState extends State<LoginPage> {
                       icon: Icons.login,
                       onPressed: login,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: TextButton(
+                        onPressed: _showForgotPassword,
+                        child: const Text('Lupa password?'),
+                      ),
+                    ),
                     if (!admin)
                       Center(
                         child: TextButton(

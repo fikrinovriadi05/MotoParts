@@ -23,6 +23,23 @@ class Account {
 
   bool get isAdmin => role == AccountRole.admin;
 
+  Account copyWith({
+    String? name,
+    String? phone,
+    String? passwordHash,
+    String? salt,
+  }) {
+    return Account(
+      id: id,
+      name: name ?? this.name,
+      email: email,
+      phone: phone ?? this.phone,
+      role: role,
+      passwordHash: passwordHash ?? this.passwordHash,
+      salt: salt ?? this.salt,
+    );
+  }
+
   factory Account.fromJson(Map<String, dynamic> json) {
     return Account(
       id: json['id'] as String,
