@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/pages/admin/admin_users_page.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
@@ -23,6 +24,53 @@ class AdminDashboardPage extends StatelessWidget {
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
+    );
+  }
+
+  /// Konfirmasi lalu mengembalikan produk & pesanan ke data contoh.
+  void _confirmResetSampleData(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final palette = dialogContext.palette;
+        return AlertDialog(
+          icon: Icon(
+            Icons.warning_amber_rounded,
+            color: palette.dangerText,
+            size: 32,
+          ),
+          title: const Text('Reset Data Contoh?'),
+          content: const Text(
+            'Semua produk, pesanan, keranjang, wishlist, dan ulasan saat ini '
+            'akan dihapus lalu diganti dengan data contoh '
+            '(${Store.sampleProductCount} produk dan '
+            '${Store.sampleOrderCount} pesanan). Foto produk yang sudah '
+            'diunggah ikut terhapus.\n\n'
+            'Akun pengguna tidak berubah. Tindakan ini tidak bisa dibatalkan.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+              onPressed: () {
+                final photos = store.resetSampleData();
+                for (final path in photos) {
+                  productImageStorage.delete(path);
+                }
+                Navigator.pop(dialogContext);
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Data contoh dikembalikan.')),
+                );
+              },
+              child: const Text('Reset'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -180,6 +228,48 @@ class AdminDashboardPage extends StatelessWidget {
                           ),
                         ),
                       ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md + 2),
+                      decoration: BoxDecoration(
+                        color: palette.surface,
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        border: Border.all(color: palette.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Data Contoh',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: palette.text,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            'Kembalikan produk dan pesanan ke data contoh '
+                            'bawaan. Berguna untuk mencoba ulang atau '
+                            'mendapatkan produk contoh terbaru.',
+                            style: TextStyle(
+                              color: palette.textMuted,
+                              fontSize: AppTextSizes.small,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          OutlinedButton.icon(
+                            onPressed: () => _confirmResetSampleData(context),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: palette.dangerText,
+                              side: BorderSide(color: palette.dangerText),
+                            ),
+                            icon: const Icon(Icons.restart_alt_rounded),
+                            label: const Text('Reset Data Contoh'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 );
               },

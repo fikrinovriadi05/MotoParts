@@ -120,7 +120,14 @@ class Store extends ChangeNotifier {
     super.notifyListeners();
   }
 
-  final List<Product> products = [
+  final List<Product> products = defaultProducts();
+
+  /// Jumlah produk dan pesanan contoh (untuk teks konfirmasi reset).
+  static const sampleProductCount = 12;
+  static const sampleOrderCount = 2;
+
+  /// Produk contoh (id 1-12), juga dipakai saat reset data contoh.
+  static List<Product> defaultProducts() => [
     Product(
       id: 1,
       name: 'Kampas Rem Depan',
@@ -250,6 +257,33 @@ class Store extends ChangeNotifier {
     ),
   ];
 
+  /// Pesanan contoh (tanpa pemilik, hanya terlihat admin).
+  static List<OrderItem> defaultOrders() => [
+    // Pesanan contoh: total = barang + ongkir Rp 10.000, harga sesuai produk.
+    OrderItem(
+      code: 'MP-250118-0001',
+      customer: 'Budi Santoso',
+      total: 80000,
+      status: 'Selesai',
+      createdAt: DateTime(2025, 1, 18, 10, 30),
+      lines: const [
+        OrderLine(productId: 2, name: 'Filter Oli Honda', qty: 1, price: 25000),
+        OrderLine(productId: 1, name: 'Kampas Rem Depan', qty: 1, price: 45000),
+      ],
+    ),
+    OrderItem(
+      code: 'MP-250118-0002',
+      customer: 'Andi Pratama',
+      total: 125000,
+      status: 'Dikirim',
+      createdAt: DateTime(2025, 1, 18, 14, 15),
+      lines: const [
+        OrderLine(productId: 2, name: 'Filter Oli Honda', qty: 1, price: 25000),
+        OrderLine(productId: 1, name: 'Kampas Rem Depan', qty: 2, price: 45000),
+      ],
+    ),
+  ];
+
   /// Id akun "tamu", dipakai selama belum ada yang login (dan di tes).
   static const guestId = 'guest';
 
@@ -278,31 +312,7 @@ class Store extends ChangeNotifier {
   List<OrderItem> get ordersForCurrentAccount =>
       orders.where((o) => o.accountId == currentAccountId).toList();
 
-  final List<OrderItem> orders = [
-    // Pesanan contoh: total = barang + ongkir Rp 10.000, harga sesuai produk.
-    OrderItem(
-      code: 'MP-250118-0001',
-      customer: 'Budi Santoso',
-      total: 80000,
-      status: 'Selesai',
-      createdAt: DateTime(2025, 1, 18, 10, 30),
-      lines: const [
-        OrderLine(productId: 2, name: 'Filter Oli Honda', qty: 1, price: 25000),
-        OrderLine(productId: 1, name: 'Kampas Rem Depan', qty: 1, price: 45000),
-      ],
-    ),
-    OrderItem(
-      code: 'MP-250118-0002',
-      customer: 'Andi Pratama',
-      total: 125000,
-      status: 'Dikirim',
-      createdAt: DateTime(2025, 1, 18, 14, 15),
-      lines: const [
-        OrderLine(productId: 2, name: 'Filter Oli Honda', qty: 1, price: 25000),
-        OrderLine(productId: 1, name: 'Kampas Rem Depan', qty: 2, price: 45000),
-      ],
-    ),
-  ];
+  final List<OrderItem> orders = defaultOrders();
 
   int get cartCount => cart.fold(0, (sum, item) => sum + item.qty);
 
@@ -403,6 +413,28 @@ class Store extends ChangeNotifier {
       items.removeWhere((item) => item.qty <= 0);
     }
     notifyListeners();
+  }
+
+  /// Mengembalikan produk dan pesanan ke data contoh, dan mengosongkan semua
+  /// keranjang, wishlist, dan ulasan. Akun tidak diubah (ada di `AuthStore`).
+  /// Mengembalikan jalur foto produk yang dihapus agar filenya bisa dibersihkan
+  /// oleh pemanggil.
+  List<String> resetSampleData() {
+    final photos = [
+      for (final p in products)
+        if (p.imagePath != null) p.imagePath!,
+    ];
+    products
+      ..clear()
+      ..addAll(defaultProducts());
+    orders
+      ..clear()
+      ..addAll(defaultOrders());
+    reviews.clear();
+    _carts.clear();
+    _wishlists.clear();
+    notifyListeners();
+    return photos;
   }
 
   void deleteProduct(Product product) {
