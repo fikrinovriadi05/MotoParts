@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/payment_methods.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/checkout_steps.dart';
 import 'package:motopart/widgets/order_summary_card.dart';
-import 'package:motopart/widgets/selectable_card.dart';
+import 'package:motopart/widgets/payment_method_picker.dart';
 
 class PaymentPage extends StatefulWidget {
   final String customerName;
   final int shippingCost;
 
+  /// Alamat pengiriman (teks) yang dicatat di pesanan.
+  final String? address;
+
   const PaymentPage({
     super.key,
     required this.customerName,
     required this.shippingCost,
+    this.address,
   });
 
   @override
@@ -21,32 +27,17 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  static const methods = [
-    (
-      'Transfer Bank',
-      Icons.account_balance_rounded,
-      'Transfer manual ke rekening toko',
-    ),
-    (
-      'E-Wallet',
-      Icons.account_balance_wallet_outlined,
-      'Bayar lewat dompet digital',
-    ),
-    (
-      'Virtual Account',
-      Icons.receipt_long_rounded,
-      'Nomor virtual account khusus pesanan',
-    ),
-    ('COD', Icons.payments_outlined, 'Bayar tunai saat barang tiba'),
-  ];
-
-  String method = 'Transfer Bank';
+  PaymentChoice choice =
+      PaymentMethods.decode(auth.currentAccount?.preferredPayment) ??
+      PaymentMethods.defaultChoice;
 
   void pay() {
     final problems = store.cartStockProblems;
     final ok = store.checkout(
       customer: widget.customerName,
       shippingCost: widget.shippingCost,
+      address: widget.address,
+      paymentMethod: choice.label,
     );
 
     if (!ok) {
@@ -104,16 +95,10 @@ class _PaymentPageState extends State<PaymentPage> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          for (final (title, icon, subtitle) in methods) ...[
-            SelectableCard(
-              selected: method == title,
-              onTap: () => setState(() => method = title),
-              icon: icon,
-              title: title,
-              subtitle: subtitle,
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
+          PaymentMethodPicker(
+            value: choice,
+            onChanged: (c) => setState(() => choice = c),
+          ),
           const SizedBox(height: AppSpacing.sm),
           AnimatedBuilder(
             animation: store,

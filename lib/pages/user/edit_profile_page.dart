@@ -15,16 +15,34 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final name = TextEditingController(text: auth.currentAccount?.name ?? '');
   final phone = TextEditingController(text: auth.currentAccount?.phone ?? '');
+  final motorName = TextEditingController(
+    text: auth.currentAccount?.motorName ?? '',
+  );
+  final motorType = TextEditingController(
+    text: auth.currentAccount?.motorType ?? '',
+  );
+  final motorYear = TextEditingController(
+    text: auth.currentAccount?.motorYear?.toString() ?? '',
+  );
 
   @override
   void dispose() {
     name.dispose();
     phone.dispose();
+    motorName.dispose();
+    motorType.dispose();
+    motorYear.dispose();
     super.dispose();
   }
 
   void submit() {
-    final error = auth.updateProfile(name: name.text, phone: phone.text);
+    final error = auth.updateProfile(
+      name: name.text,
+      phone: phone.text,
+      motorName: motorName.text,
+      motorType: motorType.text,
+      motorYear: motorYear.text,
+    );
     final messenger = ScaffoldMessenger.of(context);
     if (error != null) {
       messenger.showSnackBar(SnackBar(content: Text(error)));
@@ -110,6 +128,78 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       decoration: const InputDecoration(
                         labelText: 'No. HP',
                         prefixIcon: Icon(Icons.phone_outlined),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.two_wheeler_rounded,
+                          size: 20,
+                          color: palette.primaryText,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            'Motor Saya',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: AppTextSizes.bodyLarge,
+                              fontWeight: FontWeight.w800,
+                              color: palette.text,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Opsional. Membantu memilih sparepart yang cocok.',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: AppTextSizes.small,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextField(
+                      controller: motorName,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Motor',
+                        hintText: 'mis. Honda Beat',
+                        prefixIcon: Icon(Icons.two_wheeler_rounded),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextField(
+                      controller: motorType,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Tipe Motor',
+                        hintText: 'mis. Street, CBS, 125 eSP',
+                        prefixIcon: Icon(Icons.tune_rounded),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextField(
+                      controller: motorYear,
+                      keyboardType: TextInputType.number,
+                      maxLength: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Tahun',
+                        hintText: 'mis. 2020',
+                        counterText: '',
+                        prefixIcon: Icon(Icons.calendar_today_outlined),
                       ),
                     ),
                   ],

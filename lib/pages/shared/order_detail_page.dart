@@ -114,6 +114,32 @@ class OrderDetailPage extends StatelessWidget {
                         ],
                       ),
               ),
+              if (order.address != null || order.paymentMethod != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (order.address != null)
+                        _infoBlock(
+                          context,
+                          Icons.location_on_rounded,
+                          'Alamat Pengiriman',
+                          order.address!,
+                        ),
+                      if (order.address != null && order.paymentMethod != null)
+                        const Divider(height: AppSpacing.xl),
+                      if (order.paymentMethod != null)
+                        _infoBlock(
+                          context,
+                          Icons.payment_rounded,
+                          'Metode Pembayaran',
+                          order.paymentMethod!,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
               if (isAdmin) ...[
                 const SizedBox(height: AppSpacing.xl),
                 Text(
@@ -143,6 +169,38 @@ class OrderDetailPage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _infoBlock(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String body,
+  ) {
+    final palette = context.palette;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: palette.primaryText),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: palette.text,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(body, style: TextStyle(color: palette.textMuted)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

@@ -14,7 +14,9 @@ flutter run -d <perangkat>        # mis. emulator Android atau Chrome
 
 Akun admin bawaan: `admin@motopart.id`. Password awalnya ada di
 `AuthStore.adminInitialPassword`; **ganti segera** lewat Dashboard Admin.
-Pembeli mendaftar sendiri di layar Daftar.
+Pembeli mendaftar sendiri di layar Daftar, lalu bisa melengkapi data motor
+(nama, tipe, tahun), alamat pengiriman, dan metode pembayaran favorit di menu
+Akun.
 
 ## Tes dan pemeriksaan
 
@@ -23,7 +25,7 @@ flutter analyze
 flutter test
 ```
 
-Sekitar 380 tes (logika `Store`/`AuthStore`, halaman, overflow di layar kecil,
+Sekitar 450 tes (logika `Store`/`AuthStore`, halaman, overflow di layar kecil,
 berkas ikon, font, dan konfigurasi proyek).
 
 ## Struktur singkat

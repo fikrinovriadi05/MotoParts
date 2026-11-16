@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/models/shipping_address.dart';
+import 'package:motopart/pages/user/address_form_page.dart';
 import 'package:motopart/pages/user/payment_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/checkout_steps.dart';
-import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/order_summary_card.dart';
+import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/selectable_card.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -16,27 +18,31 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final name = TextEditingController(text: auth.currentAccount?.name ?? '');
-  final phone = TextEditingController(text: auth.currentAccount?.phone ?? '');
-  final address = TextEditingController();
+  /// Id alamat yang dipilih; awalnya alamat utama akun.
+  String? addressId = auth.currentAccount?.defaultAddress?.id;
   String shipping = 'JNE Regular';
   int shippingCost = 10000;
 
-  @override
-  void dispose() {
-    name.dispose();
-    phone.dispose();
-    address.dispose();
-    super.dispose();
+  ShippingAddress? get selectedAddress {
+    final list = auth.currentAccount?.addresses ?? const <ShippingAddress>[];
+    return list.where((a) => a.id == addressId).firstOrNull ??
+        auth.currentAccount?.defaultAddress;
+  }
+
+  Future<void> _addAddress() async {
+    final saved = await Navigator.push<ShippingAddress>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddressFormPage()),
+    );
+    if (saved != null && mounted) setState(() => addressId = saved.id);
   }
 
   void next() {
-    if (name.text.trim().isEmpty ||
-        phone.text.trim().isEmpty ||
-        address.text.trim().isEmpty) {
+    final address = selectedAddress;
+    if (address == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Lengkapi alamat pengiriman terlebih dahulu.'),
+          content: Text('Pilih atau tambah alamat pengiriman terlebih dahulu.'),
         ),
       );
       return;
@@ -59,8 +65,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            PaymentPage(customerName: name.text, shippingCost: shippingCost),
+        builder: (_) => PaymentPage(
+          customerName: address.recipient,
+          shippingCost: shippingCost,
+          address: address.orderText,
+        ),
       ),
     );
   }
@@ -111,39 +120,35 @@ class _CheckoutPageState extends State<CheckoutPage> {
             Icons.location_on_rounded,
             'Alamat Pengiriman',
           ),
-          GlassCard(
-            child: Column(
-              children: [
-                TextField(
-                  controller: name,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Nama Penerima',
-                    prefixIcon: Icon(Icons.person_outline_rounded),
+          AnimatedBuilder(
+            animation: auth,
+            builder: (context, _) {
+              final addresses =
+                  auth.currentAccount?.addresses ?? const <ShippingAddress>[];
+              final current = selectedAddress;
+              return Column(
+                children: [
+                  for (final a in addresses) ...[
+                    SelectableCard(
+                      selected: current?.id == a.id,
+                      onTap: () => setState(() => addressId = a.id),
+                      icon: Icons.location_on_rounded,
+                      title: a.label,
+                      subtitle: '${a.recipient} · ${a.phone}\n${a.fullText}',
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  PrimaryButton(
+                    text: addresses.isEmpty
+                        ? 'Tambah Alamat Pengiriman'
+                        : 'Tambah Alamat Baru',
+                    icon: Icons.add_location_alt_rounded,
+                    outline: addresses.isNotEmpty,
+                    onPressed: _addAddress,
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                TextField(
-                  controller: phone,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Nomor HP',
-                    prefixIcon: Icon(Icons.phone_outlined),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                TextField(
-                  controller: address,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Alamat Lengkap',
-                    prefixIcon: Icon(Icons.home_outlined),
-                    alignLabelWithHint: true,
-                  ),
-                ),
-              ],
-            ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.xl),
           _sectionTitle(

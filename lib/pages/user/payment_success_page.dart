@@ -88,6 +88,10 @@ class PaymentSuccessPage extends StatelessWidget {
                       child: Column(
                         children: [
                           _row(context, 'Kode Pesanan', order.code),
+                          if (order.paymentMethod != null) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            _row(context, 'Pembayaran', order.paymentMethod!),
+                          ],
                           const SizedBox(height: AppSpacing.sm),
                           _row(
                             context,

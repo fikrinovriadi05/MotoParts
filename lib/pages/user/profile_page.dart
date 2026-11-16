@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
+import 'package:motopart/pages/user/addresses_page.dart';
 import 'package:motopart/pages/user/edit_profile_page.dart';
 import 'package:motopart/pages/user/orders_page.dart';
+import 'package:motopart/pages/user/payment_methods_page.dart';
 import 'package:motopart/pages/user/wishlist_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -62,6 +64,30 @@ class ProfilePage extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: palette.textMuted),
                         ),
+                        if (auth.currentAccount?.hasMotor ?? false) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.two_wheeler_rounded,
+                                size: 16,
+                                color: palette.primaryText,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  auth.currentAccount!.motorSummary,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: palette.primaryText,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -107,8 +133,24 @@ class ProfilePage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const ChangePasswordPage()),
               ),
             ),
-            _menu(context, Icons.location_on_outlined, 'Alamat Pengiriman'),
-            _menu(context, Icons.credit_card_rounded, 'Metode Pembayaran'),
+            _menu(
+              context,
+              Icons.location_on_outlined,
+              'Alamat Pengiriman',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddressesPage()),
+              ),
+            ),
+            _menu(
+              context,
+              Icons.credit_card_rounded,
+              'Metode Pembayaran',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PaymentMethodsPage()),
+              ),
+            ),
             _menu(context, Icons.notifications_none_rounded, 'Notifikasi'),
             _menu(context, Icons.info_outline_rounded, 'Tentang MotoPart'),
             const SizedBox(height: AppSpacing.md),

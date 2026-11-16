@@ -3,7 +3,9 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:motopart/core/payment_methods.dart';
 import 'package:motopart/models/account.dart';
+import 'package:motopart/models/shipping_address.dart';
 import 'package:motopart/store/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -201,8 +203,21 @@ class AuthStore extends ChangeNotifier {
     return null;
   }
 
+  /// Tahun motor tertua yang diterima.
+  static const oldestMotorYear = 1970;
+
   /// Mengubah nama dan nomor telepon akun yang sedang login (email tetap).
-  String? updateProfile({required String name, required String phone}) {
+  ///
+  /// Data motor bersifat opsional: parameter `null` berarti tidak diubah,
+  /// string kosong menghapus isinya. [motorYear] harus berupa angka tahun.
+  String? updateProfile({
+    required String name,
+    required String phone,
+    String? motorName,
+    String? motorType,
+    String? motorYear,
+    DateTime? now,
+  }) {
     final account = _current;
     if (account == null) return 'Anda belum masuk.';
     if (name.trim().isEmpty || phone.trim().isEmpty) {
@@ -212,7 +227,188 @@ class AuthStore extends ChangeNotifier {
       return 'Nomor telepon tidak valid.';
     }
 
-    _replace(account.copyWith(name: name.trim(), phone: phone.trim()));
+    final newMotorName = (motorName ?? account.motorName).trim();
+    final newMotorType = (motorType ?? account.motorType).trim();
+    int? newYear = account.motorYear;
+    if (motorYear != null) {
+      final raw = motorYear.trim();
+      if (raw.isEmpty) {
+        newYear = null;
+      } else {
+        newYear = int.tryParse(raw);
+        final latest = (now ?? DateTime.now()).year + 1;
+        if (newYear == null || newYear < oldestMotorYear || newYear > latest) {
+          return 'Tahun motor harus antara $oldestMotorYear dan $latest.';
+        }
+      }
+    }
+    if (newMotorName.isEmpty && (newMotorType.isNotEmpty || newYear != null)) {
+      return 'Isi nama motor terlebih dahulu.';
+    }
+
+    _replace(
+      account.copyWith(
+        name: name.trim(),
+        phone: phone.trim(),
+        motorName: newMotorName,
+        motorType: newMotorType,
+        motorYear: newYear,
+        clearMotorYear: newYear == null,
+      ),
+    );
+    notifyListeners();
+    return null;
+  }
+
+  // ------------------------------------------------------ alamat & bayar
+
+  String _newAddressId() =>
+      'adr${DateTime.now().microsecondsSinceEpoch}${_random.nextInt(1 << 20)}';
+
+  /// Menambah alamat pengiriman. Alamat pertama otomatis menjadi alamat
+  /// utama; [makeDefault] menjadikan alamat ini utama. Mengembalikan pesan
+  /// kesalahan, atau `null` jika berhasil ([onSaved] menerima alamat barunya).
+  String? addAddress({
+    required String label,
+    required String recipient,
+    required String phone,
+    required String street,
+    required String city,
+    String postalCode = '',
+    String note = '',
+    bool makeDefault = false,
+    void Function(ShippingAddress saved)? onSaved,
+  }) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    final error = ShippingAddress.validate(
+      label: label,
+      recipient: recipient,
+      phone: phone,
+      street: street,
+      city: city,
+      postalCode: postalCode,
+    );
+    if (error != null) return error;
+
+    final address = ShippingAddress(
+      id: _newAddressId(),
+      label: label.trim(),
+      recipient: recipient.trim(),
+      phone: phone.trim(),
+      street: street.trim(),
+      city: city.trim(),
+      postalCode: postalCode.trim(),
+      note: note.trim(),
+    );
+    final isFirst = account.addresses.isEmpty;
+    _replace(
+      account.copyWith(
+        addresses: [...account.addresses, address],
+        defaultAddressId: isFirst || makeDefault
+            ? address.id
+            : account.defaultAddressId,
+      ),
+    );
+    notifyListeners();
+    onSaved?.call(address);
+    return null;
+  }
+
+  /// Mengubah alamat yang sudah ada (id tetap).
+  String? updateAddress(
+    String id, {
+    required String label,
+    required String recipient,
+    required String phone,
+    required String street,
+    required String city,
+    String postalCode = '',
+    String note = '',
+    bool makeDefault = false,
+  }) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    final index = account.addresses.indexWhere((a) => a.id == id);
+    if (index < 0) return 'Alamat tidak ditemukan.';
+    final error = ShippingAddress.validate(
+      label: label,
+      recipient: recipient,
+      phone: phone,
+      street: street,
+      city: city,
+      postalCode: postalCode,
+    );
+    if (error != null) return error;
+
+    final list = [...account.addresses];
+    list[index] = list[index].copyWith(
+      label: label,
+      recipient: recipient,
+      phone: phone,
+      street: street,
+      city: city,
+      postalCode: postalCode,
+      note: note,
+    );
+    _replace(
+      account.copyWith(
+        addresses: list,
+        defaultAddressId: makeDefault ? id : account.defaultAddressId,
+      ),
+    );
+    notifyListeners();
+    return null;
+  }
+
+  /// Menghapus alamat. Jika yang dihapus adalah alamat utama, alamat pertama
+  /// yang tersisa menjadi utama.
+  String? deleteAddress(String id) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    if (!account.addresses.any((a) => a.id == id)) {
+      return 'Alamat tidak ditemukan.';
+    }
+    final list = account.addresses.where((a) => a.id != id).toList();
+    final wasDefault = account.defaultAddress?.id == id;
+    _replace(
+      account.copyWith(
+        addresses: list,
+        defaultAddressId: wasDefault && list.isNotEmpty
+            ? list.first.id
+            : account.defaultAddressId,
+        clearDefaultAddress: list.isEmpty,
+      ),
+    );
+    notifyListeners();
+    return null;
+  }
+
+  String? setDefaultAddress(String id) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    if (!account.addresses.any((a) => a.id == id)) {
+      return 'Alamat tidak ditemukan.';
+    }
+    _replace(account.copyWith(defaultAddressId: id));
+    notifyListeners();
+    return null;
+  }
+
+  /// Menyimpan metode pembayaran favorit ([encoded] dari
+  /// `PaymentChoice.encoded`); `null` menghapusnya.
+  String? setPreferredPayment(String? encoded) {
+    final account = _current;
+    if (account == null) return 'Anda belum masuk.';
+    if (encoded != null && PaymentMethods.decode(encoded) == null) {
+      return 'Metode pembayaran tidak dikenal.';
+    }
+    _replace(
+      account.copyWith(
+        preferredPayment: encoded,
+        clearPreferredPayment: encoded == null,
+      ),
+    );
     notifyListeners();
     return null;
   }

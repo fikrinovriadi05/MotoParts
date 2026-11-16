@@ -48,6 +48,11 @@ class OrderItem {
   /// pemilik (hanya terlihat oleh admin).
   final String? accountId;
 
+  /// Alamat pengiriman (nama, telepon, alamat) dan metode pembayaran yang
+  /// dipilih. Null untuk pesanan lama/contoh yang tidak mencatatnya.
+  final String? address;
+  final String? paymentMethod;
+
   OrderItem({
     required this.code,
     required this.customer,
@@ -56,6 +61,8 @@ class OrderItem {
     this.lines = const [],
     this.createdAt,
     this.accountId,
+    this.address,
+    this.paymentMethod,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -69,6 +76,8 @@ class OrderItem {
           .toList(),
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
       accountId: json['accountId'] as String?,
+      address: json['address'] as String?,
+      paymentMethod: json['paymentMethod'] as String?,
     );
   }
 
@@ -80,5 +89,7 @@ class OrderItem {
     'lines': lines.map((e) => e.toJson()).toList(),
     'createdAt': createdAt?.toIso8601String(),
     'accountId': accountId,
+    'address': address,
+    'paymentMethod': paymentMethod,
   };
 }

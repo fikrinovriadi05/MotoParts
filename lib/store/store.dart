@@ -712,6 +712,8 @@ class Store extends ChangeNotifier {
   bool checkout({
     required String customer,
     required int shippingCost,
+    String? address,
+    String? paymentMethod,
     DateTime? now,
   }) {
     if (cart.isEmpty || cartStockProblems.isNotEmpty) return false;
@@ -730,6 +732,8 @@ class Store extends ChangeNotifier {
         status: 'Diproses',
         accountId: currentAccountId,
         createdAt: createdAt,
+        address: address,
+        paymentMethod: paymentMethod,
         lines: [
           for (final item in cart)
             OrderLine(

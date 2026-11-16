@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motopart/models/account.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/pages/user/checkout_page.dart';
 import 'package:motopart/pages/user/payment_page.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 
 void main() {
@@ -189,16 +191,35 @@ void main() {
     testWidgets('lanjut ke pembayaran ditolak jika stok sudah kurang', (
       tester,
     ) async {
+      auth.register(
+        name: 'B',
+        email: 'b-stok@e.com',
+        phone: '0812345678',
+        password: 'rahasia1',
+      );
+      auth.login(
+        email: 'b-stok@e.com',
+        password: 'rahasia1',
+        role: AccountRole.user,
+      );
+      addTearDown(() {
+        auth.logout();
+        auth.accounts.removeWhere((a) => !a.isAdmin);
+      });
+      auth.addAddress(
+        label: 'Rumah',
+        recipient: 'B',
+        phone: '0812345678',
+        street: 'Jl. Contoh 1',
+        city: 'Bandung',
+      );
+
       final product = store.products[0];
       product.stock = 5;
-      store.setCurrentAccount('B');
       for (var i = 0; i < 3; i++) {
         store.addToCart(product);
       }
       await pumpStack(tester, const CheckoutPage());
-      await tester.enterText(find.byType(TextField).at(0), 'B');
-      await tester.enterText(find.byType(TextField).at(1), '0812345678');
-      await tester.enterText(find.byType(TextField).at(2), 'Jl. Contoh 1');
 
       product.stock = 2;
       await tester.tap(find.text('Lanjutkan Pembayaran'));

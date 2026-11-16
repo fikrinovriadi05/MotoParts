@@ -15,11 +15,15 @@ import 'package:motopart/pages/auth/onboarding_page.dart';
 import 'package:motopart/pages/auth/register_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
+import 'package:motopart/pages/user/address_form_page.dart';
+import 'package:motopart/pages/user/addresses_page.dart';
 import 'package:motopart/pages/user/checkout_page.dart';
 import 'package:motopart/pages/user/edit_profile_page.dart';
 import 'package:motopart/pages/user/orders_page.dart';
+import 'package:motopart/pages/user/payment_methods_page.dart';
 import 'package:motopart/pages/user/payment_page.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
+import 'package:motopart/pages/user/profile_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -66,6 +70,22 @@ void registerAndLogin({String name = 'Siti Aminah', String email = 's@e.com'}) {
     password: 'rahasia1',
   );
   auth.login(email: email, password: 'rahasia1', role: AccountRole.user);
+}
+
+/// Menambah alamat ke akun yang sedang login.
+void addTestAddress({
+  String label = 'Rumah',
+  String street = 'Jl. Contoh No. 1',
+  String city = 'Bandung',
+}) {
+  final error = auth.addAddress(
+    label: label,
+    recipient: auth.currentAccount!.name,
+    phone: auth.currentAccount!.phone,
+    street: street,
+    city: city,
+  );
+  expect(error, isNull);
 }
 
 void main() {
@@ -198,11 +218,82 @@ void main() {
       expect(find.text('Lanjutkan Pembayaran'), findsOneWidget);
     });
 
-    testWidgets('nama dan telepon terisi dari akun', (tester) async {
+    testWidgets('tanpa alamat tersimpan: ada tombol tambah alamat', (
+      tester,
+    ) async {
       await pumpCheckout(tester);
 
-      expect(find.text('Siti Aminah'), findsOneWidget);
-      expect(find.text('081234567890'), findsOneWidget);
+      expect(find.text('Tambah Alamat Pengiriman'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<SelectableCard>(find.byType(SelectableCard))
+            .where((c) => c.icon == Icons.location_on_rounded),
+        isEmpty,
+      );
+    });
+
+    testWidgets('alamat utama terpilih otomatis', (tester) async {
+      size(tester, 400, 1400);
+      registerAndLogin();
+      addTestAddress(label: 'Rumah', street: 'Jl. Mawar 1');
+      addTestAddress(label: 'Kantor', street: 'Jl. Melati 2');
+      store.addToCart(store.products[0]);
+      await tester.pumpWidget(app(const CheckoutPage()));
+
+      final cards = tester
+          .widgetList<SelectableCard>(find.byType(SelectableCard))
+          .where((c) => c.icon == Icons.location_on_rounded)
+          .toList();
+      expect(cards.map((c) => c.title), ['Rumah', 'Kantor']);
+      expect(cards.where((c) => c.selected).single.title, 'Rumah');
+      expect(find.textContaining('Siti Aminah · 081234567890'), findsWidgets);
+    });
+
+    testWidgets('memilih alamat lain mengubah alamat di pesanan', (
+      tester,
+    ) async {
+      size(tester, 400, 1400);
+      registerAndLogin();
+      addTestAddress(label: 'Rumah', street: 'Jl. Mawar 1');
+      addTestAddress(label: 'Kantor', street: 'Jl. Melati 2');
+      store.addToCart(store.products[0]);
+      await tester.pumpWidget(app(const CheckoutPage()));
+
+      await tester.tap(find.text('Kantor'));
+      await tester.pump();
+      await tester.tap(find.text('Lanjutkan Pembayaran'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Bayar Sekarang'));
+      await tester.pumpAndSettle();
+
+      final order = store.orders.first;
+      expect(order.address, contains('Jl. Melati 2'));
+      expect(order.address, isNot(contains('Jl. Mawar 1')));
+    });
+
+    testWidgets('tambah alamat dari checkout langsung terpilih', (
+      tester,
+    ) async {
+      await pumpCheckout(tester);
+
+      await tester.tap(find.text('Tambah Alamat Pengiriman'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AddressFormPage), findsOneWidget);
+
+      // label, penerima, telepon terisi awal; isi alamat dan kota.
+      await tester.enterText(find.byType(TextField).at(3), 'Jl. Baru No. 9');
+      await tester.enterText(find.byType(TextField).at(4), 'Bandung');
+      await tester.tap(find.text('Simpan Alamat'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddressFormPage), findsNothing);
+      expect(auth.currentAccount!.addresses, hasLength(1));
+      final selected = tester
+          .widgetList<SelectableCard>(find.byType(SelectableCard))
+          .where((c) => c.selected && c.icon == Icons.location_on_rounded)
+          .single;
+      expect(selected.title, 'Rumah');
+      expect(find.textContaining('Jl. Baru No. 9, Bandung'), findsOneWidget);
     });
 
     testWidgets('memilih kurir mengubah ongkir dan total', (tester) async {
@@ -221,23 +312,24 @@ void main() {
       expect(selected.title, 'J&T Express');
     });
 
-    testWidgets('alamat kosong ditolak dengan pesan', (tester) async {
+    testWidgets('tanpa alamat ditolak dengan pesan', (tester) async {
       await pumpCheckout(tester);
 
       await tester.tap(find.text('Lanjutkan Pembayaran'));
       await tester.pump();
 
       expect(
-        find.text('Lengkapi alamat pengiriman terlebih dahulu.'),
+        find.text('Pilih atau tambah alamat pengiriman terlebih dahulu.'),
         findsOneWidget,
       );
       expect(find.byType(PaymentPage), findsNothing);
     });
 
-    testWidgets('alamat terisi melanjutkan ke pembayaran', (tester) async {
+    testWidgets('alamat tersimpan melanjutkan ke pembayaran', (tester) async {
       await pumpCheckout(tester);
+      addTestAddress();
+      await tester.pump();
 
-      await tester.enterText(find.byType(TextField).at(2), 'Jl. Contoh No. 1');
       await tester.tap(find.text('Lanjutkan Pembayaran'));
       await tester.pumpAndSettle();
 
@@ -634,6 +726,11 @@ void main() {
       'sukses': () => const PaymentSuccessPage(),
       'riwayat pesanan': () => const OrdersPage(),
       'edit profil': () => const EditProfilePage(),
+      'akun': () => const ProfilePage(),
+      'alamat': () => const AddressesPage(),
+      'form alamat': () => const AddressFormPage(),
+      'metode pembayaran': () => const PaymentMethodsPage(),
+      'detail pesanan': () => OrderDetailPage(order: store.orders.first),
       'ganti password': () => const ChangePasswordPage(),
       'admin dashboard': () => const AdminDashboardPage(),
       'admin produk': () => const AdminProductsPage(),
@@ -654,9 +751,26 @@ void main() {
             name: 'Siti Aminah Panjang Sekali',
             email: 'x@e.com',
           );
+          auth.updateProfile(
+            name: 'Siti Aminah Panjang Sekali',
+            phone: '081234567890',
+            motorName: 'Honda CB150R StreetFire Special Edition',
+            motorType: 'Special Edition Racing Red',
+            motorYear: '2021',
+          );
+          addTestAddress(
+            label: 'Rumah Orang Tua di Kampung Halaman',
+            street: 'Jl. Raya Panjang Sekali No. 123 RT 04 RW 05 Kelurahan X',
+            city: 'Kecamatan Sukasari Kabupaten Bandung Barat',
+          );
           store.addToCart(store.products[0]);
           store.addToCart(store.products[5]);
-          store.checkout(customer: 'Siti', shippingCost: 10000);
+          store.checkout(
+            customer: 'Siti',
+            shippingCost: 10000,
+            address: auth.currentAccount!.defaultAddress!.orderText,
+            paymentMethod: 'Virtual Account - Mandiri',
+          );
           store.addToCart(store.products[3]);
 
           await tester.pumpWidget(app(entry.value(), mode: mode));
