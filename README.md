@@ -44,6 +44,11 @@ universal (bisa dimatikan lewat chip *Termasuk universal*). Kecocokan dibaca
 dari kolom **Tipe Motor** produk, jadi admin mengisinya dengan nama motor
 dipisah koma (mis. `Honda Beat, Honda Vario`) atau `Universal`.
 
+Pintasan lain: kolom pencarian **Beranda** ikut mengenali tipe motor (mengetik
+"Beat" menemukan produk Honda Beat dan Honda Matic, lalu menawarkan
+*Semua sparepart untuk ...* ke Katalog), dan menu **Sparepart untuk Motor Saya**
+di halaman Akun langsung membuka Katalog yang sudah difilter.
+
 ## Lokasi GPS untuk alamat
 
 Di form alamat, tombol **Gunakan Lokasi Saya (GPS)** mengambil koordinat lalu
@@ -58,7 +63,7 @@ flutter test
 cd server && dart analyze && dart test
 ```
 
-Sekitar 580 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
+Sekitar 590 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
 kecil, berkas ikon, font, pembayaran online, GPS, dan konfigurasi proyek) dan 35
 tes server. Tes aplikasi memakai server pembayaran dan GPS palsu
 (`test/support/fakes.dart`), jadi tidak memakai jaringan.

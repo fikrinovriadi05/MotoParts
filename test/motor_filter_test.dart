@@ -4,6 +4,9 @@ import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
+import 'package:motopart/pages/user/edit_profile_page.dart';
+import 'package:motopart/pages/user/home_page.dart';
+import 'package:motopart/pages/user/profile_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -628,5 +631,226 @@ void main() {
         },
       );
     }
+  });
+
+  group('Account.motorQuery', () {
+    test('nama + tipe, hanya nama, atau kosong', () {
+      const base = Account(
+        id: 'a',
+        name: 'Siti',
+        email: 's@e.com',
+        phone: '0812',
+        role: AccountRole.user,
+        passwordHash: 'h',
+        salt: 's',
+      );
+      expect(base.motorQuery, '');
+      expect(base.copyWith(motorName: 'Honda Beat').motorQuery, 'Honda Beat');
+      expect(
+        base.copyWith(motorName: 'Honda Beat', motorType: 'Street').motorQuery,
+        'Honda Beat Street',
+      );
+      // Tipe tanpa nama motor diabaikan.
+      expect(base.copyWith(motorType: 'Street').motorQuery, '');
+    });
+  });
+
+  group('Beranda: pencarian memakai pencocokan motor', () {
+    setUp(() {
+      final fresh = Store();
+      store.products
+        ..clear()
+        ..addAll(fresh.products);
+      auth.logout();
+      auth.accounts.removeWhere((a) => !a.isAdmin);
+      store.setCurrentAccount(Store.guestId);
+    });
+
+    Future<void> pumpHome(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 4000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(theme: AppTheme.light(), home: const HomePage()),
+      );
+    }
+
+    Future<void> search(WidgetTester tester, String text) async {
+      await tester.enterText(find.byType(TextField).first, text);
+      await tester.pump();
+    }
+
+    testWidgets('"Honda Beat": produk khusus dan sejenis, tanpa universal', (
+      tester,
+    ) async {
+      await pumpHome(tester);
+      await search(tester, 'Honda Beat');
+
+      expect(find.text('Hasil Pencarian'), findsOneWidget);
+      expect(find.text('Kampas Rem Depan'), findsOneWidget); // Honda Beat
+      expect(find.text('Oli Gardan 120 ml'), findsOneWidget); // Honda Matic
+      expect(find.text('Busi NGK'), findsNothing); // universal
+      expect(find.text('Gear Set'), findsNothing); // Supra X
+      expect(find.text('Filter Oli Honda'), findsNothing); // Honda Vario
+    });
+
+    testWidgets('"Beat" saja juga menemukan produk sejenis', (tester) async {
+      await pumpHome(tester);
+      await search(tester, 'Beat');
+
+      expect(find.text('Kampas Rem Depan'), findsOneWidget);
+      expect(find.text('Oli Gardan 120 ml'), findsOneWidget);
+      expect(find.text('Gear Set'), findsNothing);
+    });
+
+    testWidgets('pencarian nama produk tetap bekerja seperti biasa', (
+      tester,
+    ) async {
+      await pumpHome(tester);
+      await search(tester, 'busi');
+
+      expect(find.text('Busi NGK'), findsOneWidget);
+      expect(find.text('Kampas Rem Depan'), findsNothing);
+      // Bukan tipe motor: tidak ada tawaran filter Katalog.
+      expect(find.textContaining('Semua sparepart untuk'), findsNothing);
+    });
+
+    testWidgets('mengetik "universal" tetap menemukan produk universal', (
+      tester,
+    ) async {
+      await pumpHome(tester);
+      await search(tester, 'universal');
+
+      expect(find.text('Busi NGK'), findsOneWidget);
+    });
+
+    testWidgets('motor tanpa produk: pesan kosong dan tanpa tawaran filter', (
+      tester,
+    ) async {
+      await pumpHome(tester);
+      await search(tester, 'Yamaha NMAX');
+
+      expect(find.text('Tidak ada produk yang cocok.'), findsOneWidget);
+      expect(find.textContaining('Semua sparepart untuk'), findsNothing);
+    });
+
+    testWidgets(
+      'tawaran "Semua sparepart untuk ..." membuka Katalog dengan filter motor',
+      (tester) async {
+        await pumpHome(tester);
+        await search(tester, 'Honda Vario');
+        expect(find.text('Semua sparepart untuk Honda Vario'), findsOneWidget);
+
+        await tester.tap(find.text('Semua sparepart untuk Honda Vario'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CatalogPage), findsOneWidget);
+        expect(find.widgetWithText(InputChip, 'Honda Vario'), findsOneWidget);
+        expect(find.text('Filter Oli Honda'), findsOneWidget);
+        expect(find.text('Gear Set'), findsNothing);
+      },
+    );
+
+    testWidgets('tanpa pencarian: tidak ada tawaran filter', (tester) async {
+      await pumpHome(tester);
+
+      expect(find.text('Produk Terlaris'), findsOneWidget);
+      expect(find.textContaining('Semua sparepart untuk'), findsNothing);
+    });
+  });
+
+  group('Akun: pintasan sparepart untuk motor', () {
+    setUp(() {
+      auth.logout();
+      auth.accounts.removeWhere((a) => !a.isAdmin);
+      store.setCurrentAccount(Store.guestId);
+    });
+    tearDown(() {
+      auth.logout();
+      auth.accounts.removeWhere((a) => !a.isAdmin);
+    });
+
+    void login({bool withMotor = false}) {
+      auth.register(
+        name: 'Siti',
+        email: 'siti-akun@email.com',
+        phone: '081234567890',
+        password: 'rahasia1',
+      );
+      auth.login(
+        email: 'siti-akun@email.com',
+        password: 'rahasia1',
+        role: AccountRole.user,
+      );
+      if (withMotor) {
+        auth.updateProfile(
+          name: 'Siti',
+          phone: '081234567890',
+          motorName: 'Honda Vario',
+          motorType: '125',
+        );
+      }
+    }
+
+    Future<void> pumpProfile(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(theme: AppTheme.light(), home: const ProfilePage()),
+      );
+    }
+
+    testWidgets('punya motor: menu membuka Katalog yang sudah difilter', (
+      tester,
+    ) async {
+      login(withMotor: true);
+      await pumpProfile(tester);
+
+      expect(find.text('Isi Data Motor'), findsNothing);
+      await tester.tap(find.text('Sparepart untuk Motor Saya'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CatalogPage), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'Honda Vario 125'), findsOneWidget);
+      expect(find.text('Filter Oli Honda'), findsOneWidget);
+      expect(find.text('Gear Set'), findsNothing);
+    });
+
+    testWidgets('belum punya motor: menu Isi Data Motor membuka Data Akun', (
+      tester,
+    ) async {
+      login();
+      await pumpProfile(tester);
+
+      expect(find.text('Sparepart untuk Motor Saya'), findsNothing);
+      await tester.tap(find.text('Isi Data Motor'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EditProfilePage), findsOneWidget);
+    });
+
+    testWidgets('setelah motor diisi, menu langsung berubah', (tester) async {
+      login();
+      await pumpProfile(tester);
+      expect(find.text('Isi Data Motor'), findsOneWidget);
+
+      auth.updateProfile(
+        name: 'Siti',
+        phone: '081234567890',
+        motorName: 'Yamaha Mio',
+      );
+      await tester.pump();
+
+      expect(find.text('Sparepart untuk Motor Saya'), findsOneWidget);
+      expect(find.text('Isi Data Motor'), findsNothing);
+    });
+
+    testWidgets('tanpa login (tamu): tidak ada menu motor', (tester) async {
+      await pumpProfile(tester);
+
+      expect(find.text('Sparepart untuk Motor Saya'), findsNothing);
+      expect(find.text('Isi Data Motor'), findsNothing);
+    });
   });
 }

@@ -53,6 +53,10 @@ class Account {
 
   bool get hasMotor => motorName.isNotEmpty;
 
+  /// Nama + tipe motor untuk mencocokkan sparepart, mis. "Honda Beat Street".
+  /// Kosong bila belum diisi.
+  String get motorQuery => hasMotor ? '$motorName $motorType'.trim() : '';
+
   /// Ringkasan motor, mis. "Honda Beat Street · 2020"; kosong jika belum diisi.
   String get motorSummary {
     if (!hasMotor) return '';

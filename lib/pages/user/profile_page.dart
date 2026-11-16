@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/pages/user/addresses_page.dart';
+import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/pages/user/edit_profile_page.dart';
 import 'package:motopart/pages/user/orders_page.dart';
 import 'package:motopart/pages/user/payment_methods_page.dart';
@@ -95,6 +96,30 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
+            if (auth.currentAccount?.hasMotor ?? false)
+              _menu(
+                context,
+                Icons.build_circle_outlined,
+                'Sparepart untuk Motor Saya',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CatalogPage(
+                      initialMotor: auth.currentAccount!.motorQuery,
+                    ),
+                  ),
+                ),
+              )
+            else if (auth.currentAccount != null)
+              _menu(
+                context,
+                Icons.two_wheeler_rounded,
+                'Isi Data Motor',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                ),
+              ),
             const _ThemeSwitcher(),
             const SizedBox(height: AppSpacing.lg),
             _menu(

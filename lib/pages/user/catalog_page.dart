@@ -63,11 +63,7 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   /// Tipe motor milik akun (nama + tipe), kosong bila belum diisi.
-  String get _myMotorQuery {
-    final account = auth.currentAccount;
-    if (account == null || !account.hasMotor) return '';
-    return '${account.motorName} ${account.motorType}'.trim();
-  }
+  String get _myMotorQuery => auth.currentAccount?.motorQuery ?? '';
 
   Future<void> _openMotorSheet() async {
     final chosen = await showModalBottomSheet<String>(

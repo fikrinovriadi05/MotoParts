@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:motopart/core/categories.dart';
+import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/store/auth_store.dart';
@@ -46,11 +47,12 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _openCatalog({String? category}) {
+  void _openCatalog({String? category, String? motor}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => CatalogPage(selectedCategory: category),
+        builder: (_) =>
+            CatalogPage(selectedCategory: category, initialMotor: motor),
       ),
     );
   }
@@ -66,16 +68,32 @@ class _HomePageState extends State<HomePage> {
           builder: (context, _) {
             final searching = keyword.trim().isNotEmpty;
             final q = keyword.trim().toLowerCase();
+            // Cocok lewat nama/kategori/tipe, atau lewat tipe motor yang
+            // diketik (mis. "Beat" juga menemukan produk "Honda Matic").
+            // Produk universal tidak ikut agar hasilnya tidak membanjiri.
             final products = searching
                 ? store.products
                       .where(
                         (p) =>
                             p.name.toLowerCase().contains(q) ||
                             p.category.toLowerCase().contains(q) ||
-                            p.type.toLowerCase().contains(q),
+                            p.type.toLowerCase().contains(q) ||
+                            MotorMatcher.matches(
+                              p,
+                              keyword,
+                              includeUniversal: false,
+                            ),
                       )
                       .toList()
                 : store.productsBySales().take(bestSellerCount).toList();
+            // Pencarian dikenali sebagai tipe motor: tawarkan filter Katalog.
+            final motorSearch =
+                searching &&
+                store.products.any(
+                  (p) =>
+                      MotorMatcher.fit(p, keyword) == MotorFit.exact &&
+                      !MotorMatcher.isUniversal(p),
+                );
 
             return ListView(
               children: [
@@ -148,6 +166,32 @@ class _HomePageState extends State<HomePage> {
                     onTap: _openCatalog,
                   ),
                 ),
+                if (motorSearch)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.page,
+                      0,
+                      AppSpacing.page,
+                      AppSpacing.md,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: ActionChip(
+                        avatar: const Icon(Icons.two_wheeler_rounded, size: 18),
+                        label: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: MediaQuery.sizeOf(context).width * 0.7,
+                          ),
+                          child: Text(
+                            'Semua sparepart untuk ${keyword.trim()}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        onPressed: () => _openCatalog(motor: keyword.trim()),
+                      ),
+                    ),
+                  ),
                 if (!loading && products.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(AppSpacing.xxl),
