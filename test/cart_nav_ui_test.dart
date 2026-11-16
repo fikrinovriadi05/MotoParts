@@ -103,6 +103,30 @@ void main() {
       expect(find.text('Keranjang masih kosong'), findsOneWidget);
     });
 
+    testWidgets('ringkasan total ikut berubah saat jumlah diubah', (
+      tester,
+    ) async {
+      size(tester, 400, 800);
+      final p = store.products[0]; // Rp 45.000
+      store.addToCart(p);
+      await tester.pumpWidget(app(const CartPage()));
+      expect(find.text('Subtotal (1 barang)'), findsOneWidget);
+      expect(find.text(formatRupiah(45000)), findsWidgets);
+
+      await tester.tap(find.byTooltip('Tambah jumlah ${p.name}'));
+      await tester.pump();
+
+      expect(find.text('Subtotal (2 barang)'), findsOneWidget);
+      expect(find.text('Checkout (2)'), findsOneWidget);
+      expect(find.text(formatRupiah(90000)), findsWidgets);
+
+      // Item baru dari luar halaman (mis. tombol + di kartu) juga tercermin.
+      store.addToCart(store.products[1]); // Rp 25.000
+      await tester.pump();
+      expect(find.text('Subtotal (3 barang)'), findsOneWidget);
+      expect(find.text(formatRupiah(115000)), findsWidgets);
+    });
+
     testWidgets('area sentuh tombol jumlah minimal 48x48', (tester) async {
       size(tester, 400, 800);
       final p = store.products[0];

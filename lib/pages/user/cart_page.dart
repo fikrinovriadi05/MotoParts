@@ -305,8 +305,24 @@ class _QtyButton extends StatelessWidget {
 }
 
 /// Ringkasan total dan tombol checkout di bawah daftar.
+/// Ringkasan total. Mendengarkan [store] sendiri: widget `const` tidak ikut
+/// dibangun ulang oleh pembungkusnya, jadi tanpa ini angkanya basi.
 class _Summary extends StatelessWidget {
   const _Summary();
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: store,
+      builder: (context, _) => _SummaryContent(),
+    );
+  }
+}
+
+class _SummaryContent extends StatelessWidget {
+  // Sengaja bukan const agar selalu dibangun ulang saat store berubah.
+  // ignore: prefer_const_constructors_in_immutables
+  _SummaryContent();
 
   @override
   Widget build(BuildContext context) {

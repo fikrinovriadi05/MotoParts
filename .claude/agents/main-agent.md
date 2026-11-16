@@ -25,7 +25,7 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 | `models/` | `Product` (+ registri ikon `Product.icons`), `CartItem`, `OrderItem` + `OrderLine`, `Review`, `Account` + `AccountRole`. |
 | `store/store.dart` | `Store` (global `store`): produk, keranjang, wishlist, pesanan, ulasan; juga enum `ProductSort`. |
 | `store/auth_store.dart` | `AuthStore` (global `auth`): register, login, logout, sesi. |
-| `widgets/` | `AppLogo`, `SectionTitle`, `PrimaryButton` (`onPressed` null = nonaktif), `GlassCard`, `ProductCard`/`ProductImage`/`StockLabel` (Hero, tombol +), `ProductGrid` (responsif 2/3/4 kolom + skeleton), `PromoBanner`, `CategoryCircle`, `PressScale`, `Shimmer`/`ShimmerBox`, `CartBadgeIcon`, `cart_feedback.dart` (`addToCartWithFeedback`), `StatusBadge`, `WishlistButton`, `StarRating`/`RatingSummary`/`ReviewSection`/`ReviewTile`. |
+| `widgets/` | `AppLogo`, `SectionTitle`, `PrimaryButton` (`onPressed` null = nonaktif), `GlassCard`, `ProductCard`/`ProductImage`/`StockLabel` (Hero, tombol +), `ProductGrid` (responsif 2/3/4 kolom + skeleton), `PromoBanner`, `CategoryCircle`, `PressScale`, `Shimmer`/`ShimmerBox`, `CartBadgeIcon`, `cart_feedback.dart` (`addToCartWithFeedback`), `StatusBadge` (+ `orderStatusIcon/Color`), `OrderTimeline`, `CheckoutSteps`, `SelectableCard`, `OrderSummaryCard`/`CheckoutBottomBar`, `AuthScaffold`/`FieldLabel`, `WishlistButton`, `StarRating`/`RatingSummary`/`ReviewSection`/`ReviewTile`. |
 | `pages/auth/` | `SplashPage` (pulihkan sesi) → `OnboardingPage` → `LoginPage` (tab User/Admin) / `RegisterPage`. |
 | `pages/user/` | `UserShell` (NavigationBar 4 tab: Beranda, Kategori, Keranjang, Akun; tab dikendalikan `userTabIndex`), `HomePage` (banner, kategori bulat, Produk Terlaris), `CategoryPage`, `CatalogPage` (cari, kategori, filter harga, urutkan, pull-to-refresh), `ProductDetailPage` (Hero, chip motor, pemilih jumlah, bar bawah menempel), `CartPage` (Dismissible, keadaan kosong), `CheckoutPage`, `PaymentPage`, `PaymentSuccessPage`, `OrdersPage` (dibuka dari Akun > Pesanan Saya), `ProfilePage` (tema, menu), `WishlistPage`. |
 | `pages/admin/` | `AdminShell`, `AdminDashboardPage`, `AdminProductsPage` (tambah/edit/hapus, lihat & hapus ulasan), `AdminOrdersPage` (cari, filter status), `AdminReportsPage`. |
@@ -66,6 +66,10 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 - **Teks lebar di tes**: font tes (Ahem) jauh lebih lebar dari font asli, jadi overflow di tes biasanya overflow nyata di layar kecil/font besar. Pakai `Expanded` + `maxLines`/`ellipsis`, jangan matikan tesnya.
 - **Lihat layar sungguhan**: pasang APK debug dengan `adb install -r`, tulis sesi login & mode tema ke `shared_prefs/FlutterSharedPreferences.xml` lewat `adb shell run-as com.example.motopart` (set `MSYS_NO_PATHCONV=1` di Git Bash agar path `/data/...` tidak diubah), lalu `adb exec-out screencap -p`.
 - **google_fonts**: pakai versi `^8.x`; versi 9 memakai `TextTheme` dari paket `material_ui` yang tidak cocok dengan SDK ini.
+
+- **Widget `const` yang membaca `store`/`auth` tidak ikut dibangun ulang** oleh `AnimatedBuilder` pembungkusnya (instance `const` identik dilewati). Ringkasan keranjang pernah menampilkan angka basi karena ini. Beri widget itu `AnimatedBuilder(animation: store, ...)` sendiri, atau jangan `const`. Tes widget harus mengubah data lalu `pump()` dan memeriksa teksnya, bukan hanya `store`.
+- **Laporan penjualan** memakai data nyata (`Store.totalSales`, `salesOrders`, `totalUnitsSold`, `salesLast7Days`). Pesanan contoh (Budi/Andi) punya total tapi tanpa rincian barang/tanggal, jadi masuk total penjualan tetapi tidak masuk "Barang Terjual" dan grafik harian. Jangan menulis angka tetap di UI; cari teks/angka tetap dengan grep sebelum menyatakan selesai.
+- `test/full_redesign_test.dart` menyapu 14 halaman di 320x568, teks 1,3x, terang & gelap untuk mendeteksi overflow. Tambahkan halaman baru ke daftar itu.
 
 ## Cara kerja
 
