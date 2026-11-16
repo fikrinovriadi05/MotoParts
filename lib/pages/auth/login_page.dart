@@ -148,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: !admin
-                                        ? Colors.white
+                                        ? AppColors.onPrimary
                                         : context.palette.text,
                                     fontWeight: FontWeight.w800,
                                   ),
@@ -174,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: admin
-                                        ? Colors.white
+                                        ? AppColors.onPrimary
                                         : context.palette.text,
                                     fontWeight: FontWeight.w800,
                                   ),

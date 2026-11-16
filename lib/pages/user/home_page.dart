@@ -263,7 +263,7 @@ class _Header extends StatelessWidget {
             onChanged: onChanged,
             style: const TextStyle(color: AppColors.charcoal),
             decoration: InputDecoration(
-              hintText: 'Cari produk, kategori, atau tipe motor...',
+              hintText: 'Cari sparepart atau tipe motor...',
               hintStyle: const TextStyle(color: Color(0xFF6B6B73)),
               prefixIcon: const Icon(Icons.search_rounded),
               prefixIconColor: AppColors.charcoal,

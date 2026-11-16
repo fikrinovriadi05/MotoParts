@@ -10,7 +10,7 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 ## Gambaran proyek
 
 - Flutter, Dart SDK `^3.13.4`, Material 3, lint `flutter_lints`.
-- Dependensi: `shared_preferences` (penyimpanan lokal), `crypto` (hash password), `cupertino_icons`. Tidak ada backend dan tidak ada package state management.
+- Dependensi: `shared_preferences` (penyimpanan lokal), `crypto` (hash password), `google_fonts` (Poppins & Montserrat; diunduh saat pertama dipakai), `intl` (format Rupiah), `cupertino_icons`. Tidak ada backend dan tidak ada package state management.
 - Semua data tersimpan di perangkat lewat `SharedPreferences` (JSON). Teks UI, nama status, dan komentar memakai Bahasa Indonesia.
 - Repo git sudah ada (branch `main`). Commit berbahasa Indonesia, satu topik per commit.
 
@@ -20,13 +20,14 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 |---|---|
 | `main.dart` | Hanya `main()`: memuat `store`, lalu `auth` (sesi login), lalu `runApp`. |
 | `app.dart` | `MotoPartApp` + tema. |
-| `core/` | `AppColors`, `formatRupiah(int)` (`Rp45.000`), `formatTanggal(DateTime)` (`14 Nov 2026, 09:05`). |
+| `theme/` | `app_theme.dart`: SEMUA warna, radius, jarak, ukuran teks, `AppTheme.light()/dark()`, `AppPalette` (`context.palette`), `UiConfig`. `theme_controller.dart`: pilihan Sistem/Terang/Gelap (tersimpan). |
+| `core/` | `formatRupiah(int)` (`Rp 45.000`, via intl), `formatTanggal(DateTime)`, `categories.dart` (daftar kategori + ikon), `navigation.dart` (`userTabIndex`, `UserTab`). |
 | `models/` | `Product` (+ registri ikon `Product.icons`), `CartItem`, `OrderItem` + `OrderLine`, `Review`, `Account` + `AccountRole`. |
 | `store/store.dart` | `Store` (global `store`): produk, keranjang, wishlist, pesanan, ulasan; juga enum `ProductSort`. |
 | `store/auth_store.dart` | `AuthStore` (global `auth`): register, login, logout, sesi. |
-| `widgets/` | `AppLogo`, `SectionTitle`, `PrimaryButton` (`onPressed` boleh null = nonaktif), `GlassCard`, `CategoryChip`, `ProductCard`, `StatusBadge`, `WishlistButton`, `StarRating`/`RatingSummary`/`ReviewSection`/`ReviewTile`. |
+| `widgets/` | `AppLogo`, `SectionTitle`, `PrimaryButton` (`onPressed` null = nonaktif), `GlassCard`, `ProductCard`/`ProductImage`/`StockLabel` (Hero, tombol +), `ProductGrid` (responsif 2/3/4 kolom + skeleton), `PromoBanner`, `CategoryCircle`, `PressScale`, `Shimmer`/`ShimmerBox`, `CartBadgeIcon`, `cart_feedback.dart` (`addToCartWithFeedback`), `StatusBadge`, `WishlistButton`, `StarRating`/`RatingSummary`/`ReviewSection`/`ReviewTile`. |
 | `pages/auth/` | `SplashPage` (pulihkan sesi) → `OnboardingPage` → `LoginPage` (tab User/Admin) / `RegisterPage`. |
-| `pages/user/` | `UserShell` (bottom nav), `HomePage`, `CategoryPage`, `CatalogPage` (cari, kategori, filter harga, urutkan), `ProductDetailPage`, `CartPage`, `CheckoutPage`, `PaymentPage`, `PaymentSuccessPage`, `OrdersPage`, `ProfilePage`, `WishlistPage`. |
+| `pages/user/` | `UserShell` (NavigationBar 4 tab: Beranda, Kategori, Keranjang, Akun; tab dikendalikan `userTabIndex`), `HomePage` (banner, kategori bulat, Produk Terlaris), `CategoryPage`, `CatalogPage` (cari, kategori, filter harga, urutkan, pull-to-refresh), `ProductDetailPage` (Hero, chip motor, pemilih jumlah, bar bawah menempel), `CartPage` (Dismissible, keadaan kosong), `CheckoutPage`, `PaymentPage`, `PaymentSuccessPage`, `OrdersPage` (dibuka dari Akun > Pesanan Saya), `ProfilePage` (tema, menu), `WishlistPage`. |
 | `pages/admin/` | `AdminShell`, `AdminDashboardPage`, `AdminProductsPage` (tambah/edit/hapus, lihat & hapus ulasan), `AdminOrdersPage` (cari, filter status), `AdminReportsPage`. |
 | `pages/shared/` | `OrderDetailPage` (dipakai pembeli dan admin; `isAdmin: true` menampilkan ubah status). |
 
@@ -43,8 +44,8 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 
 1. **State**: ubah data hanya lewat method di `Store`/`AuthStore`, dan setiap perubahan memanggil `notifyListeners()` (override-nya menyimpan ke `SharedPreferences`). UI yang bergantung pada data dibungkus `AnimatedBuilder(animation: store, ...)`; jika memakai dua store gunakan `Listenable.merge([store, auth])`. Jangan menambah package state management.
 2. **Penyimpanan harus kompatibel mundur**: field baru di `toJson`/`fromJson` wajib punya nilai bawaan saat kunci tidak ada (data lama di perangkat tetap terbaca), dan data rusak tidak boleh membuat aplikasi crash. Ikon produk disimpan lewat nama di `Product.icons`, jangan menyimpan `codePoint` mentah (merusak icon tree-shaking).
-3. **Gaya UI**: pakai `AppColors`, widget umum yang sudah ada, sudut membulat (16–18), dan pola halaman sekitar. Jangan hardcode warna baru.
-4. **Harga** bertipe `int` dan ditampilkan dengan `formatRupiah`; tanggal dengan `formatTanggal`.
+3. **Gaya UI**: tampilan racing (charcoal `#1A1A1D` + oranye `#FF6B00`), mode terang & gelap. Semua warna/radius/jarak/ukuran teks ada di `lib/theme/app_theme.dart`; jangan hardcode warna di widget. Warna merek/status konstan: `AppColors.primary/success/warning/danger`. Warna yang berubah menurut mode: `context.palette.text/textMuted/bg/surface/surfaceAlt/border/primaryText/dangerText/shadow` (jadi widget yang memakainya tidak boleh `const`). Teks kecil berwarna oranye pakai `palette.primaryText` (lebih gelap di mode terang), merah pakai `palette.dangerText`. Teks/ikon di atas tombol oranye pakai `AppColors.onPrimary` (gelap), bukan putih. Header gelap tetap (gradien charcoal) memakai `Colors.white`. Ikon memakai varian `_rounded`; font Poppins (teks) dan Montserrat (judul: `textTheme.titleLarge/headline*`). Area sentuh minimal 48x48 (`AppSizes.minTap`). Tidak boleh ada overflow di layar 320 px.
+4. **Harga** bertipe `int` dan ditampilkan dengan `formatRupiah` (`Rp 125.000`, ada spasi); tanggal dengan `formatTanggal`.
 5. **Bahasa**: label, pesan SnackBar, dan placeholder dalam Bahasa Indonesia.
 6. **User ↔ Admin**: fitur yang mengubah data (produk, stok, pesanan, ulasan) harus tercermin di kedua sisi.
 7. **Dependensi baru**: tanyakan dulu ke pengguna. Setelah disetujui, jalankan `flutter pub get`.
@@ -60,6 +61,11 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 - **Windows desktop tidak bisa dibangun** (Visual Studio belum terpasang). Uji di emulator Android (`emulator-5554`) atau Chrome. `flutter install` tanpa `--debug` mengincar APK release dan menghapus aplikasi lama (beserta datanya) di emulator; untuk uji gunakan `adb install -r build/app/outputs/flutter-apk/app-debug.apk`.
 - **`dart format lib test`** mengubah banyak file sekaligus. Format hanya file yang kamu ubah, atau pisahkan hasilnya ke commit khusus "rapikan format" agar diff fitur tetap bersih.
 - **Heredoc bertingkat di shell** (beberapa `<<'EOF'` plus skrip Python dalam satu perintah) pernah gagal diparse; tulis file lewat tool Write/Edit atau skrip terpisah.
+
+- **`UiConfig`** (`useGoogleFonts`, `simulateLoading`) dimatikan untuk semua tes lewat `test/flutter_test_config.dart` (tanpa jaringan, tanpa jeda shimmer). Tes yang menguji shimmer menyalakan `UiConfig.simulateLoading = true` lalu mengembalikannya. `context.palette` aman dipakai di `MaterialApp` polos (jatuh ke palet bawaan).
+- **Teks lebar di tes**: font tes (Ahem) jauh lebih lebar dari font asli, jadi overflow di tes biasanya overflow nyata di layar kecil/font besar. Pakai `Expanded` + `maxLines`/`ellipsis`, jangan matikan tesnya.
+- **Lihat layar sungguhan**: pasang APK debug dengan `adb install -r`, tulis sesi login & mode tema ke `shared_prefs/FlutterSharedPreferences.xml` lewat `adb shell run-as com.example.motopart` (set `MSYS_NO_PATHCONV=1` di Git Bash agar path `/data/...` tidak diubah), lalu `adb exec-out screencap -p`.
+- **google_fonts**: pakai versi `^8.x`; versi 9 memakai `TextTheme` dari paket `material_ui` yang tidak cocok dengan SDK ini.
 
 ## Cara kerja
 
