@@ -6,6 +6,16 @@ import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/product.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum ProductSort {
+  standard('Urutan bawaan'),
+  priceLowToHigh('Harga terendah'),
+  priceHighToLow('Harga tertinggi'),
+  nameAZ('Nama A-Z');
+
+  final String label;
+  const ProductSort(this.label);
+}
+
 class Store extends ChangeNotifier {
   static const storageKey = 'motopart_state_v1';
 
@@ -254,6 +264,43 @@ class Store extends ChangeNotifier {
   void deleteProduct(Product product) {
     products.removeWhere((e) => e.id == product.id);
     notifyListeners();
+  }
+
+  /// Mencari produk untuk katalog. [category] 'Semua'/null = semua kategori;
+  /// [keyword] dicocokkan ke nama produk (tanpa membedakan huruf besar/kecil);
+  /// [minPrice]/[maxPrice] membatasi harga (inklusif). [ProductSort.standard]
+  /// mempertahankan urutan daftar produk.
+  List<Product> searchProducts({
+    String? category,
+    String keyword = '',
+    int? minPrice,
+    int? maxPrice,
+    ProductSort sort = ProductSort.standard,
+  }) {
+    final q = keyword.trim().toLowerCase();
+    final result = products.where((p) {
+      if (category != null && category != 'Semua' && p.category != category) {
+        return false;
+      }
+      if (q.isNotEmpty && !p.name.toLowerCase().contains(q)) return false;
+      if (minPrice != null && p.price < minPrice) return false;
+      if (maxPrice != null && p.price > maxPrice) return false;
+      return true;
+    }).toList();
+
+    switch (sort) {
+      case ProductSort.standard:
+        break;
+      case ProductSort.priceLowToHigh:
+        result.sort((a, b) => a.price.compareTo(b.price));
+      case ProductSort.priceHighToLow:
+        result.sort((a, b) => b.price.compareTo(a.price));
+      case ProductSort.nameAZ:
+        result.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
+    }
+    return result;
   }
 
   static const orderStatuses = [
