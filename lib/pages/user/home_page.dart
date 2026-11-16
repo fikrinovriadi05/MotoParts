@@ -221,8 +221,12 @@ class _Header extends StatelessWidget {
         children: [
           Row(
             children: [
-              const AppLogo(light: true, size: 24),
-              const Spacer(),
+              const Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: AppLogo(light: true, size: 24),
+                ),
+              ),
               IconButton(
                 tooltip: 'Notifikasi',
                 onPressed: () {},

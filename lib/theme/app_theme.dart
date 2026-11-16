@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Pengaturan perilaku UI yang bisa dimatikan di tes.
 class UiConfig {
-  /// Memakai Poppins/Montserrat dari google_fonts (diunduh saat pertama
-  /// dipakai, lalu di-cache). Dimatikan di tes agar tidak mengakses jaringan.
-  static bool useGoogleFonts = true;
+  /// Memakai font merek Poppins (teks) dan Montserrat (judul) yang disertakan
+  /// di aplikasi (folder `fonts/`). Dimatikan di tes agar ukuran teks tetap
+  /// lebar (font Ahem) dan overflow cepat ketahuan.
+  static bool useBrandFonts = true;
+
+  static const bodyFont = 'Poppins';
+  static const headingFont = 'Montserrat';
 
   /// Menampilkan efek shimmer sesaat sebelum produk tampil.
   static bool simulateLoading = true;
@@ -188,47 +191,23 @@ class AppTheme {
   /// Poppins untuk teks, Montserrat tebal untuk judul.
   static TextTheme _textTheme(TextTheme base, AppPalette p) {
     final themed = base.apply(bodyColor: p.text, displayColor: p.text);
-    if (!UiConfig.useGoogleFonts) {
-      return themed.copyWith(
-        displayLarge: themed.displayLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-        displayMedium: themed.displayMedium?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-        displaySmall: themed.displaySmall?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-        headlineLarge: themed.headlineLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-        headlineMedium: themed.headlineMedium?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-        headlineSmall: themed.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
-        titleLarge: themed.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-      );
-    }
+    final brand = UiConfig.useBrandFonts;
 
-    final body = GoogleFonts.poppinsTextTheme(themed);
-    TextStyle? heading(TextStyle? s) => s == null
-        ? null
-        : GoogleFonts.montserrat(
-            textStyle: s,
-            fontWeight: FontWeight.w800,
-            color: p.text,
-          );
-    return body.copyWith(
-      displayLarge: heading(themed.displayLarge),
-      displayMedium: heading(themed.displayMedium),
-      displaySmall: heading(themed.displaySmall),
-      headlineLarge: heading(themed.headlineLarge),
-      headlineMedium: heading(themed.headlineMedium),
-      headlineSmall: heading(themed.headlineSmall),
-      titleLarge: heading(themed.titleLarge),
+    TextStyle? heading(TextStyle? s) => s?.copyWith(
+      fontFamily: brand ? UiConfig.headingFont : null,
+      fontWeight: FontWeight.w800,
     );
+
+    return (brand ? themed.apply(fontFamily: UiConfig.bodyFont) : themed)
+        .copyWith(
+          displayLarge: heading(themed.displayLarge),
+          displayMedium: heading(themed.displayMedium),
+          displaySmall: heading(themed.displaySmall),
+          headlineLarge: heading(themed.headlineLarge),
+          headlineMedium: heading(themed.headlineMedium),
+          headlineSmall: heading(themed.headlineSmall),
+          titleLarge: heading(themed.titleLarge),
+        );
   }
 
   static ThemeData _build(Brightness brightness, AppPalette p) {

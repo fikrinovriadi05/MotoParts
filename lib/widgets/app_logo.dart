@@ -18,23 +18,30 @@ class AppLogo extends StatelessWidget {
       children: [
         BrandMark(size: size + 14),
         const SizedBox(width: 10),
-        RichText(
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: size * 0.80,
-              fontWeight: FontWeight.w900,
-              color: textColor,
-            ),
-            children: [
+        // Menyusut (bukan meluap) jika ruang sempit atau font sistem besar.
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text.rich(
               TextSpan(
-                text: 'Moto',
-                style: TextStyle(color: textColor),
+                style: TextStyle(
+                  fontSize: size * 0.80,
+                  fontWeight: FontWeight.w900,
+                  color: textColor,
+                ),
+                children: [
+                  TextSpan(
+                    text: 'Moto',
+                    style: TextStyle(color: textColor),
+                  ),
+                  const TextSpan(
+                    text: 'Part',
+                    style: TextStyle(color: AppColors.primary),
+                  ),
+                ],
               ),
-              const TextSpan(
-                text: 'Part',
-                style: TextStyle(color: AppColors.primary),
-              ),
-            ],
+            ),
           ),
         ),
       ],
