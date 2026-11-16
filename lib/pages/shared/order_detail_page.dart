@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/order_item.dart';
+import 'package:motopart/pages/user/payment_waiting_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/order_timeline.dart';
+import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
@@ -137,6 +139,21 @@ class OrderDetailPage extends StatelessWidget {
                           order.paymentMethod!,
                         ),
                     ],
+                  ),
+                ),
+              ],
+              if (!isAdmin &&
+                  order.status == Store.awaitingPaymentStatus &&
+                  order.payment != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                PrimaryButton(
+                  text: 'Lanjutkan Pembayaran',
+                  icon: Icons.qr_code_2_rounded,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PaymentWaitingPage(orderCode: order.code),
+                    ),
                   ),
                 ),
               ],

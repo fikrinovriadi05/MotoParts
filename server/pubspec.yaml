@@ -1,0 +1,16 @@
+name: motopart_server
+description: Server pembayaran MotoPart (QRIS, Virtual Account, GoPay lewat Midtrans).
+publish_to: none
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  crypto: ^3.0.8
+  http: ^1.2.2
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

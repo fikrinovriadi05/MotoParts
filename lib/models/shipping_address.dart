@@ -17,6 +17,10 @@ class ShippingAddress {
   /// Patokan untuk kurir (opsional), mis. "Pagar hijau dekat masjid".
   final String note;
 
+  /// Titik GPS (opsional); selalu terisi berpasangan.
+  final double? latitude;
+  final double? longitude;
+
   const ShippingAddress({
     required this.id,
     required this.label,
@@ -26,7 +30,16 @@ class ShippingAddress {
     required this.city,
     this.postalCode = '',
     this.note = '',
+    this.latitude,
+    this.longitude,
   });
+
+  bool get hasLocation => latitude != null && longitude != null;
+
+  /// Koordinat untuk ditampilkan, mis. "-6.91750, 107.61910".
+  String get coordinatesText => hasLocation
+      ? '${latitude!.toStringAsFixed(5)}, ${longitude!.toStringAsFixed(5)}'
+      : '';
 
   /// Alamat dalam satu teks, dipakai di ringkasan dan rincian pesanan.
   String get fullText {
@@ -40,6 +53,7 @@ class ShippingAddress {
       '$recipient ($phone)',
       fullText,
       if (note.isNotEmpty) 'Patokan: $note',
+      if (hasLocation) 'Titik GPS: $coordinatesText',
     ];
     return lines.join('\n');
   }
@@ -52,6 +66,8 @@ class ShippingAddress {
     required String street,
     required String city,
     required String postalCode,
+    double? latitude,
+    double? longitude,
   }) {
     if (label.trim().isEmpty ||
         recipient.trim().isEmpty ||
@@ -67,6 +83,16 @@ class ShippingAddress {
     if (code.isNotEmpty && !RegExp(r'^\d{5}$').hasMatch(code)) {
       return 'Kode pos harus 5 angka.';
     }
+    if ((latitude == null) != (longitude == null)) {
+      return 'Titik GPS tidak lengkap.';
+    }
+    if (latitude != null &&
+        (latitude < -90 ||
+            latitude > 90 ||
+            longitude! < -180 ||
+            longitude > 180)) {
+      return 'Titik GPS tidak valid.';
+    }
     return null;
   }
 
@@ -78,6 +104,9 @@ class ShippingAddress {
     String? city,
     String? postalCode,
     String? note,
+    double? latitude,
+    double? longitude,
+    bool clearLocation = false,
   }) {
     return ShippingAddress(
       id: id,
@@ -88,6 +117,8 @@ class ShippingAddress {
       city: city?.trim() ?? this.city,
       postalCode: postalCode?.trim() ?? this.postalCode,
       note: note?.trim() ?? this.note,
+      latitude: clearLocation ? null : latitude ?? this.latitude,
+      longitude: clearLocation ? null : longitude ?? this.longitude,
     );
   }
 
@@ -101,6 +132,8 @@ class ShippingAddress {
       city: json['city'] as String,
       postalCode: json['postalCode'] as String? ?? '',
       note: json['note'] as String? ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -113,5 +146,7 @@ class ShippingAddress {
     'city': city,
     'postalCode': postalCode,
     'note': note,
+    'latitude': latitude,
+    'longitude': longitude,
   };
 }

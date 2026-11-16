@@ -181,6 +181,8 @@ void main() {
         const PaymentPage(customerName: 'B', shippingCost: 0),
       );
 
+      await tester.tap(find.text('COD')); // tanpa server pembayaran
+      await tester.pump();
       await tester.tap(find.text('Bayar Sekarang'));
       await tester.pumpAndSettle();
 

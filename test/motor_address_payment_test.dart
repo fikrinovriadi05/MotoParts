@@ -356,17 +356,40 @@ void main() {
   group('metode pembayaran', () {
     test('daftar kelompok dan bank/dompet', () {
       expect(PaymentMethods.groups.map((g) => g.name), [
-        'Transfer Bank',
-        'E-Wallet',
+        'QRIS',
         'Virtual Account',
+        'E-Wallet',
         'COD',
       ]);
-      expect(
-        PaymentMethods.groups[1].providers,
-        containsAll(['GoPay', 'OVO', 'DANA', 'ShopeePay']),
-      );
+      expect(PaymentMethods.groups[1].providers, [
+        'BCA',
+        'Mandiri',
+        'BNI',
+        'BRI',
+      ]);
+      expect(PaymentMethods.groups[2].providers, ['GoPay']);
+      expect(PaymentMethods.groups.first.hasProviders, isFalse);
       expect(PaymentMethods.groups.last.hasProviders, isFalse);
-      expect(PaymentMethods.defaultChoice.label, 'Transfer Bank - BCA');
+      expect(PaymentMethods.defaultChoice.label, 'QRIS');
+    });
+
+    test('QRIS, VA, dan E-Wallet lewat server; COD tidak', () {
+      final online = {
+        for (final g in PaymentMethods.groups) g.name: g.isOnline,
+      };
+      expect(online, {
+        'QRIS': true,
+        'Virtual Account': true,
+        'E-Wallet': true,
+        'COD': false,
+      });
+      expect(PaymentMethods.defaultChoice.apiType, 'qris');
+      expect(PaymentMethods.defaultChoice.apiProvider, isNull);
+      final bca = PaymentMethods.decode('Virtual Account|BCA')!;
+      expect(bca.apiType, 'va');
+      expect(bca.apiProvider, 'bca');
+      expect(PaymentMethods.decode('E-Wallet|GoPay')!.apiProvider, 'gopay');
+      expect(PaymentMethods.decode('COD')!.apiType, isNull);
     });
 
     test('encode/decode bolak-balik dan menolak yang tidak dikenal', () {
@@ -374,8 +397,8 @@ void main() {
         final choice = PaymentMethods.firstOf(group);
         expect(PaymentMethods.decode(choice.encoded), choice);
       }
-      expect(PaymentMethods.groups.last.hasProviders, isFalse);
       expect(PaymentMethods.decode('COD')!.label, 'COD');
+      expect(PaymentMethods.decode('QRIS')!.label, 'QRIS');
       expect(
         PaymentMethods.decode('E-Wallet|GoPay')!.label,
         'E-Wallet - GoPay',
@@ -385,20 +408,23 @@ void main() {
       expect(PaymentMethods.decode('Kartu Kredit'), isNull);
       expect(PaymentMethods.decode('E-Wallet|Tidak Ada'), isNull);
       expect(PaymentMethods.decode('E-Wallet'), isNull);
+      // Metode lama yang sudah dihapus dari daftar.
+      expect(PaymentMethods.decode('Transfer Bank|BCA'), isNull);
+      expect(PaymentMethods.decode('E-Wallet|OVO'), isNull);
     });
 
     test('metode favorit disimpan, diganti, dan dihapus', () {
       final a = loggedIn();
       expect(a.currentAccount!.preferredPayment, isNull);
 
-      expect(a.setPreferredPayment('E-Wallet|OVO'), isNull);
-      expect(a.currentAccount!.preferredPayment, 'E-Wallet|OVO');
+      expect(a.setPreferredPayment('E-Wallet|GoPay'), isNull);
+      expect(a.currentAccount!.preferredPayment, 'E-Wallet|GoPay');
 
       expect(
         a.setPreferredPayment('Kartu Kredit'),
         'Metode pembayaran tidak dikenal.',
       );
-      expect(a.currentAccount!.preferredPayment, 'E-Wallet|OVO');
+      expect(a.currentAccount!.preferredPayment, 'E-Wallet|GoPay');
 
       expect(a.setPreferredPayment(null), isNull);
       expect(a.currentAccount!.preferredPayment, isNull);
@@ -728,41 +754,33 @@ void main() {
       expect(auth.currentAccount!.preferredPayment, isNull);
     });
 
-    testWidgets('Pembayaran: memilih bank/dompet dan tercatat di pesanan', (
+    testWidgets('Pembayaran: pilihan bank/dompet muncul di bawah kartunya', (
       tester,
     ) async {
       login();
       store.addToCart(store.products[1]);
       bigScreen(tester);
       await tester.pumpWidget(
-        app(
-          const PaymentPage(
-            customerName: 'Siti',
-            shippingCost: 10000,
-            address: 'Siti (0812)\nJl. A, Bandung',
-          ),
-        ),
+        app(const PaymentPage(customerName: 'Siti', shippingCost: 10000)),
       );
 
-      // Awal: Transfer Bank - BCA.
+      // Awal: QRIS (tanpa pilihan bank).
+      expect(find.byType(ChoiceChip), findsNothing);
+
+      await tester.tap(find.text('Virtual Account'));
+      await tester.pump();
+      expect(find.text('Pilih Bank'), findsOneWidget);
       expect(
         tester
             .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'BCA'))
             .selected,
         isTrue,
       );
+
       await tester.tap(find.text('E-Wallet'));
       await tester.pump();
       expect(find.text('BCA'), findsNothing);
-      await tester.tap(find.text('DANA'));
-      await tester.pump();
-
-      await tester.tap(find.text('Bayar Sekarang'));
-      await tester.pumpAndSettle();
-
-      final order = store.orders.first;
-      expect(order.paymentMethod, 'E-Wallet - DANA');
-      expect(order.address, contains('Jl. A, Bandung'));
+      expect(find.widgetWithText(ChoiceChip, 'GoPay'), findsOneWidget);
     });
 
     testWidgets(
@@ -812,7 +830,7 @@ void main() {
         total: 35000,
         status: 'Diproses',
         address: 'Siti (0812)\nJl. A, Bandung',
-        paymentMethod: 'Transfer Bank - BCA',
+        paymentMethod: 'Virtual Account - BCA',
       );
       bigScreen(tester);
       await tester.pumpWidget(app(OrderDetailPage(order: order)));
@@ -820,7 +838,7 @@ void main() {
       expect(find.text('Alamat Pengiriman'), findsOneWidget);
       expect(find.textContaining('Jl. A, Bandung'), findsOneWidget);
       expect(find.text('Metode Pembayaran'), findsOneWidget);
-      expect(find.text('Transfer Bank - BCA'), findsOneWidget);
+      expect(find.text('Virtual Account - BCA'), findsOneWidget);
     });
 
     testWidgets('Detail pesanan lama: tanpa blok alamat/pembayaran', (

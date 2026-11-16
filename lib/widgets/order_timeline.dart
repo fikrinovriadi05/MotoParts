@@ -41,6 +41,29 @@ class OrderTimeline extends StatelessWidget {
       );
     }
 
+    if (status == Store.awaitingPaymentStatus) {
+      final color = orderStatusColor(context, status);
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.schedule_rounded, color: color),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(
+                'Menunggu pembayaran. Pesanan diproses setelah dibayar.',
+                style: TextStyle(fontWeight: FontWeight.w700, color: color),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final current = steps.indexOf(status).clamp(0, steps.length - 1);
 
     return Row(

@@ -196,6 +196,28 @@ class _AddressCard extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(address.fullText, style: TextStyle(color: palette.textMuted)),
+          if (address.hasLocation) ...[
+            const SizedBox(height: 2),
+            Row(
+              children: [
+                Icon(
+                  Icons.gps_fixed_rounded,
+                  size: 14,
+                  color: palette.primaryText,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'GPS: ${address.coordinatesText}',
+                    style: TextStyle(
+                      color: palette.primaryText,
+                      fontSize: AppTextSizes.small,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (address.note.isNotEmpty) ...[
             const SizedBox(height: 2),
             Text(

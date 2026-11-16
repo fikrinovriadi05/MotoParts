@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Kelompok metode pembayaran. [providers] kosong berarti tidak perlu memilih
-/// bank/dompet (mis. COD).
+/// bank/dompet (mis. QRIS, COD).
 class PaymentGroup {
   final String name;
   final IconData icon;
@@ -9,15 +9,23 @@ class PaymentGroup {
   final String providerLabel;
   final List<String> providers;
 
+  /// Jenis di server pembayaran (`qris`, `va`, `ewallet`); null berarti tidak
+  /// lewat server (COD: dibayar tunai saat barang tiba).
+  final String? apiType;
+
   const PaymentGroup({
     required this.name,
     required this.icon,
     required this.description,
     this.providerLabel = '',
     this.providers = const [],
+    this.apiType,
   });
 
   bool get hasProviders => providers.isNotEmpty;
+
+  /// Dibayar online dan dicek otomatis oleh server.
+  bool get isOnline => apiType != null;
 }
 
 /// Pilihan pembayaran: kelompok + bank/dompet (bila ada).
@@ -27,13 +35,19 @@ class PaymentChoice {
 
   const PaymentChoice(this.group, [this.provider]);
 
-  /// Teks yang tampil dan disimpan di pesanan, mis. "Transfer Bank - BCA".
+  /// Teks yang tampil dan disimpan di pesanan, mis. "Virtual Account - BCA".
   String get label =>
       provider == null ? group.name : '${group.name} - $provider';
 
   /// Bentuk singkat untuk disimpan di akun.
   String get encoded =>
       provider == null ? group.name : '${group.name}|$provider';
+
+  bool get isOnline => group.isOnline;
+  String? get apiType => group.apiType;
+
+  /// Nama bank/dompet untuk server (huruf kecil), null untuk QRIS.
+  String? get apiProvider => provider?.toLowerCase();
 
   @override
   bool operator ==(Object other) =>
@@ -50,25 +64,26 @@ class PaymentMethods {
 
   static const groups = [
     PaymentGroup(
-      name: 'Transfer Bank',
-      icon: Icons.account_balance_rounded,
-      description: 'Transfer manual ke rekening toko',
-      providerLabel: 'Pilih Bank',
-      providers: ['BCA', 'Mandiri', 'BNI', 'BRI'],
-    ),
-    PaymentGroup(
-      name: 'E-Wallet',
-      icon: Icons.account_balance_wallet_outlined,
-      description: 'Bayar lewat dompet digital',
-      providerLabel: 'Pilih Dompet Digital',
-      providers: ['GoPay', 'OVO', 'DANA', 'ShopeePay'],
+      name: 'QRIS',
+      icon: Icons.qr_code_2_rounded,
+      description: 'Scan dengan aplikasi bank atau e-wallet',
+      apiType: 'qris',
     ),
     PaymentGroup(
       name: 'Virtual Account',
       icon: Icons.receipt_long_rounded,
-      description: 'Nomor virtual account khusus pesanan',
+      description: 'Nomor virtual account, dicek otomatis',
       providerLabel: 'Pilih Bank',
       providers: ['BCA', 'Mandiri', 'BNI', 'BRI'],
+      apiType: 'va',
+    ),
+    PaymentGroup(
+      name: 'E-Wallet',
+      icon: Icons.account_balance_wallet_outlined,
+      description: 'Bayar dengan dompet digital (scan QR)',
+      providerLabel: 'Pilih Dompet Digital',
+      providers: ['GoPay'],
+      apiType: 'ewallet',
     ),
     PaymentGroup(
       name: 'COD',
@@ -78,15 +93,14 @@ class PaymentMethods {
   ];
 
   /// Pilihan awal jika pembeli belum menyimpan metode favorit.
-  static PaymentChoice get defaultChoice =>
-      PaymentChoice(groups.first, groups.first.providers.first);
+  static PaymentChoice get defaultChoice => firstOf(groups.first);
 
   /// Pilihan pertama yang valid untuk [group] (bank pertama, atau tanpa bank).
   static PaymentChoice firstOf(PaymentGroup group) =>
       PaymentChoice(group, group.hasProviders ? group.providers.first : null);
 
   /// Membaca hasil [PaymentChoice.encoded]; `null` jika kosong atau tidak
-  /// dikenal (mis. daftar metode berubah di versi baru).
+  /// dikenal (mis. metode lama yang sudah dihapus dari daftar).
   static PaymentChoice? decode(String? encoded) {
     if (encoded == null || encoded.isEmpty) return null;
     final parts = encoded.split('|');

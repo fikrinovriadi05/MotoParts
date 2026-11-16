@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/location_service.dart';
 import 'package:motopart/models/shipping_address.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -43,6 +44,52 @@ class _AddressFormPageState extends State<AddressFormPage> {
 
   bool get isEdit => widget.address != null;
 
+  /// Titik GPS alamat ini (null jika belum diambil).
+  late double? latitude = widget.address?.latitude;
+  late double? longitude = widget.address?.longitude;
+  bool locating = false;
+
+  bool get hasLocation => latitude != null && longitude != null;
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Mengambil lokasi GPS lalu mengisi alamat otomatis (masih bisa diedit).
+  Future<void> useGps() async {
+    if (locating) return;
+    setState(() => locating = true);
+    try {
+      final loc = await locationService.currentLocation();
+      final place = await locationService.reverseGeocode(
+        loc.latitude,
+        loc.longitude,
+      );
+      if (!mounted) return;
+      setState(() {
+        latitude = loc.latitude;
+        longitude = loc.longitude;
+        if (place != null) {
+          if (place.street.isNotEmpty) street.text = place.street;
+          if (place.city.isNotEmpty) city.text = place.city;
+          if (place.postalCode.isNotEmpty) postalCode.text = place.postalCode;
+        }
+      });
+      _snack(
+        place == null
+            ? 'Titik lokasi didapat, tetapi alamat tidak bisa diisi otomatis. '
+                  'Lengkapi alamat secara manual.'
+            : 'Lokasi ditemukan. Periksa dan lengkapi alamat sebelum menyimpan.',
+      );
+    } on LocationException catch (e) {
+      _snack(e.message);
+    } finally {
+      if (mounted) setState(() => locating = false);
+    }
+  }
+
   /// Alamat pertama otomatis menjadi alamat utama; alamat utama yang sedang
   /// diubah tetap utama (ganti dengan menjadikan alamat lain utama).
   bool get lockedAsDefault =>
@@ -70,6 +117,8 @@ class _AddressFormPageState extends State<AddressFormPage> {
         city: city.text,
         postalCode: postalCode.text,
         note: note.text,
+        latitude: latitude,
+        longitude: longitude,
         makeDefault: makeDefault,
       );
       saved = widget.address;
@@ -82,6 +131,8 @@ class _AddressFormPageState extends State<AddressFormPage> {
         city: city.text,
         postalCode: postalCode.text,
         note: note.text,
+        latitude: latitude,
+        longitude: longitude,
         makeDefault: makeDefault,
         onSaved: (a) => saved = a,
       );
@@ -116,6 +167,59 @@ class _AddressFormPageState extends State<AddressFormPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: locating ? null : useGps,
+                        icon: locating
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.my_location_rounded, size: 20),
+                        label: Text(
+                          locating
+                              ? 'Mencari lokasi...'
+                              : 'Gunakan Lokasi Saya (GPS)',
+                        ),
+                      ),
+                    ),
+                    if (hasLocation) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.gps_fixed_rounded,
+                            size: 16,
+                            color: palette.primaryText,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Titik GPS: ${latitude!.toStringAsFixed(5)}, '
+                              '${longitude!.toStringAsFixed(5)}',
+                              style: TextStyle(
+                                color: palette.primaryText,
+                                fontWeight: FontWeight.w600,
+                                fontSize: AppTextSizes.small,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Hapus titik GPS',
+                            onPressed: () => setState(() {
+                              latitude = null;
+                              longitude = null;
+                            }),
+                            icon: const Icon(Icons.close_rounded, size: 18),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: AppSpacing.lg),
                     TextField(
                       controller: label,
                       textInputAction: TextInputAction.next,

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/core/navigation.dart';
+import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
@@ -9,7 +12,7 @@ import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
-class OrdersPage extends StatelessWidget {
+class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
 
   /// Ringkasan isi pesanan, mis. "Busi NGK dan 2 lainnya".
@@ -18,6 +21,18 @@ class OrdersPage extends StatelessWidget {
     final first = order.lines.first.name;
     final others = order.lines.length - 1;
     return others == 0 ? first : '$first dan $others lainnya';
+  }
+
+  @override
+  State<OrdersPage> createState() => _OrdersPageState();
+}
+
+class _OrdersPageState extends State<OrdersPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Perbarui status pesanan yang menunggu pembayaran (lunas/kedaluwarsa).
+    unawaited(store.refreshPendingPayments(paymentApi));
   }
 
   @override

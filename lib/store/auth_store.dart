@@ -276,6 +276,8 @@ class AuthStore extends ChangeNotifier {
     required String city,
     String postalCode = '',
     String note = '',
+    double? latitude,
+    double? longitude,
     bool makeDefault = false,
     void Function(ShippingAddress saved)? onSaved,
   }) {
@@ -288,6 +290,8 @@ class AuthStore extends ChangeNotifier {
       street: street,
       city: city,
       postalCode: postalCode,
+      latitude: latitude,
+      longitude: longitude,
     );
     if (error != null) return error;
 
@@ -300,6 +304,8 @@ class AuthStore extends ChangeNotifier {
       city: city.trim(),
       postalCode: postalCode.trim(),
       note: note.trim(),
+      latitude: latitude,
+      longitude: longitude,
     );
     final isFirst = account.addresses.isEmpty;
     _replace(
@@ -325,6 +331,8 @@ class AuthStore extends ChangeNotifier {
     required String city,
     String postalCode = '',
     String note = '',
+    double? latitude,
+    double? longitude,
     bool makeDefault = false,
   }) {
     final account = _current;
@@ -338,6 +346,8 @@ class AuthStore extends ChangeNotifier {
       street: street,
       city: city,
       postalCode: postalCode,
+      latitude: latitude,
+      longitude: longitude,
     );
     if (error != null) return error;
 
@@ -350,6 +360,9 @@ class AuthStore extends ChangeNotifier {
       city: city,
       postalCode: postalCode,
       note: note,
+      latitude: latitude,
+      longitude: longitude,
+      clearLocation: latitude == null && longitude == null,
     );
     _replace(
       account.copyWith(

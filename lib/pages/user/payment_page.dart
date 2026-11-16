@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/core/payment_methods.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
+import 'package:motopart/pages/user/payment_waiting_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -31,38 +33,92 @@ class _PaymentPageState extends State<PaymentPage> {
       PaymentMethods.decode(auth.currentAccount?.preferredPayment) ??
       PaymentMethods.defaultChoice;
 
-  void pay() {
-    final problems = store.cartStockProblems;
-    final ok = store.checkout(
-      customer: widget.customerName,
-      shippingCost: widget.shippingCost,
-      address: widget.address,
-      paymentMethod: choice.label,
-    );
+  bool paying = false;
 
-    if (!ok) {
-      // Stok berubah sejak checkout dimulai: sesuaikan keranjang lalu kembali.
-      store.trimCartToStock();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            problems.isEmpty
-                ? 'Keranjang kosong.'
-                : '${problems.join(' ')} Keranjang disesuaikan, periksa kembali.',
-          ),
+  /// Stok berubah sejak checkout dimulai: sesuaikan keranjang lalu kembali.
+  void _stockChanged(List<String> problems) {
+    store.trimCartToStock();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          problems.isEmpty
+              ? 'Keranjang kosong.'
+              : '${problems.join(' ')} Keranjang disesuaikan, periksa kembali.',
         ),
-      );
-      Navigator.of(context)
-        ..pop() // PaymentPage
-        ..pop(); // CheckoutPage -> kembali ke keranjang
+      ),
+    );
+    Navigator.of(context)
+      ..pop() // PaymentPage
+      ..pop(); // CheckoutPage -> kembali ke keranjang
+  }
+
+  Future<void> pay() async {
+    if (paying) return;
+    final problems = store.cartStockProblems;
+    if (store.cart.isEmpty || problems.isNotEmpty) {
+      _stockChanged(problems);
       return;
     }
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const PaymentSuccessPage()),
-      (route) => route.isFirst,
-    );
+    // COD: tidak lewat server, pesanan langsung diproses.
+    if (!choice.isOnline) {
+      final ok = store.checkout(
+        customer: widget.customerName,
+        shippingCost: widget.shippingCost,
+        address: widget.address,
+        paymentMethod: choice.label,
+      );
+      if (!ok) {
+        _stockChanged(problems);
+        return;
+      }
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const PaymentSuccessPage()),
+        (route) => route.isFirst,
+      );
+      return;
+    }
+
+    // Online: buat tagihan di server dulu; pesanan baru disimpan jika berhasil
+    // (stok ditahan sampai dibayar atau kedaluwarsa).
+    setState(() => paying = true);
+    final code = store.newOrderCode();
+    final amount = store.cartTotal + widget.shippingCost;
+    try {
+      final snapshot = await paymentApi.create(
+        orderCode: code,
+        choice: choice,
+        amount: amount,
+        customerName: widget.customerName,
+      );
+      if (!mounted) return;
+
+      final ok = store.checkout(
+        customer: widget.customerName,
+        shippingCost: widget.shippingCost,
+        address: widget.address,
+        paymentMethod: choice.label,
+        payment: snapshot.info,
+        code: code,
+      );
+      if (!ok) {
+        // Stok habis selama menunggu server; tagihan di server kedaluwarsa sendiri.
+        _stockChanged(store.cartStockProblems);
+        return;
+      }
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => PaymentWaitingPage(orderCode: code)),
+        (route) => route.isFirst,
+      );
+    } on PaymentApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    } finally {
+      if (mounted) setState(() => paying = false);
+    }
   }
 
   @override
@@ -123,7 +179,11 @@ class _PaymentPageState extends State<PaymentPage> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    'Ini hanya simulasi pembayaran, bukan transaksi nyata.',
+                    choice.isOnline
+                        ? 'Tagihan dibuat setelah Anda menekan tombol bayar. '
+                              'Pembayaran dicek otomatis, tidak perlu konfirmasi manual.'
+                        : 'Bayar tunai ke kurir saat barang tiba. Pesanan '
+                              'langsung diproses.',
                     style: TextStyle(
                       fontSize: AppTextSizes.small,
                       color: palette.text,
@@ -140,9 +200,9 @@ class _PaymentPageState extends State<PaymentPage> {
         animation: store,
         builder: (context, _) => CheckoutBottomBar(
           total: store.cartTotal + widget.shippingCost,
-          buttonText: 'Bayar Sekarang',
+          buttonText: paying ? 'Membuat tagihan...' : 'Bayar Sekarang',
           icon: Icons.lock_rounded,
-          onPressed: pay,
+          onPressed: paying ? null : pay,
         ),
       ),
     );

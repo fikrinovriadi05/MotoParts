@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MotoPart memakai lokasi Anda untuk mengisi alamat pengiriman.</string>
 </dict>
 </plist>

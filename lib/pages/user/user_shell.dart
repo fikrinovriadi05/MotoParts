@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:motopart/core/navigation.dart';
+import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/pages/user/cart_page.dart';
 import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/pages/user/home_page.dart';
@@ -29,6 +32,9 @@ class _UserShellState extends State<UserShell>
   void initState() {
     super.initState();
     userTabIndex.addListener(_onTabChanged);
+    // Pesanan yang menunggu pembayaran mungkin sudah lunas/kedaluwarsa selama
+    // aplikasi ditutup.
+    unawaited(store.refreshPendingPayments(paymentApi));
   }
 
   void _onTabChanged() {

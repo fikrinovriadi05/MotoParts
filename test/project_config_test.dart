@@ -127,4 +127,99 @@ void main() {
       expect(props['storePassword']!.length, greaterThanOrEqualTo(16));
     });
   });
+
+  group('izin dan jaringan (pembayaran online + GPS)', () {
+    test('Android: izin internet dan lokasi', () {
+      final manifest = read('android/app/src/main/AndroidManifest.xml');
+
+      expect(manifest, contains('android.permission.INTERNET'));
+      expect(manifest, contains('android.permission.ACCESS_FINE_LOCATION'));
+      expect(manifest, contains('android.permission.ACCESS_COARSE_LOCATION'));
+    });
+
+    test('Android rilis: HTTP polos hanya untuk emulator/localhost', () {
+      final manifest = read('android/app/src/main/AndroidManifest.xml');
+      expect(
+        manifest,
+        contains(
+          'android:networkSecurityConfig="@xml/network_security_config"',
+        ),
+      );
+      expect(manifest.contains('usesCleartextTraffic="true"'), isFalse);
+
+      final config = read(
+        'android/app/src/main/res/xml/network_security_config.xml',
+      );
+      expect(
+        config,
+        contains('<base-config cleartextTrafficPermitted="false" />'),
+      );
+      for (final host in ['10.0.2.2', 'localhost', '127.0.0.1']) {
+        expect(config, contains('>$host<'), reason: host);
+      }
+    });
+
+    test('Android debug: HTTP ke server lokal di jaringan mana pun boleh', () {
+      final config = read(
+        'android/app/src/debug/res/xml/network_security_config.xml',
+      );
+      expect(
+        config,
+        contains('<base-config cleartextTrafficPermitted="true" />'),
+      );
+    });
+
+    test('iOS dan macOS: izin lokasi dan jaringan', () {
+      expect(
+        read('ios/Runner/Info.plist'),
+        contains('NSLocationWhenInUseUsageDescription'),
+      );
+      expect(
+        read('ios/Runner/Info.plist'),
+        contains('NSAllowsLocalNetworking'),
+      );
+      expect(
+        read('macos/Runner/Info.plist'),
+        contains('NSLocationWhenInUseUsageDescription'),
+      );
+      for (final f in ['Release', 'DebugProfile']) {
+        expect(
+          read('macos/Runner/$f.entitlements'),
+          contains('com.apple.security.network.client'),
+          reason: f,
+        );
+      }
+    });
+
+    test('pubspec: paket http, geolocator, dan qr_flutter', () {
+      final pubspec = read('pubspec.yaml');
+      for (final dep in ['http:', 'geolocator:', 'qr_flutter:']) {
+        expect(pubspec, contains('  $dep'), reason: dep);
+      }
+    });
+
+    test('server pembayaran ada dan tidak ikut dianalisis aplikasi', () {
+      expect(File('server/bin/server.dart').existsSync(), isTrue);
+      expect(File('server/pubspec.yaml').existsSync(), isTrue);
+      expect(read('analysis_options.yaml'), contains('server/**'));
+      expect(read('.gitignore'), contains('/server/data/'));
+    });
+
+    test('kunci Midtrans tidak tertulis di kode atau berkas yang dilacak', () {
+      final result = Process.runSync('git', [
+        'grep',
+        '-nE',
+        r'(SB-)?Mid-server-[A-Za-z0-9_-]{8,}',
+        '--',
+        '.',
+      ]);
+      if (result.exitCode == 128) return; // bukan repo git
+      // Hanya kunci contoh di tes server yang boleh muncul.
+      final hits = (result.stdout as String)
+          .split('\n')
+          .where((l) => l.trim().isNotEmpty)
+          .where((l) => !l.contains('server/test/'));
+      expect(hits, isEmpty);
+    });
+  });
 }

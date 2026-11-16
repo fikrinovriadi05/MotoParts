@@ -4,6 +4,7 @@ import 'package:motopart/core/format.dart';
 import 'package:motopart/core/navigation.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/models/order_item.dart';
+import 'package:motopart/models/payment_info.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/pages/admin/admin_dashboard_page.dart';
 import 'package:motopart/pages/admin/admin_orders_page.dart';
@@ -263,6 +264,8 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('Lanjutkan Pembayaran'));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('COD'));
+      await tester.pump();
       await tester.tap(find.text('Bayar Sekarang'));
       await tester.pumpAndSettle();
 
@@ -356,7 +359,7 @@ void main() {
       SelectableCard selected() => tester
           .widgetList<SelectableCard>(find.byType(SelectableCard))
           .singleWhere((c) => c.selected);
-      expect(selected().title, 'Transfer Bank');
+      expect(selected().title, 'QRIS');
 
       await tester.tap(find.text('COD'));
       await tester.pump();
@@ -365,20 +368,23 @@ void main() {
       expect(find.text('Bayar tunai saat barang tiba'), findsOneWidget);
     });
 
-    testWidgets('total dan catatan simulasi tampil', (tester) async {
+    testWidgets('total dan catatan pembayaran tampil', (tester) async {
       await pumpPayment(tester);
 
       expect(find.text(formatRupiah(35000)), findsWidgets);
-      expect(
-        find.text('Ini hanya simulasi pembayaran, bukan transaksi nyata.'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Pembayaran dicek otomatis'), findsOneWidget);
+
+      await tester.tap(find.text('COD'));
+      await tester.pump();
+      expect(find.textContaining('Bayar tunai ke kurir'), findsOneWidget);
     });
 
     testWidgets('bayar menampilkan halaman sukses dengan kode dan total', (
       tester,
     ) async {
       await pumpPayment(tester);
+      await tester.tap(find.text('COD'));
+      await tester.pump();
 
       await tester.tap(find.text('Bayar Sekarang'));
       await tester.pumpAndSettle();
@@ -392,6 +398,8 @@ void main() {
 
     testWidgets('Lihat Pesanan membuka riwayat pesanan', (tester) async {
       await pumpPayment(tester);
+      await tester.tap(find.text('COD'));
+      await tester.pump();
       await tester.tap(find.text('Bayar Sekarang'));
       await tester.pumpAndSettle();
 
@@ -404,6 +412,8 @@ void main() {
 
     testWidgets('Kembali ke Beranda mereset tab ke Beranda', (tester) async {
       await pumpPayment(tester);
+      await tester.tap(find.text('COD'));
+      await tester.pump();
       await tester.tap(find.text('Bayar Sekarang'));
       await tester.pumpAndSettle();
       userTabIndex.value = UserTab.cart;
@@ -765,11 +775,23 @@ void main() {
           );
           store.addToCart(store.products[0]);
           store.addToCart(store.products[5]);
+          // Pesanan online yang menunggu pembayaran: status terpanjang.
+          final code = store.newOrderCode();
           store.checkout(
             customer: 'Siti',
             shippingCost: 10000,
             address: auth.currentAccount!.defaultAddress!.orderText,
             paymentMethod: 'Virtual Account - Mandiri',
+            code: code,
+            payment: PaymentInfo(
+              paymentId: code,
+              type: 'va',
+              provider: 'mandiri',
+              amount: 10000,
+              billerCode: '70012',
+              billKey: '990000000260',
+              expiresAt: DateTime.now().add(const Duration(minutes: 30)),
+            ),
           );
           store.addToCart(store.products[3]);
 

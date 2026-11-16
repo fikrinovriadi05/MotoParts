@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/glass_card.dart';
 
 /// Ringkasan isi keranjang + ongkir + total, dipakai di checkout dan
@@ -82,7 +83,9 @@ class CheckoutBottomBar extends StatelessWidget {
   final int total;
   final String buttonText;
   final IconData icon;
-  final VoidCallback onPressed;
+
+  /// Null menonaktifkan tombol (mis. saat sedang diproses).
+  final VoidCallback? onPressed;
 
   const CheckoutBottomBar({
     super.key,
@@ -133,53 +136,8 @@ class CheckoutBottomBar extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              _Action(text: buttonText, icon: icon, onPressed: onPressed),
+              PrimaryButton(text: buttonText, icon: icon, onPressed: onPressed),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Action extends StatelessWidget {
-  final String text;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  const _Action({
-    required this.text,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: AppSizes.buttonHeight,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primarySoft, AppColors.primary],
-          ),
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.28),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: FilledButton.icon(
-          onPressed: onPressed,
-          icon: Icon(icon, size: 20),
-          label: Text(text),
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            foregroundColor: AppColors.onPrimary,
           ),
         ),
       ),

@@ -1,3 +1,5 @@
+import 'package:motopart/models/payment_info.dart';
+
 /// Satu baris barang dalam pesanan (disalin saat checkout, jadi tidak ikut
 /// berubah jika produknya kemudian diedit atau dihapus).
 class OrderLine {
@@ -53,6 +55,10 @@ class OrderItem {
   final String? address;
   final String? paymentMethod;
 
+  /// Tagihan online (QRIS/VA/GoPay) untuk pesanan "Menunggu Pembayaran".
+  /// Dipertahankan setelah lunas sebagai catatan; null untuk COD/pesanan lama.
+  final PaymentInfo? payment;
+
   OrderItem({
     required this.code,
     required this.customer,
@@ -63,6 +69,7 @@ class OrderItem {
     this.accountId,
     this.address,
     this.paymentMethod,
+    this.payment,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -78,6 +85,9 @@ class OrderItem {
       accountId: json['accountId'] as String?,
       address: json['address'] as String?,
       paymentMethod: json['paymentMethod'] as String?,
+      payment: json['payment'] is Map<String, dynamic>
+          ? PaymentInfo.fromJson(json['payment'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -91,5 +101,6 @@ class OrderItem {
     'accountId': accountId,
     'address': address,
     'paymentMethod': paymentMethod,
+    'payment': payment?.toJson(),
   };
 }

@@ -67,6 +67,18 @@ void main() {
       expect(find.text('Budi Santoso • Rp 80.000'), findsOneWidget);
       expect(find.text('Andi Pratama • Rp 125.000'), findsOneWidget);
 
+      // Barisan chip bisa digeser; geser sampai "Dikirim" terlihat.
+      await tester.scrollUntilVisible(
+        find.text('Dikirim (1)'),
+        150,
+        // ListView pertama = barisan chip status (horizontal).
+        scrollable: find.descendant(
+          of: find.byType(ListView).first,
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.ensureVisible(find.text('Dikirim (1)'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Dikirim (1)'));
       await tester.pump();
 

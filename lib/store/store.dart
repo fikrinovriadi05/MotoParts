@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
+import 'package:motopart/models/payment_info.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/models/review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -550,11 +552,11 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Jumlah unit terjual per id produk (pesanan yang dibatalkan tidak dihitung).
+  /// Jumlah unit terjual per id produk (pesanan yang dibatalkan atau belum
+  /// dibayar tidak dihitung).
   Map<int, int> get unitsSold {
     final sold = <int, int>{};
-    for (final order in orders) {
-      if (order.status == cancelledStatus) continue;
+    for (final order in salesOrders) {
       for (final line in order.lines) {
         sold[line.productId] = (sold[line.productId] ?? 0) + line.qty;
       }
@@ -562,11 +564,15 @@ class Store extends ChangeNotifier {
     return sold;
   }
 
-  /// Pesanan yang dihitung sebagai penjualan (semua kecuali yang dibatalkan).
-  List<OrderItem> get salesOrders =>
-      orders.where((o) => o.status != cancelledStatus).toList();
+  /// Pesanan yang dihitung sebagai penjualan: semua kecuali yang dibatalkan
+  /// dan yang masih menunggu pembayaran.
+  List<OrderItem> get salesOrders => orders
+      .where(
+        (o) => o.status != cancelledStatus && o.status != awaitingPaymentStatus,
+      )
+      .toList();
 
-  /// Total penjualan: jumlah total semua pesanan yang tidak dibatalkan.
+  /// Total penjualan: jumlah total pesanan yang sudah dibayar dan tidak dibatalkan.
   int get totalSales => salesOrders.fold(0, (sum, o) => sum + o.total);
 
   /// Total unit barang terjual (pesanan yang dibatalkan tidak dihitung).
@@ -641,7 +647,12 @@ class Store extends ChangeNotifier {
     return result;
   }
 
+  /// Pesanan online yang belum dibayar. Stok sudah ditahan; jika tidak
+  /// dibayar sampai batas waktu, pesanan dibatalkan dan stok dikembalikan.
+  static const awaitingPaymentStatus = 'Menunggu Pembayaran';
+
   static const orderStatuses = [
+    awaitingPaymentStatus,
     'Diproses',
     'Dikemas',
     'Dikirim',
@@ -706,20 +717,31 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Kode untuk pesanan baru. Dibuat lebih dulu agar bisa dipakai sebagai id
+  /// pembayaran di server sebelum pesanannya disimpan.
+  String newOrderCode([DateTime? now]) =>
+      'MP-${(now ?? DateTime.now()).millisecondsSinceEpoch}';
+
   /// Membuat pesanan dari keranjang akun aktif. Mengembalikan `false` (tanpa
   /// mengubah apa pun) jika keranjang kosong atau ada item yang melebihi
   /// stok, misalnya karena pembeli lain sudah membeli lebih dulu.
+  ///
+  /// Jika [payment] diberi (pembayaran online), pesanan berstatus
+  /// "Menunggu Pembayaran" sampai [markOrderPaid]; stok langsung ditahan.
+  /// [code] memakai kode dari [newOrderCode].
   bool checkout({
     required String customer,
     required int shippingCost,
     String? address,
     String? paymentMethod,
+    PaymentInfo? payment,
+    String? code,
     DateTime? now,
   }) {
     if (cart.isEmpty || cartStockProblems.isNotEmpty) return false;
 
     final createdAt = now ?? DateTime.now();
-    final orderCode = 'MP-${createdAt.millisecondsSinceEpoch}';
+    final orderCode = code ?? newOrderCode(createdAt);
     for (final item in cart) {
       item.product.stock = (item.product.stock - item.qty).clamp(0, 1 << 30);
     }
@@ -729,11 +751,12 @@ class Store extends ChangeNotifier {
         code: orderCode,
         customer: customer,
         total: cartTotal + shippingCost,
-        status: 'Diproses',
+        status: payment == null ? 'Diproses' : awaitingPaymentStatus,
         accountId: currentAccountId,
         createdAt: createdAt,
         address: address,
         paymentMethod: paymentMethod,
+        payment: payment,
         lines: [
           for (final item in cart)
             OrderLine(
@@ -747,6 +770,57 @@ class Store extends ChangeNotifier {
     );
     clearCart();
     return true;
+  }
+
+  /// Pesanan dengan kode [code], atau null.
+  OrderItem? orderByCode(String code) =>
+      orders.where((o) => o.code == code).firstOrNull;
+
+  /// Pesanan milik akun aktif yang masih menunggu pembayaran online.
+  List<OrderItem> get pendingPaymentOrders => ordersForCurrentAccount
+      .where((o) => o.status == awaitingPaymentStatus && o.payment != null)
+      .toList();
+
+  /// Pembayaran diterima: "Menunggu Pembayaran" menjadi "Diproses".
+  /// Mengembalikan `false` jika pesanan tidak sedang menunggu pembayaran.
+  bool markOrderPaid(OrderItem order) {
+    if (order.status != awaitingPaymentStatus) return false;
+    updateOrderStatus(order, 'Diproses');
+    return true;
+  }
+
+  /// Pembayaran gagal/kedaluwarsa atau dibatalkan: pesanan menjadi
+  /// "Dibatalkan" dan stok dikembalikan.
+  bool cancelUnpaidOrder(OrderItem order) {
+    if (order.status != awaitingPaymentStatus) return false;
+    updateOrderStatus(order, cancelledStatus);
+    return true;
+  }
+
+  /// Memeriksa ke server semua pesanan akun aktif yang menunggu pembayaran:
+  /// lunas -> "Diproses", gagal/kedaluwarsa -> "Dibatalkan". Gangguan jaringan
+  /// diabaikan (dicoba lagi nanti). Mengembalikan jumlah pesanan yang berubah.
+  Future<int> refreshPendingPayments(PaymentApi api) async {
+    var changed = 0;
+    for (final order in pendingPaymentOrders) {
+      try {
+        final snapshot = await api.status(order.payment!.paymentId);
+        // Status bisa berubah selama menunggu jawaban server.
+        if (order.status != awaitingPaymentStatus) continue;
+        switch (snapshot.status) {
+          case PaymentStatus.paid:
+            if (markOrderPaid(order)) changed++;
+          case PaymentStatus.failed:
+          case PaymentStatus.expired:
+            if (cancelUnpaidOrder(order)) changed++;
+          case PaymentStatus.pending:
+            break;
+        }
+      } on PaymentApiException {
+        continue;
+      }
+    }
+    return changed;
   }
 }
 
