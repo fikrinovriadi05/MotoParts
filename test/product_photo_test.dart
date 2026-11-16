@@ -425,6 +425,7 @@ void main() {
     testWidgets('menghapus produk ikut menghapus file fotonya', (tester) async {
       final photo = newPhoto();
       store.products[0].imagePath = photo;
+      final before = store.products.length;
       await pumpAdmin(tester);
 
       await tester.tap(find.byTooltip('Hapus').first);
@@ -432,7 +433,7 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Hapus'));
       await tester.pumpAndSettle();
 
-      expect(store.products.length, 5);
+      expect(store.products.length, before - 1);
       expect(fake.deleted, [photo]);
     });
   });

@@ -369,6 +369,7 @@ void main() {
       tester,
     ) async {
       size(tester, 400, 900);
+      store.products.removeWhere((p) => p.category == 'Ban');
       await tester.pumpWidget(app(const CatalogPage(selectedCategory: 'Ban')));
       await tester.pump(
         UiConfig.loadingDuration + const Duration(milliseconds: 50),

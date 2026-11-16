@@ -56,7 +56,7 @@ void main() {
 
   group('Store.productsBySales', () {
     test('tanpa penjualan: urutan daftar tetap', () {
-      final s = Store();
+      final s = Store()..orders.clear();
 
       expect(s.productsBySales().map((p) => p.id), s.products.map((p) => p.id));
     });
@@ -66,7 +66,8 @@ void main() {
       s.setCurrentAccount('A');
       final seller = s.products[3];
       final cancelled = s.products[4];
-      for (var i = 0; i < 3; i++) {
+      // Lebih banyak dari penjualan terbanyak di data contoh (3 unit).
+      for (var i = 0; i < 4; i++) {
         s.addToCart(seller);
       }
       s.checkout(customer: 'A', shippingCost: 0);
@@ -79,7 +80,7 @@ void main() {
       final order = s.productsBySales().map((p) => p.id).toList();
 
       expect(order.first, seller.id);
-      expect(s.unitsSold[seller.id], 3);
+      expect(s.unitsSold[seller.id], 4);
       expect(s.unitsSold[cancelled.id], isNull);
     });
   });
@@ -137,10 +138,9 @@ void main() {
       expect(catalog.selectedCategory, 'Rem');
     });
 
-    testWidgets('kategori kosong (Ban) membuka katalog tanpa produk', (
-      tester,
-    ) async {
+    testWidgets('kategori tanpa produk membuka katalog kosong', (tester) async {
       size(tester, 400, 2400);
+      store.products.removeWhere((p) => p.category == 'Ban');
       await tester.pumpWidget(app(const HomePage()));
 
       await tester.tap(find.bySemanticsLabel('Kategori Ban'));
@@ -172,7 +172,9 @@ void main() {
     ) async {
       size(tester, 400, 2400);
       store.setCurrentAccount('A');
-      store.addToCart(store.products[5]); // Gear Set
+      for (var i = 0; i < 4; i++) {
+        store.addToCart(store.products[5]); // Gear Set, lebih laris dari contoh
+      }
       store.checkout(customer: 'A', shippingCost: 0);
       store.setCurrentAccount(Store.guestId);
       await tester.pumpWidget(app(const HomePage()));

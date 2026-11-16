@@ -96,10 +96,13 @@ void main() {
     });
 
     test('totalUnitsSold menjumlahkan unit dari pesanan aktif', () {
+      // Pesanan contoh: 2 + 3 unit.
+      expect(s.totalUnitsSold, 5);
+
       buy(s.products[0], 3);
       buy(s.products[1], 2, cancelTo: 'Dibatalkan');
 
-      expect(s.totalUnitsSold, 3);
+      expect(s.totalUnitsSold, 8);
     });
 
     test('salesLast7Days: 7 hari berurutan, total per hari', () {
@@ -138,6 +141,24 @@ void main() {
     });
 
     test('pesanan tanpa tanggal tidak masuk grafik harian', () {
+      s.orders
+        ..clear()
+        ..add(
+          OrderItem(
+            code: 'MP-LAMA',
+            customer: 'Lama',
+            total: 99000,
+            status: 'Selesai',
+          ),
+        );
+
+      final days = s.salesLast7Days(DateTime(2026, 11, 16));
+
+      expect(s.totalSales, 99000, reason: 'tetap dihitung di total');
+      expect(days.every((d) => d.total == 0), isTrue);
+    });
+
+    test('pesanan contoh (Jan 2025) di luar 7 hari terakhir', () {
       final days = s.salesLast7Days(DateTime(2026, 11, 16));
 
       expect(days.every((d) => d.total == 0), isTrue);
@@ -537,7 +558,7 @@ void main() {
     testWidgets('daftar produk bisa dicari', (tester) async {
       size(tester, 400, 1400);
       await tester.pumpWidget(app(const AdminProductsPage()));
-      expect(find.text('6 produk'), findsOneWidget);
+      expect(find.text('${store.products.length} produk'), findsOneWidget);
 
       await tester.enterText(find.byType(TextField).first, 'busi');
       await tester.pump();

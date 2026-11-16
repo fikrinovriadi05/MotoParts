@@ -11,6 +11,8 @@ class Product {
     'lightbulb': Icons.lightbulb_rounded,
     'settings': Icons.settings_rounded,
     'build': Icons.build_rounded,
+    'tire_repair': Icons.tire_repair_rounded,
+    'two_wheeler': Icons.two_wheeler_rounded,
   };
 
   final int id;

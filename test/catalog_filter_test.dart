@@ -6,7 +6,12 @@ import 'package:motopart/store/store.dart';
 void main() {
   group('Store.searchProducts', () {
     late Store s;
-    setUp(() => s = Store());
+    setUp(() {
+      s = Store();
+      // Tes ini memakai 6 produk awal saja agar harga/nama yang diharapkan
+      // tetap; produk contoh tambahan (id 7+) tidak ikut.
+      s.products.removeRange(6, s.products.length);
+    });
 
     List<String> names(List<dynamic> products) =>
         products.map((p) => p.name as String).toList();

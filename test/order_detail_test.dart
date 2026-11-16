@@ -68,7 +68,13 @@ void main() {
   testWidgets('pesanan tanpa rincian menampilkan pesan dan total', (
     tester,
   ) async {
-    order = store.orders.last; // pesanan contoh, tanpa daftar barang
+    // Pesanan lama tanpa daftar barang (data sebelum rincian dicatat).
+    order = OrderItem(
+      code: 'MP-LAMA',
+      customer: 'Lama',
+      total: 50000,
+      status: 'Selesai',
+    );
     await show(tester);
 
     expect(

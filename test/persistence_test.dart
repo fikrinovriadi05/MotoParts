@@ -25,7 +25,7 @@ void main() {
   test('tanpa data tersimpan, Store memakai data bawaan', () async {
     final store = await _newStore();
 
-    expect(store.products.length, 6);
+    expect(store.products.length, Store().products.length);
     expect(store.cart, isEmpty);
     expect(store.orders.length, 2);
   });
@@ -113,7 +113,7 @@ void main() {
   test('data rusak diabaikan dan memakai data bawaan', () async {
     final store = await _newStore({Store.storageKey: 'bukan json'});
 
-    expect(store.products.length, 6);
+    expect(store.products.length, Store().products.length);
     expect(store.orders.length, 2);
   });
 }

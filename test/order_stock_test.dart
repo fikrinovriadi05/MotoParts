@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motopart/models/order_item.dart';
 import 'package:motopart/store/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -78,16 +79,33 @@ void main() {
     expect(store.products.first.stock, stockB + 1);
   });
 
-  test(
-    'pesanan contoh tanpa daftar barang bisa dibatalkan tanpa efek stok',
-    () {
-      final before = store.products.map((p) => p.stock).toList();
+  test('membatalkan pesanan contoh mengembalikan stok barangnya', () {
+    final kampas = store.products[0].stock;
+    final filter = store.products[1].stock;
+    final lain = store.products[2].stock;
 
-      store.updateOrderStatus(store.orders.first, 'Dibatalkan');
+    // Pesanan contoh pertama: 1 Filter Oli Honda + 1 Kampas Rem Depan.
+    store.updateOrderStatus(store.orders.first, 'Dibatalkan');
 
-      expect(store.products.map((p) => p.stock).toList(), before);
-    },
-  );
+    expect(store.products[0].stock, kampas + 1);
+    expect(store.products[1].stock, filter + 1);
+    expect(store.products[2].stock, lain);
+  });
+
+  test('pesanan lama tanpa daftar barang dibatalkan tanpa efek stok', () {
+    final lama = OrderItem(
+      code: 'MP-LAMA',
+      customer: 'Lama',
+      total: 50000,
+      status: 'Diproses',
+    );
+    store.orders.add(lama);
+    final before = store.products.map((p) => p.stock).toList();
+
+    store.updateOrderStatus(lama, 'Dibatalkan');
+
+    expect(store.products.map((p) => p.stock).toList(), before);
+  });
 
   test('daftar barang pesanan tersimpan dan dimuat kembali', () async {
     SharedPreferences.setMockInitialValues({});

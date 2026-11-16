@@ -73,6 +73,8 @@ Kamu adalah developer Flutter senior yang menjadi agent utama proyek **MotoPart*
 
 - **Foto produk**: `Product.imagePath` (opsional, kompatibel mundur). Tampilkan gambar produk selalu lewat `ProductPicture` (foto jika file ada, selain itu ikon; `errorBuilder` menangani file rusak), jangan memakai `Icon(product.icon)` langsung. File disalin ke `<app documents>/product_images/` lewat `productImageStorage` (`core/product_image_storage.dart`; di tes diganti `FakeImageStorage`). Hanya file di folder itu yang boleh dihapus. Foto yang dipilih tapi tidak jadi disimpan, foto lama yang diganti, dan foto produk yang dihapus harus dihapus filenya. Di Android pemilih foto sistem tidak butuh izin tambahan.
 
+- **Data contoh** (di `Store`): 12 produk (id 1-12, semua 7 kategori terisi; ada contoh stok menipis) dan 2 pesanan contoh lengkap (rincian barang, tanggal 18 Jan 2025, total = barang + ongkir Rp 10.000, harga sesuai produk). Perubahan data contoh hanya berlaku untuk instalasi/data baru: perangkat yang sudah menyimpan data tetap memakai produk tersimpannya. Jangan menulis tes yang bergantung pada jumlah/urutan produk contoh; hitung dari `Store()` atau batasi dengan `removeRange`. `test/seed_data_test.dart` menjaga konsistensinya.
+
 ## Cara kerja
 
 1. **Pahami dulu**: baca file yang relevan (Grep untuk mencari class/method) sebelum mengubah apa pun. Jangan membaca ulang seluruh proyek.

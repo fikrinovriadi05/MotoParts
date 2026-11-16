@@ -157,7 +157,7 @@ class Store extends ChangeNotifier {
     Product(
       id: 4,
       name: 'Oli Mesin 10W-40',
-      category: 'Mesin',
+      category: 'Oli',
       type: 'Berbagai tipe',
       price: 85000,
       stock: 30,
@@ -186,6 +186,67 @@ class Store extends ChangeNotifier {
       icon: Icons.settings_rounded,
       description:
           'Gear set berkualitas untuk transmisi lebih halus dan tahan lama.',
+    ),
+    Product(
+      id: 7,
+      name: 'Oli Gardan 120 ml',
+      category: 'Oli',
+      type: 'Honda Matic',
+      price: 18000,
+      stock: 60,
+      icon: Icons.oil_barrel_rounded,
+      description: 'Oli gardan untuk melindungi gigi transmisi motor matic dan menjaga tarikan tetap halus.',
+    ),
+    Product(
+      id: 8,
+      name: 'Oli Mesin Matic 0,8 L',
+      category: 'Oli',
+      type: 'Honda Beat, Honda Vario, Yamaha Mio',
+      price: 52000,
+      stock: 45,
+      icon: Icons.oil_barrel_rounded,
+      description: 'Oli mesin khusus motor matic, menjaga mesin tetap dingin dan bersih.',
+    ),
+    Product(
+      id: 9,
+      name: 'Ban Luar 80/90-14',
+      category: 'Ban',
+      type: 'Honda Beat, Honda Vario',
+      price: 175000,
+      stock: 12,
+      icon: Icons.tire_repair_rounded,
+      description: 'Ban luar tubeless dengan cengkeraman baik di jalan kering maupun basah.',
+    ),
+    Product(
+      id: 10,
+      name: 'Ban Dalam 80/90-14',
+      category: 'Ban',
+      type: 'Honda Beat, Honda Vario',
+      price: 38000,
+      stock: 4,
+      icon: Icons.tire_repair_rounded,
+      description: 'Ban dalam karet tebal, tahan bocor dan mudah dipasang.',
+    ),
+    Product(
+      id: 11,
+      name: 'Spion Standar',
+      category: 'Body',
+      type: 'Universal',
+      price: 48000,
+      stock: 22,
+      icon: Icons.two_wheeler_rounded,
+      description: 'Spion standar dengan kaca cembung yang jernih dan sudut pandang luas.',
+    ),
+    Product(
+      id: 12,
+      name: 'Handgrip Karet',
+      category: 'Body',
+      type: 'Universal',
+      price: 28000,
+      stock: 35,
+      icon: Icons.two_wheeler_rounded,
+      description:
+          'Handgrip karet empuk dan tidak licin, nyaman untuk perjalanan jauh.',
     ),
   ];
 
@@ -218,17 +279,28 @@ class Store extends ChangeNotifier {
       orders.where((o) => o.accountId == currentAccountId).toList();
 
   final List<OrderItem> orders = [
+    // Pesanan contoh: total = barang + ongkir Rp 10.000, harga sesuai produk.
     OrderItem(
       code: 'MP-250118-0001',
       customer: 'Budi Santoso',
       total: 80000,
       status: 'Selesai',
+      createdAt: DateTime(2025, 1, 18, 10, 30),
+      lines: const [
+        OrderLine(productId: 2, name: 'Filter Oli Honda', qty: 1, price: 25000),
+        OrderLine(productId: 1, name: 'Kampas Rem Depan', qty: 1, price: 45000),
+      ],
     ),
     OrderItem(
       code: 'MP-250118-0002',
       customer: 'Andi Pratama',
       total: 125000,
       status: 'Dikirim',
+      createdAt: DateTime(2025, 1, 18, 14, 15),
+      lines: const [
+        OrderLine(productId: 2, name: 'Filter Oli Honda', qty: 1, price: 25000),
+        OrderLine(productId: 1, name: 'Kampas Rem Depan', qty: 2, price: 45000),
+      ],
     ),
   ];
 

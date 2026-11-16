@@ -27,8 +27,11 @@ void main() {
       expect(store.orders.first.code, 'MP-${now.millisecondsSinceEpoch}');
     });
 
-    test('pesanan contoh tidak punya waktu', () {
-      expect(Store().orders.first.createdAt, isNull);
+    test('pesanan contoh punya tanggal 18 Jan 2025', () {
+      final orders = Store().orders;
+
+      expect(orders.first.createdAt, DateTime(2025, 1, 18, 10, 30));
+      expect(orders.last.createdAt, DateTime(2025, 1, 18, 14, 15));
     });
 
     test('waktu pesanan tersimpan dan dimuat kembali', () async {
@@ -44,7 +47,7 @@ void main() {
       await reloaded.attach(prefs);
 
       expect(reloaded.orders.first.createdAt, now);
-      expect(reloaded.orders.last.createdAt, isNull);
+      expect(reloaded.orders.last.createdAt, DateTime(2025, 1, 18, 14, 15));
     });
 
     test('data lama tanpa createdAt tetap terbaca', () {
