@@ -87,6 +87,10 @@ class AdminProductsPage extends StatelessWidget {
                       controller: type,
                       decoration: const InputDecoration(
                         labelText: 'Tipe Motor',
+                        helperText:
+                            'Pisahkan dengan koma, mis. Honda Beat, Honda '
+                            'Vario. Tulis "Universal" untuk semua motor.',
+                        helperMaxLines: 3,
                       ),
                     ),
                     const SizedBox(height: 10),

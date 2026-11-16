@@ -35,6 +35,15 @@ flutter run                                # emulator Android memakai http://10.
 Tanpa server berjalan, hanya COD yang bisa dipakai. Pengaturan Midtrans Sandbox,
 webhook, dan batasan ada di [`server/README.md`](server/README.md).
 
+## Filter sparepart berdasarkan tipe motor
+
+Di **Katalog**, pilih *Pilih tipe motor* (atau pintasan *Motor saya* dari data
+akun) untuk hanya menampilkan sparepart yang cocok: yang khusus motor itu lebih
+dulu, lalu yang untuk jenisnya (mis. "Honda Matic" untuk Honda Beat), lalu yang
+universal (bisa dimatikan lewat chip *Termasuk universal*). Kecocokan dibaca
+dari kolom **Tipe Motor** produk, jadi admin mengisinya dengan nama motor
+dipisah koma (mis. `Honda Beat, Honda Vario`) atau `Universal`.
+
 ## Lokasi GPS untuk alamat
 
 Di form alamat, tombol **Gunakan Lokasi Saya (GPS)** mengambil koordinat lalu
@@ -49,7 +58,7 @@ flutter test
 cd server && dart analyze && dart test
 ```
 
-Sekitar 540 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
+Sekitar 580 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
 kecil, berkas ikon, font, pembayaran online, GPS, dan konfigurasi proyek) dan 35
 tes server. Tes aplikasi memakai server pembayaran dan GPS palsu
 (`test/support/fakes.dart`), jadi tidak memakai jaringan.

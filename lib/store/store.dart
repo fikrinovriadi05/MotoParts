@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
@@ -614,11 +615,18 @@ class Store extends ChangeNotifier {
   /// [keyword] dicocokkan ke nama produk (tanpa membedakan huruf besar/kecil);
   /// [minPrice]/[maxPrice] membatasi harga (inklusif). [ProductSort.standard]
   /// mempertahankan urutan daftar produk.
+  ///
+  /// [motor] menyaring sparepart yang cocok dengan tipe motor itu (lihat
+  /// [MotorMatcher]); produk universal ikut bila [includeUniversal]. Dengan
+  /// urutan bawaan, hasilnya diurutkan dari yang paling cocok (khusus motor
+  /// itu, sejenis, lalu universal).
   List<Product> searchProducts({
     String? category,
     String keyword = '',
     int? minPrice,
     int? maxPrice,
+    String motor = '',
+    bool includeUniversal = true,
     ProductSort sort = ProductSort.standard,
   }) {
     final q = keyword.trim().toLowerCase();
@@ -629,12 +637,27 @@ class Store extends ChangeNotifier {
       if (q.isNotEmpty && !p.name.toLowerCase().contains(q)) return false;
       if (minPrice != null && p.price < minPrice) return false;
       if (maxPrice != null && p.price > maxPrice) return false;
+      if (motor.trim().isNotEmpty &&
+          !MotorMatcher.matches(p, motor, includeUniversal: includeUniversal)) {
+        return false;
+      }
       return true;
     }).toList();
 
     switch (sort) {
       case ProductSort.standard:
-        break;
+        if (motor.trim().isNotEmpty) {
+          // Urutan stabil: yang paling cocok di depan.
+          final rank = {
+            for (final p in result) p: MotorMatcher.fit(p, motor).index,
+          };
+          final indexed = result.asMap().entries.toList()
+            ..sort((a, b) {
+              final byFit = rank[a.value]!.compareTo(rank[b.value]!);
+              return byFit != 0 ? byFit : a.key.compareTo(b.key);
+            });
+          return [for (final e in indexed) e.value];
+        }
       case ProductSort.priceLowToHigh:
         result.sort((a, b) => a.price.compareTo(b.price));
       case ProductSort.priceHighToLow:

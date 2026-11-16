@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -11,13 +12,8 @@ import 'package:motopart/widgets/review_section.dart';
 import 'package:motopart/widgets/wishlist_button.dart';
 
 /// Memecah "Honda Beat, Honda Vario" menjadi daftar motor yang cocok.
-List<String> compatibleBikes(Product product) {
-  return product.type
-      .split(RegExp(r'[,;/]'))
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
-}
+List<String> compatibleBikes(Product product) =>
+    splitCompatibleBikes(product.type);
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
