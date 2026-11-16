@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/brand_mark.dart';
 
+/// Logo + nama "MotoPart". [light] = teks putih untuk latar gelap.
 class AppLogo extends StatelessWidget {
   final bool light;
   final double size;
@@ -14,28 +16,7 @@ class AppLogo extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: size + 12,
-          height: size + 12,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [AppColors.primarySoft, AppColors.primary],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.25),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.settings_rounded,
-            color: AppColors.onPrimary,
-            size: 28,
-          ),
-        ),
+        BrandMark(size: size + 14),
         const SizedBox(width: 10),
         RichText(
           text: TextSpan(

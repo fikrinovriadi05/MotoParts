@@ -1,6 +1,6 @@
 {
-    "name": "motopart",
-    "short_name": "motopart",
+    "name": "MotoPart",
+    "short_name": "MotoPart",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
