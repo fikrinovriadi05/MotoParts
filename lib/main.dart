@@ -12,11 +12,8 @@ Future<void> main() async {
   // Lisensi font (SIL OFL) tampil di halaman lisensi aplikasi.
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks([
-      'Poppins',
-    ], await rootBundle.loadString('fonts/OFL-Poppins.txt'));
-    yield LicenseEntryWithLineBreaks([
-      'Montserrat',
-    ], await rootBundle.loadString('fonts/OFL-Montserrat.txt'));
+      'Inter',
+    ], await rootBundle.loadString('fonts/OFL-Inter.txt'));
   });
   final prefs = await SharedPreferences.getInstance();
   await themeController.attach(prefs);

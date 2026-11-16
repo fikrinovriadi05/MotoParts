@@ -34,7 +34,7 @@ berkas ikon, font, dan konfigurasi proyek).
 | `lib/store/` | `Store` (produk, keranjang, pesanan, ulasan) dan `AuthStore` (akun) |
 | `lib/pages/` | Halaman `auth/`, `user/`, `admin/`, `shared/` |
 | `lib/widgets/` | Komponen bersama (kartu produk, logo, dll.) |
-| `fonts/` | Poppins dan Montserrat (lisensi SIL OFL) |
+| `fonts/` | Inter (lisensi SIL OFL) |
 | `tool/` | Pembuat ikon: `flutter test tool/generate_icons_test.dart` |
 
 Panduan lengkap untuk agent pengembang ada di `.claude/agents/main-agent.md`.
@@ -89,5 +89,8 @@ versi yang harus naik di setiap rilis ke Play Store).
 
 - Aplikasi berjalan offline: font disertakan di dalam aplikasi, tidak perlu
   izin internet.
+- Font: iOS/macOS memakai San Francisco bawaan sistem; Android, Windows, dan
+  Linux memakai Inter (mirip San Francisco). San Francisco tidak disertakan
+  di aplikasi karena lisensi Apple hanya mengizinkannya di platform Apple.
 - Keamanan akun hanya setara demo lokal (password di-hash dan disimpan di
   perangkat, tanpa server). Jangan dipakai untuk data pengguna sungguhan.

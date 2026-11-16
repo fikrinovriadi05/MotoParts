@@ -1,14 +1,21 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Pengaturan perilaku UI yang bisa dimatikan di tes.
 class UiConfig {
-  /// Memakai font merek Poppins (teks) dan Montserrat (judul) yang disertakan
-  /// di aplikasi (folder `fonts/`). Dimatikan di tes agar ukuran teks tetap
-  /// lebar (font Ahem) dan overflow cepat ketahuan.
+  /// Memakai font merek Inter yang disertakan di aplikasi (folder `fonts/`),
+  /// mirip San Francisco. Di iOS/macOS dipakai San Francisco asli dari sistem
+  /// (lisensi Apple tidak mengizinkan menyertakannya di aplikasi lain).
+  /// Dimatikan di tes agar ukuran teks tetap lebar (font Ahem) dan overflow
+  /// cepat ketahuan.
   static bool useBrandFonts = true;
 
-  static const bodyFont = 'Poppins';
-  static const headingFont = 'Montserrat';
+  static const bodyFont = 'Inter';
+
+  /// iOS dan macOS memakai font sistem (San Francisco).
+  static bool get usesSystemFont =>
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS;
 
   /// Menampilkan efek shimmer sesaat sebelum produk tampil.
   static bool simulateLoading = true;
@@ -188,26 +195,27 @@ class AppTheme {
   static ThemeData light() => _build(Brightness.light, AppPalette.light);
   static ThemeData dark() => _build(Brightness.dark, AppPalette.dark);
 
-  /// Poppins untuk teks, Montserrat tebal untuk judul.
+  /// Inter untuk semua teks (San Francisco sistem di iOS/macOS). Judul memakai
+  /// bobot tebal dengan jarak huruf sedikit rapat seperti gaya SF.
   static TextTheme _textTheme(TextTheme base, AppPalette p) {
-    final themed = base.apply(bodyColor: p.text, displayColor: p.text);
-    final brand = UiConfig.useBrandFonts;
+    final colored = base.apply(bodyColor: p.text, displayColor: p.text);
+    final family = UiConfig.useBrandFonts && !UiConfig.usesSystemFont
+        ? UiConfig.bodyFont
+        : null;
+    final themed = family == null ? colored : colored.apply(fontFamily: family);
 
-    TextStyle? heading(TextStyle? s) => s?.copyWith(
-      fontFamily: brand ? UiConfig.headingFont : null,
-      fontWeight: FontWeight.w800,
+    TextStyle? heading(TextStyle? s, double spacing) =>
+        s?.copyWith(fontWeight: FontWeight.w700, letterSpacing: spacing);
+
+    return themed.copyWith(
+      displayLarge: heading(themed.displayLarge, -0.6),
+      displayMedium: heading(themed.displayMedium, -0.5),
+      displaySmall: heading(themed.displaySmall, -0.4),
+      headlineLarge: heading(themed.headlineLarge, -0.4),
+      headlineMedium: heading(themed.headlineMedium, -0.3),
+      headlineSmall: heading(themed.headlineSmall, -0.3),
+      titleLarge: heading(themed.titleLarge, -0.2),
     );
-
-    return (brand ? themed.apply(fontFamily: UiConfig.bodyFont) : themed)
-        .copyWith(
-          displayLarge: heading(themed.displayLarge),
-          displayMedium: heading(themed.displayMedium),
-          displaySmall: heading(themed.displaySmall),
-          headlineLarge: heading(themed.headlineLarge),
-          headlineMedium: heading(themed.headlineMedium),
-          headlineSmall: heading(themed.headlineSmall),
-          titleLarge: heading(themed.titleLarge),
-        );
   }
 
   static ThemeData _build(Brightness brightness, AppPalette p) {
