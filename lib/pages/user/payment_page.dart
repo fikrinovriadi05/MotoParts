@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/theme/app_theme.dart';
-import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
 import 'package:motopart/store/store.dart';
-import 'package:motopart/widgets/glass_card.dart';
-import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/checkout_steps.dart';
+import 'package:motopart/widgets/order_summary_card.dart';
+import 'package:motopart/widgets/selectable_card.dart';
 
 class PaymentPage extends StatefulWidget {
   final String customerName;
@@ -21,6 +21,25 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
+  static const methods = [
+    (
+      'Transfer Bank',
+      Icons.account_balance_rounded,
+      'Transfer manual ke rekening toko',
+    ),
+    (
+      'E-Wallet',
+      Icons.account_balance_wallet_outlined,
+      'Bayar lewat dompet digital',
+    ),
+    (
+      'Virtual Account',
+      Icons.receipt_long_rounded,
+      'Nomor virtual account khusus pesanan',
+    ),
+    ('COD', Icons.payments_outlined, 'Bayar tunai saat barang tiba'),
+  ];
+
   String method = 'Transfer Bank';
 
   void pay() {
@@ -57,78 +76,85 @@ class _PaymentPageState extends State<PaymentPage> {
 
   @override
   Widget build(BuildContext context) {
-    final total = store.cartTotal + widget.shippingCost;
+    final palette = context.palette;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pembayaran')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.page),
         children: [
-          const Text(
-            'Pilih Metode Pembayaran',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 12),
-          RadioGroup<String>(
-            groupValue: method,
-            onChanged: (value) => setState(() => method = value!),
-            child: Column(
-              children: [
-                _paymentTile('Transfer Bank', Icons.account_balance_rounded),
-                _paymentTile('E-Wallet', Icons.account_balance_wallet_outlined),
-                _paymentTile('Virtual Account', Icons.receipt_long_rounded),
-                _paymentTile('COD', Icons.payments_outlined),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          GlassCard(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Pembayaran',
-                  style: TextStyle(
-                    color: context.palette.textMuted,
-                    fontWeight: FontWeight.w700,
-                  ),
+          const CheckoutSteps(current: 1),
+          const SizedBox(height: AppSpacing.xl),
+          Row(
+            children: [
+              Icon(Icons.payment_rounded, size: 20, color: palette.primaryText),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Pilih Metode Pembayaran',
+                style: TextStyle(
+                  fontSize: AppTextSizes.bodyLarge,
+                  fontWeight: FontWeight.w800,
+                  color: palette.text,
                 ),
-                Text(
-                  formatRupiah(total),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: AppSpacing.md),
+          for (final (title, icon, subtitle) in methods) ...[
+            SelectableCard(
+              selected: method == title,
+              onTap: () => setState(() => method = title),
+              icon: icon,
+              title: title,
+              subtitle: subtitle,
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+          const SizedBox(height: AppSpacing.sm),
+          AnimatedBuilder(
+            animation: store,
+            builder: (context, _) =>
+                OrderSummaryCard(shippingCost: widget.shippingCost),
+          ),
+          const SizedBox(height: AppSpacing.lg),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.primary.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Text(
-              'Ini hanya simulasi pembayaran untuk tugas kuliah, bukan transaksi nyata.',
-              style: TextStyle(fontSize: 12, color: context.palette.text),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 18,
+                  color: palette.primaryText,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Ini hanya simulasi pembayaran, bukan transaksi nyata.',
+                    style: TextStyle(
+                      fontSize: AppTextSizes.small,
+                      color: palette.text,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 18),
-          PrimaryButton(text: 'Bayar Sekarang', onPressed: pay),
         ],
       ),
-    );
-  }
-
-  Widget _paymentTile(String title, IconData icon) {
-    return Card(
-      child: RadioListTile<String>(
-        value: title,
-        activeColor: AppColors.primary,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        secondary: Icon(icon, color: AppColors.primary),
+      bottomNavigationBar: AnimatedBuilder(
+        animation: store,
+        builder: (context, _) => CheckoutBottomBar(
+          total: store.cartTotal + widget.shippingCost,
+          buttonText: 'Bayar Sekarang',
+          icon: Icons.lock_rounded,
+          onPressed: pay,
+        ),
       ),
     );
   }

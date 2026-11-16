@@ -37,7 +37,7 @@ class AdminUsersPage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Berikan password ini langsung kepada pembeli dan minta '
-                    'ia menggantinya lewat Profil > Ganti Password.',
+                    'ia menggantinya lewat Akun > Ganti Password.',
                     style: TextStyle(
                       color: context.palette.textMuted,
                       fontSize: 12,

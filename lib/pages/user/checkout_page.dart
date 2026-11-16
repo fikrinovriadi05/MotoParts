@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/theme/app_theme.dart';
-import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/user/payment_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
+import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/checkout_steps.dart';
 import 'package:motopart/widgets/glass_card.dart';
-import 'package:motopart/widgets/primary_button.dart';
+import 'package:motopart/widgets/order_summary_card.dart';
+import 'package:motopart/widgets/selectable_card.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -64,105 +65,121 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
+  void _selectCourier(String courier, int cost) {
+    setState(() {
+      shipping = courier;
+      shippingCost = cost;
+    });
+  }
+
+  Widget _sectionTitle(BuildContext context, IconData icon, String title) {
+    final palette = context.palette;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: palette.primaryText),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: AppTextSizes.bodyLarge,
+              fontWeight: FontWeight.w800,
+              color: palette.text,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final total = store.cartTotal + shippingCost;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.page),
         children: [
-          const Text(
+          const CheckoutSteps(current: 0),
+          const SizedBox(height: AppSpacing.xl),
+          _sectionTitle(
+            context,
+            Icons.location_on_rounded,
             'Alamat Pengiriman',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: name,
-            decoration: const InputDecoration(
-              labelText: 'Nama Penerima',
-              prefixIcon: Icon(Icons.person_outline_rounded),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: phone,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Nomor HP',
-              prefixIcon: Icon(Icons.phone_outlined),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: address,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Alamat Lengkap',
-              prefixIcon: Icon(Icons.location_on_outlined),
-              alignLabelWithHint: true,
-            ),
-          ),
-          const SizedBox(height: 22),
-          const Text(
-            'Kurir Pengiriman',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          RadioGroup<String>(
-            groupValue: shipping,
-            onChanged: (value) {
-              setState(() {
-                shipping = value!;
-                shippingCost = value == 'JNE Regular' ? 10000 : 12000;
-              });
-            },
-            child: const Column(
-              children: [
-                RadioListTile<String>(
-                  value: 'JNE Regular',
-                  activeColor: AppColors.primary,
-                  title: Text('JNE Regular'),
-                  subtitle: Text('Estimasi 2–4 hari'),
-                  secondary: Text('Rp10.000'),
-                ),
-                RadioListTile<String>(
-                  value: 'J&T Express',
-                  activeColor: AppColors.primary,
-                  title: Text('J&T Express'),
-                  subtitle: Text('Estimasi 2–3 hari'),
-                  secondary: Text('Rp12.000'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
           GlassCard(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                Text(
-                  'Total Pembayaran',
-                  style: TextStyle(
-                    color: context.palette.textMuted,
-                    fontWeight: FontWeight.w700,
+                TextField(
+                  controller: name,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Nama Penerima',
+                    prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                 ),
-                Text(
-                  formatRupiah(total),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    color: context.palette.text,
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Nomor HP',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: address,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Alamat Lengkap',
+                    prefixIcon: Icon(Icons.home_outlined),
+                    alignLabelWithHint: true,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          PrimaryButton(text: 'Lanjutkan Pembayaran', onPressed: next),
+          const SizedBox(height: AppSpacing.xl),
+          _sectionTitle(
+            context,
+            Icons.local_shipping_rounded,
+            'Kurir Pengiriman',
+          ),
+          SelectableCard(
+            selected: shipping == 'JNE Regular',
+            onTap: () => _selectCourier('JNE Regular', 10000),
+            icon: Icons.local_shipping_rounded,
+            title: 'JNE Regular',
+            subtitle: 'Estimasi 2–4 hari',
+            trailing: 'Rp 10.000',
+          ),
+          const SizedBox(height: AppSpacing.md),
+          SelectableCard(
+            selected: shipping == 'J&T Express',
+            onTap: () => _selectCourier('J&T Express', 12000),
+            icon: Icons.rocket_launch_rounded,
+            title: 'J&T Express',
+            subtitle: 'Estimasi 2–3 hari',
+            trailing: 'Rp 12.000',
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          AnimatedBuilder(
+            animation: store,
+            builder: (context, _) =>
+                OrderSummaryCard(shippingCost: shippingCost),
+          ),
         ],
+      ),
+      bottomNavigationBar: AnimatedBuilder(
+        animation: store,
+        builder: (context, _) => CheckoutBottomBar(
+          total: store.cartTotal + shippingCost,
+          buttonText: 'Lanjutkan Pembayaran',
+          icon: Icons.arrow_forward_rounded,
+          onPressed: next,
+        ),
       ),
     );
   }

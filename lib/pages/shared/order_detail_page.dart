@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/store/store.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/glass_card.dart';
+import 'package:motopart/widgets/order_timeline.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
 /// Detail satu pesanan. Dipakai pembeli (hanya lihat) dan admin
@@ -16,6 +17,8 @@ class OrderDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Pesanan')),
       body: AnimatedBuilder(
@@ -28,7 +31,7 @@ class OrderDetailPage extends StatelessWidget {
           final shipping = order.total - itemsTotal;
 
           return ListView(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(AppSpacing.page),
             children: [
               GlassCard(
                 child: Column(
@@ -39,34 +42,41 @@ class OrderDetailPage extends StatelessWidget {
                         Expanded(
                           child: Text(
                             order.code,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 16,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: AppTextSizes.bodyLarge,
+                              color: palette.text,
                             ),
                           ),
                         ),
+                        const SizedBox(width: AppSpacing.sm),
                         StatusBadge(order.status),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       'Pelanggan: ${order.customer}',
-                      style: TextStyle(color: context.palette.textMuted),
+                      style: TextStyle(color: palette.textMuted),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Tanggal: ${order.createdAt == null ? '-' : formatTanggal(order.createdAt!)}',
-                      style: TextStyle(color: context.palette.textMuted),
+                      style: TextStyle(color: palette.textMuted),
                     ),
+                    const SizedBox(height: AppSpacing.lg),
+                    OrderTimeline(status: order.status),
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
-              const Text(
+              const SizedBox(height: AppSpacing.lg),
+              Text(
                 'Barang Dipesan',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontSize: 17),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.sm),
               GlassCard(
                 child: order.lines.isEmpty
                     ? Column(
@@ -74,9 +84,9 @@ class OrderDetailPage extends StatelessWidget {
                         children: [
                           Text(
                             'Rincian barang tidak tersedia untuk pesanan ini.',
-                            style: TextStyle(color: context.palette.textMuted),
+                            style: TextStyle(color: palette.textMuted),
                           ),
-                          const Divider(height: 24),
+                          const Divider(height: AppSpacing.xl),
                           _summaryRow(
                             context,
                             'Total',
@@ -89,7 +99,7 @@ class OrderDetailPage extends StatelessWidget {
                         children: [
                           for (final line in order.lines)
                             _lineRow(context, line),
-                          const Divider(height: 24),
+                          const Divider(height: AppSpacing.xl),
                           _summaryRow(context, 'Subtotal Barang', itemsTotal),
                           if (shipping > 0)
                             _summaryRow(context, 'Ongkos Kirim', shipping),
@@ -104,7 +114,13 @@ class OrderDetailPage extends StatelessWidget {
                       ),
               ),
               if (isAdmin) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: AppSpacing.xl),
+                Text(
+                  'Ubah Status',
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontSize: 17),
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 DropdownButtonFormField<String>(
                   initialValue: order.status,
                   decoration: const InputDecoration(
@@ -129,33 +145,54 @@ class OrderDetailPage extends StatelessWidget {
   }
 
   Widget _lineRow(BuildContext context, OrderLine line) {
+    final palette = context.palette;
+    // Ikon diambil dari produknya; produk yang sudah dihapus memakai ikon umum.
+    final index = store.products.indexWhere((p) => p.id == line.productId);
+    final icon = index >= 0
+        ? store.products[index].icon
+        : Icons.inventory_2_rounded;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: Icon(icon, size: 22, color: palette.primaryText),
+          ),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   line.name,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: palette.text,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${line.qty} x ${formatRupiah(line.price)}',
                   style: TextStyle(
-                    color: context.palette.textMuted,
-                    fontSize: 12,
+                    color: palette.textMuted,
+                    fontSize: AppTextSizes.small,
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
           Text(
             formatRupiah(line.price * line.qty),
-            style: const TextStyle(fontWeight: FontWeight.w800),
+            style: TextStyle(fontWeight: FontWeight.w800, color: palette.text),
           ),
         ],
       ),
@@ -168,15 +205,23 @@ class OrderDetailPage extends StatelessWidget {
     int value, {
     bool bold = false,
   }) {
+    final palette = context.palette;
     final style = TextStyle(
-      fontWeight: bold ? FontWeight.w900 : FontWeight.w600,
-      color: bold ? context.palette.text : context.palette.textMuted,
-      fontSize: bold ? 16 : 14,
+      fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+      color: bold ? palette.primaryText : palette.textMuted,
+      fontSize: bold ? AppTextSizes.title : AppTextSizes.body,
     );
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: style),
+        Expanded(
+          child: Text(
+            label,
+            style: style.copyWith(
+              color: bold ? palette.text : palette.textMuted,
+              fontSize: bold ? AppTextSizes.bodyLarge : AppTextSizes.body,
+            ),
+          ),
+        ),
         Text(formatRupiah(value), style: style),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/store/auth_store.dart';
+import 'package:motopart/widgets/auth_scaffold.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final email = TextEditingController();
   final phone = TextEditingController();
   final password = TextEditingController();
+  bool obscure = true;
 
   @override
   void dispose() {
@@ -47,58 +49,67 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Akun')),
-      body: ListView(
-        padding: const EdgeInsets.all(22),
-        children: [
-          Text(
-            'Buat Akun Baru',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: context.palette.text,
+    return AuthScaffold(
+      showBack: true,
+      title: 'Buat Akun Baru',
+      subtitle: 'Lengkapi data berikut untuk mulai berbelanja di MotoPart.',
+      children: [
+        TextField(
+          controller: name,
+          textInputAction: TextInputAction.next,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Nama Lengkap',
+            prefixIcon: Icon(Icons.person_outline_rounded),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        TextField(
+          controller: email,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'Email',
+            prefixIcon: Icon(Icons.email_outlined),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        TextField(
+          controller: phone,
+          keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'No. HP',
+            prefixIcon: Icon(Icons.phone_outlined),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        TextField(
+          controller: password,
+          obscureText: obscure,
+          onSubmitted: (_) => submit(),
+          decoration: InputDecoration(
+            labelText:
+                'Password (minimal ${AuthStore.minPasswordLength} karakter)',
+            prefixIcon: const Icon(Icons.lock_outline_rounded),
+            suffixIcon: IconButton(
+              tooltip: obscure ? 'Tampilkan password' : 'Sembunyikan password',
+              onPressed: () => setState(() => obscure = !obscure),
+              icon: Icon(
+                obscure
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Lengkapi data berikut untuk mulai berbelanja di MotoPart.',
-            style: TextStyle(color: context.palette.textMuted),
-          ),
-          const SizedBox(height: 24),
-          _field('Nama Lengkap', name, Icons.person_outline_rounded),
-          _field('Email', email, Icons.email_outlined),
-          _field('No. HP', phone, Icons.phone_outlined),
-          _field(
-            'Password (minimal ${AuthStore.minPasswordLength} karakter)',
-            password,
-            Icons.lock_outline_rounded,
-            obscure: true,
-          ),
-          const SizedBox(height: 14),
-          PrimaryButton(
-            text: 'Daftar',
-            icon: Icons.person_add_alt_1_rounded,
-            onPressed: submit,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _field(
-    String label,
-    TextEditingController controller,
-    IconData icon, {
-    bool obscure = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
-      ),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        PrimaryButton(
+          text: 'Daftar',
+          icon: Icons.person_add_alt_1_rounded,
+          onPressed: submit,
+        ),
+      ],
     );
   }
 }
