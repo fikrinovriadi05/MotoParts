@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/admin/admin_shell.dart';
 import 'package:motopart/pages/auth/onboarding_page.dart';
 import 'package:motopart/pages/user/user_shell.dart';
@@ -41,7 +41,11 @@ class _SplashPageState extends State<SplashPage> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.black, AppColors.dark, AppColors.blue],
+            colors: [
+              AppColors.charcoal,
+              AppColors.charcoalSoft,
+              AppColors.primary,
+            ],
           ),
         ),
         child: Stack(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
@@ -17,56 +17,55 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconWidget = icon != null ? Icon(icon, size: 20) : null;
+
     if (outline) {
       return SizedBox(
         width: double.infinity,
-        height: 54,
+        height: AppSizes.buttonHeight,
         child: OutlinedButton.icon(
           onPressed: onPressed,
-          icon: icon != null ? Icon(icon) : const SizedBox.shrink(),
+          icon: iconWidget ?? const SizedBox.shrink(),
           label: Text(text),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.blue,
-            side: const BorderSide(color: AppColors.blue),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
         ),
       );
     }
 
+    final enabled = onPressed != null;
+    final palette = context.palette;
+
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: AppSizes.buttonHeight,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.blueSoft, AppColors.blue],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.blue.withValues(alpha: 0.25),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
-          ],
+          gradient: enabled
+              ? const LinearGradient(
+                  colors: [AppColors.primarySoft, AppColors.primary],
+                )
+              : null,
+          color: enabled ? null : palette.surfaceAlt,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.28),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
         ),
         child: FilledButton.icon(
           onPressed: onPressed,
-          icon: icon != null ? Icon(icon) : const SizedBox.shrink(),
-          label: Text(
-            text,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
+          icon: iconWidget ?? const SizedBox.shrink(),
+          label: Text(text),
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            foregroundColor: AppColors.onPrimary,
+            disabledForegroundColor: palette.textMuted,
           ),
         ),
       ),

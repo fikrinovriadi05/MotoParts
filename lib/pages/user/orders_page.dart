@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
@@ -18,10 +18,10 @@ class OrdersPage extends StatelessWidget {
         builder: (context, _) {
           final orders = store.ordersForCurrentAccount;
           if (orders.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'Belum ada pesanan.',
-                style: TextStyle(color: AppColors.grey),
+                style: TextStyle(color: context.palette.textMuted),
               ),
             );
           }
@@ -47,12 +47,12 @@ class OrdersPage extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.blue.withValues(alpha: 0.10),
+                        color: AppColors.primary.withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
                         Icons.receipt_long,
-                        color: AppColors.blue,
+                        color: AppColors.primary,
                       ),
                     ),
                     title: Text(
@@ -64,7 +64,7 @@ class OrdersPage extends StatelessWidget {
                       child: Text(
                         '${formatRupiah(order.total)} • ${order.customer}'
                         '${order.createdAt == null ? '' : '\n${formatTanggal(order.createdAt!)}'}',
-                        style: const TextStyle(color: AppColors.grey),
+                        style: TextStyle(color: context.palette.textMuted),
                       ),
                     ),
                     trailing: StatusBadge(order.status),

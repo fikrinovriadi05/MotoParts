@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/pages/admin/admin_shell.dart';
 import 'package:motopart/pages/auth/register_page.dart';
@@ -77,11 +77,15 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.black, AppColors.dark, AppColors.bg],
+            colors: [
+              AppColors.charcoal,
+              AppColors.charcoalSoft,
+              context.palette.bg,
+            ],
             stops: [0.0, 0.28, 0.28],
           ),
         ),
@@ -97,12 +101,12 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Selamat Datang',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
-                        color: AppColors.black,
+                        color: context.palette.text,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -110,8 +114,8 @@ class _LoginPageState extends State<LoginPage> {
                       admin
                           ? 'Masuk sebagai admin untuk mengelola toko.'
                           : 'Masuk untuk mulai belanja sparepart favoritmu.',
-                      style: const TextStyle(
-                        color: AppColors.grey,
+                      style: TextStyle(
+                        color: context.palette.textMuted,
                         height: 1.5,
                       ),
                     ),
@@ -119,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                     Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: AppColors.bg,
+                        color: context.palette.bg,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
@@ -133,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: !admin
-                                      ? AppColors.blue
+                                      ? AppColors.primary
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -143,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(
                                     color: !admin
                                         ? Colors.white
-                                        : AppColors.black,
+                                        : context.palette.text,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -159,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: admin
-                                      ? AppColors.black
+                                      ? context.palette.text
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -169,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextStyle(
                                     color: admin
                                         ? Colors.white
-                                        : AppColors.black,
+                                        : context.palette.text,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),

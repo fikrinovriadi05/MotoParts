@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 
 class StatusBadge extends StatelessWidget {
   final String status;
@@ -8,10 +8,10 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color = AppColors.blue;
-    if (status == 'Selesai') color = AppColors.green;
-    if (status == 'Dikirim') color = AppColors.orange;
-    if (status == 'Dibatalkan') color = AppColors.red;
+    Color color = AppColors.primary;
+    if (status == 'Selesai') color = AppColors.success;
+    if (status == 'Dikirim') color = AppColors.warning;
+    if (status == 'Dibatalkan') color = AppColors.danger;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),

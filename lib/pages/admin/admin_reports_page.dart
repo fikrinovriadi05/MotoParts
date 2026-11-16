@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/glass_card.dart';
 
 class AdminReportsPage extends StatelessWidget {
@@ -18,7 +18,11 @@ class AdminReportsPage extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.black, AppColors.dark, AppColors.blue],
+                colors: [
+                  AppColors.charcoal,
+                  AppColors.charcoalSoft,
+                  AppColors.primary,
+                ],
               ),
               borderRadius: BorderRadius.circular(24),
             ),
@@ -75,7 +79,10 @@ class AdminReportsPage extends StatelessWidget {
                               gradient: const LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
-                                colors: [AppColors.blue, AppColors.blueSoft],
+                                colors: [
+                                  AppColors.primary,
+                                  AppColors.primarySoft,
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -83,8 +90,8 @@ class AdminReportsPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             ['S', 'S', 'R', 'K', 'J', 'S', 'M'][index],
-                            style: const TextStyle(
-                              color: AppColors.grey,
+                            style: TextStyle(
+                              color: context.palette.textMuted,
                               fontWeight: FontWeight.w700,
                             ),
                           ),

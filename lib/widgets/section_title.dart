@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 
 class SectionTitle extends StatelessWidget {
   final String title;
@@ -15,10 +15,10 @@ class SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 19,
             fontWeight: FontWeight.w900,
-            color: AppColors.black,
+            color: context.palette.text,
           ),
         ),
         if (action != null)
@@ -27,7 +27,7 @@ class SectionTitle extends StatelessWidget {
             child: Text(
               action!,
               style: const TextStyle(
-                color: AppColors.blue,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w700,
               ),
             ),

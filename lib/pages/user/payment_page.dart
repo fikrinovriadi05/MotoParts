@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
 import 'package:motopart/store/store.dart';
@@ -86,10 +86,10 @@ class _PaymentPageState extends State<PaymentPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total Pembayaran',
                   style: TextStyle(
-                    color: AppColors.grey,
+                    color: context.palette.textMuted,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -107,12 +107,12 @@ class _PaymentPageState extends State<PaymentPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.blue.withValues(alpha: 0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Text(
+            child: Text(
               'Ini hanya simulasi pembayaran untuk tugas kuliah, bukan transaksi nyata.',
-              style: TextStyle(fontSize: 12, color: AppColors.black),
+              style: TextStyle(fontSize: 12, color: context.palette.text),
             ),
           ),
           const SizedBox(height: 18),
@@ -126,9 +126,9 @@ class _PaymentPageState extends State<PaymentPage> {
     return Card(
       child: RadioListTile<String>(
         value: title,
-        activeColor: AppColors.blue,
+        activeColor: AppColors.primary,
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        secondary: Icon(icon, color: AppColors.blue),
+        secondary: Icon(icon, color: AppColors.primary),
       ),
     );
   }

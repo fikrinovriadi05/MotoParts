@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/widgets/glass_card.dart';
@@ -28,13 +28,13 @@ class ProductCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        AppColors.blue.withValues(alpha: 0.12),
-                        AppColors.black.withValues(alpha: 0.05),
+                        AppColors.primary.withValues(alpha: 0.12),
+                        context.palette.text.withValues(alpha: 0.05),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Icon(product.icon, size: 54, color: AppColors.blue),
+                  child: Icon(product.icon, size: 54, color: AppColors.primary),
                 ),
                 Positioned(
                   top: 2,
@@ -48,9 +48,9 @@ class ProductCard extends StatelessWidget {
               product.name,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w800,
-                color: AppColors.black,
+                color: context.palette.text,
               ),
             ),
             const SizedBox(height: 4),
@@ -58,13 +58,13 @@ class ProductCard extends StatelessWidget {
               product.type,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.grey, fontSize: 11),
+              style: TextStyle(color: context.palette.textMuted, fontSize: 11),
             ),
             const Spacer(),
             Text(
               formatRupiah(product.price),
               style: const TextStyle(
-                color: AppColors.blue,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w900,
                 fontSize: 15,
               ),

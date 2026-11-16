@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/pages/admin/admin_dashboard_page.dart';
 import 'package:motopart/pages/admin/admin_orders_page.dart';
 import 'package:motopart/pages/admin/admin_products_page.dart';
@@ -29,28 +28,25 @@ class _AdminShellState extends State<AdminShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
         onDestinationSelected: (value) => setState(() => index = value),
-        height: 72,
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.blue.withValues(alpha: 0.12),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: AppColors.blue),
+            selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2, color: AppColors.blue),
+            selectedIcon: Icon(Icons.inventory_2),
             label: 'Produk',
           ),
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long, color: AppColors.blue),
+            selectedIcon: Icon(Icons.receipt_long),
             label: 'Pesanan',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart, color: AppColors.blue),
+            selectedIcon: Icon(Icons.bar_chart),
             label: 'Laporan',
           ),
         ],

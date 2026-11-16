@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/admin/admin_users_page.dart';
 import 'package:motopart/pages/auth/login_page.dart';
@@ -26,7 +26,11 @@ class AdminDashboardPage extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.black, AppColors.dark, AppColors.blue],
+                      colors: [
+                        AppColors.charcoal,
+                        AppColors.charcoalSoft,
+                        AppColors.primary,
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(24),
                   ),
@@ -76,17 +80,17 @@ class AdminDashboardPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.orange.withValues(alpha: 0.12),
+                      color: AppColors.warning.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: AppColors.orange.withValues(alpha: 0.4),
+                        color: AppColors.warning.withValues(alpha: 0.4),
                       ),
                     ),
                     child: Row(
                       children: [
                         const Icon(
                           Icons.warning_amber_rounded,
-                          color: AppColors.orange,
+                          color: AppColors.warning,
                         ),
                         const SizedBox(width: 10),
                         const Expanded(
@@ -149,29 +153,33 @@ class AdminDashboardPage extends StatelessWidget {
                   childAspectRatio: 1.22,
                   children: [
                     _statCard(
+                      context,
                       title: 'Total Produk',
                       value: '${store.products.length}',
                       icon: Icons.inventory_2_outlined,
-                      color: AppColors.blue,
+                      color: AppColors.primary,
                     ),
                     _statCard(
+                      context,
                       title: 'Total Pesanan',
                       value: '${store.orders.length}',
                       icon: Icons.receipt_long_outlined,
-                      color: AppColors.green,
+                      color: AppColors.success,
                     ),
                     _statCard(
+                      context,
                       title: 'Stok Menipis',
                       value:
                           '${store.products.where((p) => p.stock < 10).length}',
                       icon: Icons.warning_amber_outlined,
-                      color: AppColors.orange,
+                      color: AppColors.warning,
                     ),
                     _statCard(
+                      context,
                       title: 'Pelanggan',
                       value: '3',
                       icon: Icons.people_outline,
-                      color: AppColors.black,
+                      color: context.palette.text,
                     ),
                   ],
                 ),
@@ -190,7 +198,7 @@ class AdminDashboardPage extends StatelessWidget {
                           ),
                           subtitle: Text(
                             '${order.customer} • ${formatRupiah(order.total)}',
-                            style: const TextStyle(color: AppColors.grey),
+                            style: TextStyle(color: context.palette.textMuted),
                           ),
                           trailing: _badge(order.status),
                         ),
@@ -204,7 +212,8 @@ class AdminDashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _statCard({
+  Widget _statCard(
+    BuildContext context, {
     required String title,
     required String value,
     required IconData icon,
@@ -218,17 +227,17 @@ class AdminDashboardPage extends StatelessWidget {
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w900,
-              color: AppColors.black,
+              color: context.palette.text,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.grey,
+            style: TextStyle(
+              color: context.palette.textMuted,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -238,9 +247,9 @@ class AdminDashboardPage extends StatelessWidget {
   }
 
   Widget _badge(String status) {
-    Color color = AppColors.blue;
-    if (status == 'Selesai') color = AppColors.green;
-    if (status == 'Dikirim') color = AppColors.orange;
+    Color color = AppColors.primary;
+    if (status == 'Selesai') color = AppColors.success;
+    if (status == 'Dikirim') color = AppColors.warning;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),

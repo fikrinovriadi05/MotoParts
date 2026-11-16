@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 
@@ -22,7 +22,7 @@ class WishlistButton extends StatelessWidget {
           onPressed: () => store.toggleWishlist(product),
           icon: Icon(
             wishlisted ? Icons.favorite : Icons.favorite_border,
-            color: wishlisted ? AppColors.red : AppColors.grey,
+            color: wishlisted ? AppColors.danger : context.palette.textMuted,
           ),
         );
       },

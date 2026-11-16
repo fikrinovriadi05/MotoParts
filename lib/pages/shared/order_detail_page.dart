@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/store/store.dart';
@@ -51,12 +51,12 @@ class OrderDetailPage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Pelanggan: ${order.customer}',
-                      style: const TextStyle(color: AppColors.grey),
+                      style: TextStyle(color: context.palette.textMuted),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Tanggal: ${order.createdAt == null ? '-' : formatTanggal(order.createdAt!)}',
-                      style: const TextStyle(color: AppColors.grey),
+                      style: TextStyle(color: context.palette.textMuted),
                     ),
                   ],
                 ),
@@ -72,23 +72,34 @@ class OrderDetailPage extends StatelessWidget {
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Rincian barang tidak tersedia untuk pesanan ini.',
-                            style: TextStyle(color: AppColors.grey),
+                            style: TextStyle(color: context.palette.textMuted),
                           ),
                           const Divider(height: 24),
-                          _summaryRow('Total', order.total, bold: true),
+                          _summaryRow(
+                            context,
+                            'Total',
+                            order.total,
+                            bold: true,
+                          ),
                         ],
                       )
                     : Column(
                         children: [
-                          for (final line in order.lines) _lineRow(line),
+                          for (final line in order.lines)
+                            _lineRow(context, line),
                           const Divider(height: 24),
-                          _summaryRow('Subtotal Barang', itemsTotal),
+                          _summaryRow(context, 'Subtotal Barang', itemsTotal),
                           if (shipping > 0)
-                            _summaryRow('Ongkos Kirim', shipping),
+                            _summaryRow(context, 'Ongkos Kirim', shipping),
                           const SizedBox(height: 4),
-                          _summaryRow('Total', order.total, bold: true),
+                          _summaryRow(
+                            context,
+                            'Total',
+                            order.total,
+                            bold: true,
+                          ),
                         ],
                       ),
               ),
@@ -117,7 +128,7 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _lineRow(OrderLine line) {
+  Widget _lineRow(BuildContext context, OrderLine line) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -134,7 +145,10 @@ class OrderDetailPage extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${line.qty} x ${formatRupiah(line.price)}',
-                  style: const TextStyle(color: AppColors.grey, fontSize: 12),
+                  style: TextStyle(
+                    color: context.palette.textMuted,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -148,10 +162,15 @@ class OrderDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _summaryRow(String label, int value, {bool bold = false}) {
+  Widget _summaryRow(
+    BuildContext context,
+    String label,
+    int value, {
+    bool bold = false,
+  }) {
     final style = TextStyle(
       fontWeight: bold ? FontWeight.w900 : FontWeight.w600,
-      color: bold ? AppColors.black : AppColors.grey,
+      color: bold ? context.palette.text : context.palette.textMuted,
       fontSize: bold ? 16 : 14,
     );
     return Row(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/widgets/glass_card.dart';
 
@@ -46,15 +46,15 @@ class CategoryPage extends StatelessWidget {
                   Icon(
                     item['icon'] as IconData,
                     size: 42,
-                    color: AppColors.blue,
+                    color: AppColors.primary,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     item['name'] as String,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.black,
+                      color: context.palette.text,
                     ),
                   ),
                 ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
@@ -28,28 +28,28 @@ class ProductDetailPage extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.blue.withValues(alpha: 0.14),
-                  AppColors.black.withValues(alpha: 0.06),
+                  AppColors.primary.withValues(alpha: 0.14),
+                  context.palette.text.withValues(alpha: 0.06),
                 ],
               ),
               borderRadius: BorderRadius.circular(28),
             ),
-            child: Icon(product.icon, color: AppColors.blue, size: 100),
+            child: Icon(product.icon, color: AppColors.primary, size: 100),
           ),
           const SizedBox(height: 22),
           Text(
             product.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w900,
-              color: AppColors.black,
+              color: context.palette.text,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             formatRupiah(product.price),
             style: const TextStyle(
-              color: AppColors.blue,
+              color: AppColors.primary,
               fontSize: 24,
               fontWeight: FontWeight.w900,
             ),
@@ -62,8 +62,8 @@ class ProductDetailPage extends StatelessWidget {
               Container(
                 width: 5,
                 height: 5,
-                decoration: const BoxDecoration(
-                  color: AppColors.grey,
+                decoration: BoxDecoration(
+                  color: context.palette.textMuted,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -71,7 +71,7 @@ class ProductDetailPage extends StatelessWidget {
               Text(
                 'Stok ${product.stock}',
                 style: const TextStyle(
-                  color: AppColors.green,
+                  color: AppColors.success,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -87,9 +87,9 @@ class ProductDetailPage extends StatelessWidget {
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 14),
-                _detailRow('Kategori', product.category),
-                _detailRow('Tipe Motor', product.type),
-                _detailRow('Stok', '${product.stock} unit'),
+                _detailRow(context, 'Kategori', product.category),
+                _detailRow(context, 'Tipe Motor', product.type),
+                _detailRow(context, 'Stok', '${product.stock} unit'),
               ],
             ),
           ),
@@ -105,7 +105,10 @@ class ProductDetailPage extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   product.description,
-                  style: const TextStyle(color: AppColors.grey, height: 1.6),
+                  style: TextStyle(
+                    color: context.palette.textMuted,
+                    height: 1.6,
+                  ),
                 ),
               ],
             ),
@@ -137,19 +140,19 @@ class ProductDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _detailRow(String title, String value) {
+  Widget _detailRow(BuildContext context, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(color: AppColors.grey)),
+          Text(title, style: TextStyle(color: context.palette.textMuted)),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: AppColors.black,
+              style: TextStyle(
+                color: context.palette.text,
                 fontWeight: FontWeight.w700,
               ),
             ),

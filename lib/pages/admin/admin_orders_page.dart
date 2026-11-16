@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
@@ -34,14 +34,11 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         label: Text('$label (${_countFor(status)})'),
         selected: selected,
         onSelected: (_) => setState(() => statusFilter = status),
-        selectedColor: AppColors.blue,
+        selectedColor: AppColors.primary,
         labelStyle: TextStyle(
           fontWeight: FontWeight.w700,
-          color: selected ? Colors.white : AppColors.black,
+          color: selected ? AppColors.onPrimary : context.palette.text,
         ),
-        showCheckmark: false,
-        backgroundColor: AppColors.white,
-        side: const BorderSide(color: AppColors.border),
       ),
     );
   }
@@ -92,10 +89,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               ),
               Expanded(
                 child: orders.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'Tidak ada pesanan yang cocok.',
-                          style: TextStyle(color: AppColors.grey),
+                          style: TextStyle(color: context.palette.textMuted),
                         ),
                       )
                     : ListView.builder(
@@ -120,16 +117,16 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                                   const SizedBox(height: 6),
                                   Text(
                                     '${order.customer} • ${formatRupiah(order.total)}',
-                                    style: const TextStyle(
-                                      color: AppColors.grey,
+                                    style: TextStyle(
+                                      color: context.palette.textMuted,
                                     ),
                                   ),
                                   if (order.createdAt != null) ...[
                                     const SizedBox(height: 2),
                                     Text(
                                       formatTanggal(order.createdAt!),
-                                      style: const TextStyle(
-                                        color: AppColors.grey,
+                                      style: TextStyle(
+                                        color: context.palette.textMuted,
                                         fontSize: 12,
                                       ),
                                     ),

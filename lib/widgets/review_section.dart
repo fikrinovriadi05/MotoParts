@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/models/review.dart';
@@ -27,7 +27,7 @@ class StarRating extends StatelessWidget {
                 : rating >= i - 0.5
                 ? Icons.star_half
                 : Icons.star_border,
-            color: Colors.amber,
+            color: AppColors.star,
             size: size,
           ),
       ],
@@ -48,10 +48,10 @@ class RatingSummary extends StatelessWidget {
       builder: (context, _) {
         final average = store.averageRating(product);
         if (average == null) {
-          return const Text(
+          return Text(
             'Belum ada ulasan',
             style: TextStyle(
-              color: AppColors.grey,
+              color: context.palette.textMuted,
               fontWeight: FontWeight.w600,
             ),
           );
@@ -60,14 +60,17 @@ class RatingSummary extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.star, color: Colors.amber, size: 18),
+            const Icon(Icons.star, color: AppColors.star, size: 18),
             const SizedBox(width: 6),
             Text(
               average.toStringAsFixed(1),
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 4),
-            Text('($count)', style: const TextStyle(color: AppColors.grey)),
+            Text(
+              '($count)',
+              style: TextStyle(color: context.palette.textMuted),
+            ),
           ],
         );
       },
@@ -124,16 +127,19 @@ class ReviewSection extends StatelessWidget {
                   onPressed: () => showReviewDialog(context, product),
                 )
               else if (auth.isLoggedIn && !auth.isAdmin)
-                const Text(
+                Text(
                   'Ulasan hanya untuk pembeli yang pesanannya sudah selesai.',
-                  style: TextStyle(color: AppColors.grey, fontSize: 12),
+                  style: TextStyle(
+                    color: context.palette.textMuted,
+                    fontSize: 12,
+                  ),
                 ),
               if (reviews.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 8),
                   child: Text(
                     'Belum ada ulasan untuk produk ini.',
-                    style: TextStyle(color: AppColors.grey),
+                    style: TextStyle(color: context.palette.textMuted),
                   ),
                 ),
               for (final review in reviews) ReviewTile(review: review),
@@ -174,8 +180,8 @@ class ReviewTile extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       formatTanggal(review.createdAt),
-                      style: const TextStyle(
-                        color: AppColors.grey,
+                      style: TextStyle(
+                        color: context.palette.textMuted,
                         fontSize: 11,
                       ),
                     ),
@@ -185,7 +191,7 @@ class ReviewTile extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     review.comment,
-                    style: const TextStyle(height: 1.4, color: AppColors.black),
+                    style: TextStyle(height: 1.4, color: context.palette.text),
                   ),
                 ],
               ],
@@ -195,7 +201,7 @@ class ReviewTile extends StatelessWidget {
             IconButton(
               tooltip: 'Hapus ulasan',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, color: AppColors.red),
+              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
             ),
         ],
       ),
@@ -239,7 +245,7 @@ void showReviewDialog(BuildContext context, Product product) {
                           onPressed: () => setDialog(() => rating = i),
                           icon: Icon(
                             rating >= i ? Icons.star : Icons.star_border,
-                            color: Colors.amber,
+                            color: AppColors.star,
                             size: 30,
                           ),
                         ),
@@ -258,7 +264,7 @@ void showReviewDialog(BuildContext context, Product product) {
                     Text(
                       error!,
                       style: const TextStyle(
-                        color: AppColors.red,
+                        color: AppColors.danger,
                         fontSize: 12,
                       ),
                     ),

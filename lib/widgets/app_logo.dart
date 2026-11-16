@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 
 class AppLogo extends StatelessWidget {
   final bool light;
@@ -9,7 +9,7 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = light ? AppColors.white : AppColors.black;
+    final textColor = light ? Colors.white : context.palette.text;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -20,17 +20,21 @@ class AppLogo extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
-              colors: [AppColors.blueSoft, AppColors.blue],
+              colors: [AppColors.primarySoft, AppColors.primary],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.blue.withValues(alpha: 0.25),
+                color: AppColors.primary.withValues(alpha: 0.25),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: const Icon(Icons.settings, color: Colors.white, size: 28),
+          child: const Icon(
+            Icons.settings,
+            color: AppColors.onPrimary,
+            size: 28,
+          ),
         ),
         const SizedBox(width: 10),
         RichText(
@@ -47,7 +51,7 @@ class AppLogo extends StatelessWidget {
               ),
               const TextSpan(
                 text: 'Part',
-                style: TextStyle(color: AppColors.blue),
+                style: TextStyle(color: AppColors.primary),
               ),
             ],
           ),

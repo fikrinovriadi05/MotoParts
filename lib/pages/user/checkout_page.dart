@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/user/payment_page.dart';
 import 'package:motopart/store/auth_store.dart';
@@ -122,14 +122,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
               children: [
                 RadioListTile<String>(
                   value: 'JNE Regular',
-                  activeColor: AppColors.blue,
+                  activeColor: AppColors.primary,
                   title: Text('JNE Regular'),
                   subtitle: Text('Estimasi 2–4 hari'),
                   secondary: Text('Rp10.000'),
                 ),
                 RadioListTile<String>(
                   value: 'J&T Express',
-                  activeColor: AppColors.blue,
+                  activeColor: AppColors.primary,
                   title: Text('J&T Express'),
                   subtitle: Text('Estimasi 2–3 hari'),
                   secondary: Text('Rp12.000'),
@@ -142,19 +142,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total Pembayaran',
                   style: TextStyle(
-                    color: AppColors.grey,
+                    color: context.palette.textMuted,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   formatRupiah(total),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 18,
-                    color: AppColors.black,
+                    color: context.palette.text,
                   ),
                 ),
               ],

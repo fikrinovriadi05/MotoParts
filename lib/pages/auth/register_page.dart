@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
@@ -52,18 +52,18 @@ class _RegisterPageState extends State<RegisterPage> {
       body: ListView(
         padding: const EdgeInsets.all(22),
         children: [
-          const Text(
+          Text(
             'Buat Akun Baru',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w900,
-              color: AppColors.black,
+              color: context.palette.text,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Lengkapi data berikut untuk mulai berbelanja di MotoPart.',
-            style: TextStyle(color: AppColors.grey),
+            style: TextStyle(color: context.palette.textMuted),
           ),
           const SizedBox(height: 24),
           _field('Nama Lengkap', name, Icons.person_outline),

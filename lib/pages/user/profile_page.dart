@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/pages/user/edit_profile_page.dart';
@@ -28,12 +28,12 @@ class ProfilePage extends StatelessWidget {
                     height: 72,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.blue.withValues(alpha: 0.12),
+                      color: AppColors.primary.withValues(alpha: 0.12),
                     ),
                     child: const Icon(
                       Icons.person,
                       size: 40,
-                      color: AppColors.blue,
+                      color: AppColors.primary,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -46,13 +46,13 @@ class ProfilePage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.black,
+                            color: context.palette.text,
                           ),
                         ),
                         SizedBox(height: 4),
                         Text(
                           auth.currentAccount?.email ?? '-',
-                          style: TextStyle(color: AppColors.grey),
+                          style: TextStyle(color: context.palette.textMuted),
                         ),
                       ],
                     ),
@@ -118,7 +118,7 @@ class ProfilePage extends StatelessWidget {
           child: ListTile(
             contentPadding: EdgeInsets.zero,
             onTap: onTap,
-            leading: Icon(icon, color: AppColors.blue),
+            leading: Icon(icon, color: AppColors.primary),
             title: Text(
               title,
               style: const TextStyle(fontWeight: FontWeight.w700),

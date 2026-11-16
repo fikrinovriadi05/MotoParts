@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
@@ -96,7 +96,7 @@ class AdminProductsPage extends StatelessWidget {
                         child: Text(
                           error!,
                           style: const TextStyle(
-                            color: AppColors.red,
+                            color: AppColors.danger,
                             fontSize: 12,
                           ),
                         ),
@@ -224,7 +224,7 @@ class AdminProductsPage extends StatelessWidget {
               child: const Text('Batal'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.red),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
               onPressed: () {
                 store.deleteProduct(product);
                 Navigator.pop(dialogContext);
@@ -263,10 +263,10 @@ class AdminProductsPage extends StatelessWidget {
                           width: 56,
                           height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.blue.withValues(alpha: 0.12),
+                            color: AppColors.primary.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Icon(product.icon, color: AppColors.blue),
+                          child: Icon(product.icon, color: AppColors.primary),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -282,8 +282,8 @@ class AdminProductsPage extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 '${formatRupiah(product.price)} • Stok ${product.stock}',
-                                style: const TextStyle(
-                                  color: AppColors.grey,
+                                style: TextStyle(
+                                  color: context.palette.textMuted,
                                   fontSize: 12,
                                 ),
                               ),
@@ -293,9 +293,9 @@ class AdminProductsPage extends StatelessWidget {
                         IconButton(
                           tooltip: 'Ulasan',
                           onPressed: () => reviewsDialog(context, product),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.rate_review_outlined,
-                            color: AppColors.grey,
+                            color: context.palette.textMuted,
                           ),
                         ),
                         IconButton(
@@ -304,7 +304,7 @@ class AdminProductsPage extends StatelessWidget {
                               productDialog(context, product: product),
                           icon: const Icon(
                             Icons.edit_outlined,
-                            color: AppColors.blue,
+                            color: AppColors.primary,
                           ),
                         ),
                         IconButton(
@@ -312,7 +312,7 @@ class AdminProductsPage extends StatelessWidget {
                           onPressed: () => confirmDelete(context, product),
                           icon: const Icon(
                             Icons.delete_outline,
-                            color: AppColors.red,
+                            color: AppColors.danger,
                           ),
                         ),
                       ],

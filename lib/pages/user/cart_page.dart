@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/user/checkout_page.dart';
 import 'package:motopart/store/store.dart';
@@ -17,10 +17,13 @@ class CartPage extends StatelessWidget {
         animation: store,
         builder: (context, _) {
           if (store.cart.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'Keranjang masih kosong',
-                style: TextStyle(color: AppColors.grey, fontSize: 16),
+                style: TextStyle(
+                  color: context.palette.textMuted,
+                  fontSize: 16,
+                ),
               ),
             );
           }
@@ -43,15 +46,15 @@ class CartPage extends StatelessWidget {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  AppColors.blue.withValues(alpha: 0.12),
-                                  AppColors.black.withValues(alpha: 0.05),
+                                  AppColors.primary.withValues(alpha: 0.12),
+                                  context.palette.text.withValues(alpha: 0.05),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(18),
                             ),
                             child: Icon(
                               item.product.icon,
-                              color: AppColors.blue,
+                              color: AppColors.primary,
                               size: 36,
                             ),
                           ),
@@ -62,16 +65,16 @@ class CartPage extends StatelessWidget {
                               children: [
                                 Text(
                                   item.product.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.black,
+                                    color: context.palette.text,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   formatRupiah(item.product.price),
                                   style: const TextStyle(
-                                    color: AppColors.blue,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -122,7 +125,7 @@ class CartPage extends StatelessWidget {
                             },
                             icon: const Icon(
                               Icons.delete_outline,
-                              color: AppColors.red,
+                              color: AppColors.danger,
                             ),
                           ),
                         ],
@@ -133,18 +136,20 @@ class CartPage extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.fromLTRB(18, 16, 18, 20),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border(top: BorderSide(color: AppColors.border)),
+                  border: Border(
+                    top: BorderSide(color: context.palette.border),
+                  ),
                 ),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Subtotal',
-                          style: TextStyle(color: AppColors.grey),
+                          style: TextStyle(color: context.palette.textMuted),
                         ),
                         Text(
                           formatRupiah(store.cartTotal),
@@ -183,10 +188,10 @@ class CartPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: AppColors.blue.withValues(alpha: 0.12),
+          color: AppColors.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, size: 16, color: AppColors.blue),
+        child: Icon(icon, size: 16, color: AppColors.primary),
       ),
     );
   }

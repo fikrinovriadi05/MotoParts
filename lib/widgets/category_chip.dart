@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 
 class CategoryChip extends StatelessWidget {
   final String title;
@@ -20,13 +20,13 @@ class CategoryChip extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.blue.withValues(alpha: 0.15),
-                  AppColors.black.withValues(alpha: 0.06),
+                  AppColors.primary.withValues(alpha: 0.15),
+                  context.palette.text.withValues(alpha: 0.06),
                 ],
               ),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Icon(icon, color: AppColors.blue, size: 28),
+            child: Icon(icon, color: AppColors.primary, size: 28),
           ),
           const SizedBox(height: 8),
           Text(
@@ -34,10 +34,10 @@ class CategoryChip extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 11,
-              color: AppColors.black,
+              color: context.palette.text,
             ),
           ),
         ],

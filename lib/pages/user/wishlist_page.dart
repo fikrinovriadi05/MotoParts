@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/user/product_detail_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/product_card.dart';
@@ -17,7 +17,7 @@ class WishlistPage extends StatelessWidget {
           final products = store.wishlistProducts;
 
           if (products.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Column(
@@ -26,7 +26,7 @@ class WishlistPage extends StatelessWidget {
                     Icon(
                       Icons.favorite_border,
                       size: 56,
-                      color: AppColors.grey,
+                      color: context.palette.textMuted,
                     ),
                     SizedBox(height: 12),
                     Text(
@@ -40,7 +40,7 @@ class WishlistPage extends StatelessWidget {
                     Text(
                       'Tekan ikon hati pada produk untuk menyimpannya di sini.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.grey),
+                      style: TextStyle(color: context.palette.textMuted),
                     ),
                   ],
                 ),

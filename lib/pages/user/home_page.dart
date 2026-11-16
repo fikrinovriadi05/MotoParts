@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/pages/user/product_detail_page.dart';
@@ -43,7 +43,11 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 26),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.black, AppColors.dark, AppColors.blue],
+                  colors: [
+                    AppColors.charcoal,
+                    AppColors.charcoalSoft,
+                    AppColors.primary,
+                  ],
                 ),
                 borderRadius: BorderRadius.vertical(
                   bottom: Radius.circular(28),
@@ -116,14 +120,14 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [AppColors.blue, AppColors.black],
+                    colors: [AppColors.primary, AppColors.charcoal],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.blue.withValues(alpha: 0.18),
+                      color: AppColors.primary.withValues(alpha: 0.18),
                       blurRadius: 18,
                       offset: const Offset(0, 8),
                     ),

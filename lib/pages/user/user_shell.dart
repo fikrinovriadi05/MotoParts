@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/user/cart_page.dart';
 import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/pages/user/home_page.dart';
@@ -37,16 +37,16 @@ class _UserShellState extends State<UserShell> {
             selectedIndex: index,
             onDestinationSelected: (value) => setState(() => index = value),
             backgroundColor: Colors.white,
-            indicatorColor: AppColors.blue.withValues(alpha: 0.12),
+            indicatorColor: AppColors.primary.withValues(alpha: 0.12),
             destinations: [
               const NavigationDestination(
                 icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home, color: AppColors.blue),
+                selectedIcon: Icon(Icons.home, color: AppColors.primary),
                 label: 'Beranda',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.grid_view_outlined),
-                selectedIcon: Icon(Icons.grid_view, color: AppColors.blue),
+                selectedIcon: Icon(Icons.grid_view, color: AppColors.primary),
                 label: 'Kategori',
               ),
               NavigationDestination(
@@ -57,18 +57,21 @@ class _UserShellState extends State<UserShell> {
                 ),
                 selectedIcon: const Icon(
                   Icons.shopping_bag,
-                  color: AppColors.blue,
+                  color: AppColors.primary,
                 ),
                 label: 'Keranjang',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.receipt_long_outlined),
-                selectedIcon: Icon(Icons.receipt_long, color: AppColors.blue),
+                selectedIcon: Icon(
+                  Icons.receipt_long,
+                  color: AppColors.primary,
+                ),
                 label: 'Pesanan',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person, color: AppColors.blue),
+                selectedIcon: Icon(Icons.person, color: AppColors.primary),
                 label: 'Profil',
               ),
             ],

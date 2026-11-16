@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/widgets/glass_card.dart';
@@ -35,17 +35,20 @@ class AdminUsersPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Berikan password ini langsung kepada pembeli dan minta '
                     'ia menggantinya lewat Profil > Ganti Password.',
-                    style: TextStyle(color: AppColors.grey, fontSize: 12),
+                    style: TextStyle(
+                      color: context.palette.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                   if (error != null) ...[
                     const SizedBox(height: 8),
                     Text(
                       error!,
                       style: const TextStyle(
-                        color: AppColors.red,
+                        color: AppColors.danger,
                         fontSize: 12,
                       ),
                     ),
@@ -94,10 +97,10 @@ class AdminUsersPage extends StatelessWidget {
         builder: (context, _) {
           final users = auth.userAccounts;
           if (users.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'Belum ada pembeli terdaftar.',
-                style: TextStyle(color: AppColors.grey),
+                style: TextStyle(color: context.palette.textMuted),
               ),
             );
           }
@@ -121,8 +124,8 @@ class AdminUsersPage extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             '${account.email} • ${account.phone}',
-                            style: const TextStyle(
-                              color: AppColors.grey,
+                            style: TextStyle(
+                              color: context.palette.textMuted,
                               fontSize: 12,
                             ),
                           ),
@@ -132,7 +135,10 @@ class AdminUsersPage extends StatelessWidget {
                     IconButton(
                       tooltip: 'Reset password',
                       onPressed: () => _resetDialog(context, account),
-                      icon: const Icon(Icons.lock_reset, color: AppColors.blue),
+                      icon: const Icon(
+                        Icons.lock_reset,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                 ),

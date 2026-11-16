@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/user/product_detail_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/product_card.dart';
@@ -111,7 +111,7 @@ class _CatalogPageState extends State<CatalogPage> {
                       Text(
                         error!,
                         style: const TextStyle(
-                          color: AppColors.red,
+                          color: AppColors.danger,
                           fontSize: 12,
                         ),
                       ),
@@ -254,9 +254,13 @@ class _CatalogPageState extends State<CatalogPage> {
                         onSelected: (_) {
                           setState(() => currentCategory = category);
                         },
-                        selectedColor: AppColors.blue.withValues(alpha: 0.15),
+                        selectedColor: AppColors.primary.withValues(
+                          alpha: 0.15,
+                        ),
                         labelStyle: TextStyle(
-                          color: selected ? AppColors.blue : AppColors.black,
+                          color: selected
+                              ? AppColors.primary
+                              : context.palette.text,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -267,10 +271,10 @@ class _CatalogPageState extends State<CatalogPage> {
               const SizedBox(height: 6),
               Expanded(
                 child: products.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'Tidak ada produk yang cocok.',
-                          style: TextStyle(color: AppColors.grey),
+                          style: TextStyle(color: context.palette.textMuted),
                         ),
                       )
                     : GridView.builder(
