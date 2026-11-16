@@ -31,6 +31,9 @@ class CategoryChip extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 11,

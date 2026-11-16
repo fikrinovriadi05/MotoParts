@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -25,19 +26,21 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void submit() {
-    if (name.text.trim().isEmpty ||
-        email.text.trim().isEmpty ||
-        phone.text.trim().isEmpty ||
-        password.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lengkapi semua data terlebih dahulu.')),
-      );
+    final error = auth.register(
+      name: name.text,
+      email: email.text,
+      phone: phone.text,
+      password: password.text,
+    );
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Pendaftaran demo berhasil.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Pendaftaran berhasil. Silakan masuk.')),
+    );
 
     Navigator.pop(context);
   }
@@ -66,7 +69,12 @@ class _RegisterPageState extends State<RegisterPage> {
           _field('Nama Lengkap', name, Icons.person_outline),
           _field('Email', email, Icons.email_outlined),
           _field('No. HP', phone, Icons.phone_outlined),
-          _field('Password', password, Icons.lock_outline, obscure: true),
+          _field(
+            'Password (minimal ${AuthStore.minPasswordLength} karakter)',
+            password,
+            Icons.lock_outline,
+            obscure: true,
+          ),
           const SizedBox(height: 14),
           PrimaryButton(
             text: 'Daftar',

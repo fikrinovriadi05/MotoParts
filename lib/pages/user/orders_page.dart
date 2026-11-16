@@ -16,12 +16,22 @@ class OrdersPage extends StatelessWidget {
       body: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
+          final orders = store.ordersForCurrentAccount;
+          if (orders.isEmpty) {
+            return const Center(
+              child: Text(
+                'Belum ada pesanan.',
+                style: TextStyle(color: AppColors.grey),
+              ),
+            );
+          }
+
           return ListView.separated(
             padding: const EdgeInsets.all(18),
-            itemCount: store.orders.length,
+            itemCount: orders.length,
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              final order = store.orders[index];
+              final order = orders[index];
               return GlassCard(
                 child: Material(
                   type: MaterialType.transparency,

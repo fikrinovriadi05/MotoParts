@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/models/account.dart';
 import 'package:motopart/pages/admin/admin_shell.dart';
 import 'package:motopart/pages/auth/register_page.dart';
 import 'package:motopart/pages/user/user_shell.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/widgets/app_logo.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
@@ -28,10 +30,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void login() {
-    if (email.text.trim().isEmpty || password.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email dan password wajib diisi.')),
-      );
+    final error = auth.login(
+      email: email.text,
+      password: password.text,
+      role: admin ? AccountRole.admin : AccountRole.user,
+    );
+    if (error != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error)));
       return;
     }
 
@@ -210,18 +216,6 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                    const SizedBox(height: 10),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.blue.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Text(
-                        'Mode demo: isi email dan password apa saja, lalu tekan masuk.',
-                        style: TextStyle(color: AppColors.black, fontSize: 12),
-                      ),
-                    ),
                   ],
                 ),
               ),

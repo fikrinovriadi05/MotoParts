@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
+import 'package:motopart/pages/admin/admin_shell.dart';
 import 'package:motopart/pages/auth/onboarding_page.dart';
+import 'package:motopart/pages/user/user_shell.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/widgets/app_logo.dart';
 
 class SplashPage extends StatefulWidget {
@@ -16,9 +19,15 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
+      // Sesi login yang tersimpan: langsung ke beranda sesuai perannya.
+      final Widget next = !auth.isLoggedIn
+          ? const OnboardingPage()
+          : auth.isAdmin
+          ? const AdminShell()
+          : const UserShell();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const OnboardingPage()),
+        MaterialPageRoute(builder: (_) => next),
       );
     });
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/user/wishlist_page.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
@@ -32,12 +33,12 @@ class ProfilePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Budi Santoso',
+                        auth.currentAccount?.name ?? 'Tamu',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
@@ -46,7 +47,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'budi@email.com',
+                        auth.currentAccount?.email ?? '-',
                         style: TextStyle(color: AppColors.grey),
                       ),
                     ],
@@ -74,6 +75,7 @@ class ProfilePage extends StatelessWidget {
             text: 'Keluar',
             outline: true,
             onPressed: () {
+              auth.logout();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const LoginPage()),

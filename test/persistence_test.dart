@@ -96,7 +96,9 @@ void main() {
     final store = await _newStore();
     final raw =
         jsonDecode(store.products.isEmpty ? '{}' : _snapshot(store)) as Map;
-    (raw['cart'] as List).add({'productId': 6, 'qty': 999});
+    (raw['carts'] as Map)[Store.guestId] = [
+      {'productId': 6, 'qty': 999},
+    ];
     SharedPreferences.setMockInitialValues({Store.storageKey: jsonEncode(raw)});
 
     final reloaded = Store();
@@ -119,7 +121,7 @@ void main() {
 String _snapshot(Store store) {
   return jsonEncode({
     'products': store.products.map((e) => e.toJson()).toList(),
-    'cart': <Object>[],
+    'carts': <String, Object>{},
     'orders': store.orders.map((e) => e.toJson()).toList(),
   });
 }

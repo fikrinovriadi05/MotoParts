@@ -43,20 +43,33 @@ class Store extends ChangeNotifier {
     final loadedOrders = (data['orders'] as List)
         .map((e) => OrderItem.fromJson(e as Map<String, dynamic>))
         .toList();
-    final loadedCart = <CartItem>[];
-    for (final e in data['cart'] as List) {
-      final map = e as Map<String, dynamic>;
-      final index = loadedProducts.indexWhere((p) => p.id == map['productId']);
-      if (index < 0) continue;
-      final product = loadedProducts[index];
-      final qty = (map['qty'] as int).clamp(0, product.stock);
-      if (qty > 0) loadedCart.add(CartItem(product: product, qty: qty));
+    // Keranjang & wishlist disimpan per akun. Format lama (satu keranjang
+    // untuk semua) tidak dibawa ke akun mana pun.
+    final loadedCarts = <String, List<CartItem>>{};
+    final cartsJson = (data['carts'] as Map?) ?? const {};
+    for (final entry in cartsJson.entries) {
+      final items = <CartItem>[];
+      for (final e in entry.value as List) {
+        final map = e as Map<String, dynamic>;
+        final index = loadedProducts.indexWhere(
+          (p) => p.id == map['productId'],
+        );
+        if (index < 0) continue;
+        final product = loadedProducts[index];
+        final qty = (map['qty'] as int).clamp(0, product.stock);
+        if (qty > 0) items.add(CartItem(product: product, qty: qty));
+      }
+      loadedCarts[entry.key as String] = items;
     }
 
-    final loadedWishlist = <int>{
-      for (final id in (data['wishlist'] as List?) ?? const [])
-        if (id is int && loadedProducts.any((p) => p.id == id)) id,
-    };
+    final loadedWishlists = <String, Set<int>>{};
+    final wishlistsJson = (data['wishlists'] as Map?) ?? const {};
+    for (final entry in wishlistsJson.entries) {
+      loadedWishlists[entry.key as String] = {
+        for (final id in entry.value as List)
+          if (id is int && loadedProducts.any((p) => p.id == id)) id,
+      };
+    }
 
     products
       ..clear()
@@ -64,12 +77,12 @@ class Store extends ChangeNotifier {
     orders
       ..clear()
       ..addAll(loadedOrders);
-    cart
+    _carts
       ..clear()
-      ..addAll(loadedCart);
-    wishlistIds
+      ..addAll(loadedCarts);
+    _wishlists
       ..clear()
-      ..addAll(loadedWishlist);
+      ..addAll(loadedWishlists);
   }
 
   void _save() {
@@ -77,11 +90,16 @@ class Store extends ChangeNotifier {
     if (prefs == null) return;
     final data = {
       'products': products.map((e) => e.toJson()).toList(),
-      'cart': cart
-          .map((e) => {'productId': e.product.id, 'qty': e.qty})
-          .toList(),
+      'carts': {
+        for (final entry in _carts.entries)
+          entry.key: entry.value
+              .map((e) => {'productId': e.product.id, 'qty': e.qty})
+              .toList(),
+      },
       'orders': orders.map((e) => e.toJson()).toList(),
-      'wishlist': wishlistIds.toList(),
+      'wishlists': {
+        for (final entry in _wishlists.entries) entry.key: entry.value.toList(),
+      },
     };
     prefs.setString(storageKey, jsonEncode(data));
   }
@@ -161,7 +179,33 @@ class Store extends ChangeNotifier {
     ),
   ];
 
-  final List<CartItem> cart = [];
+  /// Id akun "tamu", dipakai selama belum ada yang login (dan di tes).
+  static const guestId = 'guest';
+
+  /// Akun yang sedang aktif. Keranjang, wishlist, dan riwayat pesanan pembeli
+  /// mengikuti akun ini. Diatur oleh `AuthStore` lewat [setCurrentAccount].
+  String currentAccountId = guestId;
+
+  final Map<String, List<CartItem>> _carts = {};
+  final Map<String, Set<int>> _wishlists = {};
+
+  /// Keranjang akun yang sedang aktif.
+  List<CartItem> get cart => _carts.putIfAbsent(currentAccountId, () => []);
+
+  /// Id produk wishlist akun yang sedang aktif.
+  Set<int> get wishlistIds =>
+      _wishlists.putIfAbsent(currentAccountId, () => {});
+
+  /// Berpindah ke akun [accountId] (null = tamu), mis. saat login/logout.
+  void setCurrentAccount(String? accountId) {
+    currentAccountId = accountId ?? guestId;
+    notifyListeners();
+  }
+
+  /// Pesanan milik akun yang sedang aktif (untuk riwayat pembeli). Admin
+  /// memakai [orders] untuk melihat semuanya.
+  List<OrderItem> get ordersForCurrentAccount =>
+      orders.where((o) => o.accountId == currentAccountId).toList();
 
   final List<OrderItem> orders = [
     OrderItem(
@@ -261,24 +305,27 @@ class Store extends ChangeNotifier {
     if (stock != null) product.stock = stock < 0 ? 0 : stock;
     if (description != null) product.description = description;
 
-    for (final item in cart) {
-      if (item.product.id == product.id && item.qty > product.stock) {
-        item.qty = product.stock;
+    for (final items in _carts.values) {
+      for (final item in items) {
+        if (item.product.id == product.id && item.qty > product.stock) {
+          item.qty = product.stock;
+        }
       }
+      items.removeWhere((item) => item.qty <= 0);
     }
-    cart.removeWhere((item) => item.qty <= 0);
     notifyListeners();
   }
 
   void deleteProduct(Product product) {
     products.removeWhere((e) => e.id == product.id);
-    cart.removeWhere((e) => e.product.id == product.id);
-    wishlistIds.remove(product.id);
+    for (final items in _carts.values) {
+      items.removeWhere((e) => e.product.id == product.id);
+    }
+    for (final ids in _wishlists.values) {
+      ids.remove(product.id);
+    }
     notifyListeners();
   }
-
-  /// Id produk yang ada di wishlist (urutan = urutan ditambahkan).
-  final Set<int> wishlistIds = {};
 
   bool isWishlisted(Product product) => wishlistIds.contains(product.id);
 
@@ -396,6 +443,7 @@ class Store extends ChangeNotifier {
         customer: customer,
         total: cartTotal + shippingCost,
         status: 'Diproses',
+        accountId: currentAccountId,
         createdAt: createdAt,
         lines: [
           for (final item in cart)

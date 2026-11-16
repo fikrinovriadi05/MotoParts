@@ -44,6 +44,10 @@ class OrderItem {
   /// mencatat waktunya.
   final DateTime? createdAt;
 
+  /// Id akun pemilik pesanan. Null untuk pesanan contoh/lama yang tidak punya
+  /// pemilik (hanya terlihat oleh admin).
+  final String? accountId;
+
   OrderItem({
     required this.code,
     required this.customer,
@@ -51,6 +55,7 @@ class OrderItem {
     required this.status,
     this.lines = const [],
     this.createdAt,
+    this.accountId,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -63,6 +68,7 @@ class OrderItem {
           .map((e) => OrderLine.fromJson(e as Map<String, dynamic>))
           .toList(),
       createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
+      accountId: json['accountId'] as String?,
     );
   }
 
@@ -73,5 +79,6 @@ class OrderItem {
     'status': status,
     'lines': lines.map((e) => e.toJson()).toList(),
     'createdAt': createdAt?.toIso8601String(),
+    'accountId': accountId,
   };
 }

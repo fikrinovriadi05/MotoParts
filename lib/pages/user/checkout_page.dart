@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/user/payment_page.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
@@ -14,8 +15,8 @@ class CheckoutPage extends StatefulWidget {
 }
 
 class _CheckoutPageState extends State<CheckoutPage> {
-  final name = TextEditingController(text: 'Budi Santoso');
-  final phone = TextEditingController(text: '081234567890');
+  final name = TextEditingController(text: auth.currentAccount?.name ?? '');
+  final phone = TextEditingController(text: auth.currentAccount?.phone ?? '');
   final address = TextEditingController();
   String shipping = 'JNE Regular';
   int shippingCost = 10000;

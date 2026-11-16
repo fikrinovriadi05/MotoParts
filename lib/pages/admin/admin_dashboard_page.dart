@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/auth/login_page.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/section_title.dart';
@@ -54,6 +55,7 @@ class AdminDashboardPage extends StatelessWidget {
                       ),
                       IconButton(
                         onPressed: () {
+                          auth.logout();
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
