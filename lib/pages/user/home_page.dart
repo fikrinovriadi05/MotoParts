@@ -3,6 +3,7 @@ import 'package:motopart/core/app_colors.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/pages/user/product_detail_page.dart';
+import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/app_logo.dart';
 import 'package:motopart/widgets/category_chip.dart';
@@ -69,12 +70,17 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Halo, Budi 👋',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
+                  AnimatedBuilder(
+                    animation: auth,
+                    builder: (context, _) => Text(
+                      auth.currentAccount == null
+                          ? 'Halo 👋'
+                          : 'Halo, ${auth.currentAccount!.firstName} 👋',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),

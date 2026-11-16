@@ -23,6 +23,12 @@ class Account {
 
   bool get isAdmin => role == AccountRole.admin;
 
+  /// Kata pertama dari nama (untuk sapaan), mis. "Siti Aminah" -> "Siti".
+  String get firstName {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    return parts.first.isEmpty ? name : parts.first;
+  }
+
   Account copyWith({
     String? name,
     String? phone,
