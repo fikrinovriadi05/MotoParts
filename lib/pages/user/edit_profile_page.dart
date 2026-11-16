@@ -47,7 +47,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               controller: name,
               decoration: const InputDecoration(
                 labelText: 'Nama Lengkap',
-                prefixIcon: Icon(Icons.person_outline),
+                prefixIcon: Icon(Icons.person_outline_rounded),
               ),
             ),
           ),
@@ -76,7 +76,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           ),
           const SizedBox(height: 8),
-          PrimaryButton(text: 'Simpan', icon: Icons.check, onPressed: submit),
+          PrimaryButton(
+            text: 'Simpan',
+            icon: Icons.check_rounded,
+            onPressed: submit,
+          ),
         ],
       ),
     );

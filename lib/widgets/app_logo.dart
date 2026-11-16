@@ -31,7 +31,7 @@ class AppLogo extends StatelessWidget {
             ],
           ),
           child: const Icon(
-            Icons.settings,
+            Icons.settings_rounded,
             color: AppColors.onPrimary,
             size: 28,
           ),

@@ -97,7 +97,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const MaterialApp(home: CatalogPage()));
-      await tester.tap(find.byIcon(Icons.tune));
+      await tester.tap(find.byIcon(Icons.tune_rounded));
       await tester.pumpAndSettle();
     }
 
@@ -151,7 +151,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Tidak ada produk yang cocok.'), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.tune));
+      await tester.tap(find.byIcon(Icons.tune_rounded));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Reset'));
       await tester.pumpAndSettle();

@@ -21,7 +21,7 @@ class WishlistButton extends StatelessWidget {
           iconSize: size,
           onPressed: () => store.toggleWishlist(product),
           icon: Icon(
-            wishlisted ? Icons.favorite : Icons.favorite_border,
+            wishlisted ? Icons.favorite_rounded : Icons.favorite_border_rounded,
             color: wishlisted ? AppColors.danger : context.palette.textMuted,
           ),
         );

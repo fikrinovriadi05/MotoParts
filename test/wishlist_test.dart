@@ -117,14 +117,14 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: ProductDetailPage(product: product)),
       );
-      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.favorite_border));
+      await tester.tap(find.byIcon(Icons.favorite_border_rounded));
       await tester.pump();
       expect(store.isWishlisted(product), isTrue);
-      expect(find.byIcon(Icons.favorite), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
 
-      await tester.tap(find.byIcon(Icons.favorite));
+      await tester.tap(find.byIcon(Icons.favorite_rounded));
       await tester.pump();
       expect(store.isWishlisted(product), isFalse);
     });
@@ -140,7 +140,7 @@ void main() {
       expect(find.text('Gear Set'), findsNothing);
 
       // Hapus lewat hati pada kartu: produk hilang dari daftar.
-      await tester.tap(find.byIcon(Icons.favorite));
+      await tester.tap(find.byIcon(Icons.favorite_rounded));
       await tester.pump();
 
       expect(find.text('Busi NGK'), findsNothing);

@@ -237,7 +237,7 @@ class _CatalogPageState extends State<CatalogPage> {
                         onChanged: (value) => setState(() => keyword = value),
                         decoration: const InputDecoration(
                           hintText: 'Cari sparepart...',
-                          prefixIcon: Icon(Icons.search),
+                          prefixIcon: Icon(Icons.search_rounded),
                         ),
                       ),
                     ),
@@ -248,7 +248,7 @@ class _CatalogPageState extends State<CatalogPage> {
                       child: IconButton.filledTonal(
                         tooltip: 'Filter & urutkan',
                         onPressed: _openFilterSheet,
-                        icon: const Icon(Icons.tune),
+                        icon: const Icon(Icons.tune_rounded),
                       ),
                     ),
                   ],

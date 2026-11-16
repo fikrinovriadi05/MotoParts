@@ -51,7 +51,7 @@ class OrdersPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
-                        Icons.receipt_long,
+                        Icons.receipt_long_rounded,
                         color: AppColors.primary,
                       ),
                     ),

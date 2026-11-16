@@ -82,7 +82,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             controller: name,
             decoration: const InputDecoration(
               labelText: 'Nama Penerima',
-              prefixIcon: Icon(Icons.person_outline),
+              prefixIcon: Icon(Icons.person_outline_rounded),
             ),
           ),
           const SizedBox(height: 12),

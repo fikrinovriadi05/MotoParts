@@ -136,7 +136,7 @@ class AdminUsersPage extends StatelessWidget {
                       tooltip: 'Reset password',
                       onPressed: () => _resetDialog(context, account),
                       icon: const Icon(
-                        Icons.lock_reset,
+                        Icons.lock_reset_rounded,
                         color: AppColors.primary,
                       ),
                     ),

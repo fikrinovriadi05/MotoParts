@@ -128,7 +128,7 @@ class Store extends ChangeNotifier {
       type: 'Honda Beat',
       price: 45000,
       stock: 24,
-      icon: Icons.disc_full,
+      icon: Icons.disc_full_rounded,
       description:
           'Kampas rem depan berkualitas tinggi untuk pengereman lebih optimal.',
     ),
@@ -139,7 +139,7 @@ class Store extends ChangeNotifier {
       type: 'Honda Vario',
       price: 25000,
       stock: 50,
-      icon: Icons.filter_alt,
+      icon: Icons.filter_alt_rounded,
       description:
           'Filter oli original untuk menjaga performa mesin tetap bersih.',
     ),
@@ -150,7 +150,7 @@ class Store extends ChangeNotifier {
       type: 'Universal',
       price: 32000,
       stock: 40,
-      icon: Icons.electric_bolt,
+      icon: Icons.electric_bolt_rounded,
       description:
           'Busi motor untuk pembakaran lebih stabil dan performa lebih baik.',
     ),
@@ -161,7 +161,7 @@ class Store extends ChangeNotifier {
       type: 'Berbagai tipe',
       price: 85000,
       stock: 30,
-      icon: Icons.oil_barrel,
+      icon: Icons.oil_barrel_rounded,
       description:
           'Oli mesin premium untuk menjaga ketahanan dan pelumasan mesin.',
     ),
@@ -172,7 +172,7 @@ class Store extends ChangeNotifier {
       type: 'Universal',
       price: 65000,
       stock: 18,
-      icon: Icons.lightbulb,
+      icon: Icons.lightbulb_rounded,
       description:
           'Lampu LED terang dan hemat daya untuk tampilan motor lebih modern.',
     ),
@@ -183,7 +183,7 @@ class Store extends ChangeNotifier {
       type: 'Honda Supra X',
       price: 185000,
       stock: 8,
-      icon: Icons.settings,
+      icon: Icons.settings_rounded,
       description:
           'Gear set berkualitas untuk transmisi lebih halus dan tahan lama.',
     ),

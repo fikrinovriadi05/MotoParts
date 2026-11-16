@@ -68,7 +68,7 @@ void main() {
         type: 'Universal',
         price: 12345,
         stock: 7,
-        icon: Icons.build,
+        icon: Icons.build_rounded,
         description: 'Deskripsi',
       ),
     );
@@ -80,7 +80,7 @@ void main() {
     expect(added.name, 'Produk Baru');
     expect(added.price, 12345);
     expect(added.stock, 7);
-    expect(added.icon, Icons.build);
+    expect(added.icon, Icons.build_rounded);
   });
 
   test('perubahan status pesanan tersimpan', () async {

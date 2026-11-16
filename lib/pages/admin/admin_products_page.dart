@@ -148,7 +148,7 @@ class AdminProductsPage extends StatelessWidget {
                           type: typeText,
                           price: parsedPrice,
                           stock: parsedStock,
-                          icon: Icons.build,
+                          icon: Icons.build_rounded,
                           description: description.text.trim(),
                         ),
                       );
@@ -244,7 +244,7 @@ class AdminProductsPage extends StatelessWidget {
             children: [
               PrimaryButton(
                 text: 'Tambah Produk',
-                icon: Icons.add,
+                icon: Icons.add_rounded,
                 onPressed: () => productDialog(context),
               ),
               const SizedBox(height: 14),
@@ -306,7 +306,7 @@ class AdminProductsPage extends StatelessWidget {
                           tooltip: 'Hapus',
                           onPressed: () => confirmDelete(context, product),
                           icon: const Icon(
-                            Icons.delete_outline,
+                            Icons.delete_outline_rounded,
                             color: AppColors.danger,
                           ),
                         ),

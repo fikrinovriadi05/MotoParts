@@ -61,12 +61,12 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                   onChanged: (value) => setState(() => query = value),
                   decoration: InputDecoration(
                     hintText: 'Cari kode pesanan atau nama pelanggan',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search_rounded),
                     suffixIcon: query.isEmpty
                         ? null
                         : IconButton(
                             tooltip: 'Hapus pencarian',
-                            icon: const Icon(Icons.close),
+                            icon: const Icon(Icons.close_rounded),
                             onPressed: () {
                               searchController.clear();
                               setState(() => query = '');

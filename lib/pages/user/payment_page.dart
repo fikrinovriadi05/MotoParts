@@ -74,9 +74,9 @@ class _PaymentPageState extends State<PaymentPage> {
             onChanged: (value) => setState(() => method = value!),
             child: Column(
               children: [
-                _paymentTile('Transfer Bank', Icons.account_balance),
+                _paymentTile('Transfer Bank', Icons.account_balance_rounded),
                 _paymentTile('E-Wallet', Icons.account_balance_wallet_outlined),
-                _paymentTile('Virtual Account', Icons.receipt_long),
+                _paymentTile('Virtual Account', Icons.receipt_long_rounded),
                 _paymentTile('COD', Icons.payments_outlined),
               ],
             ),

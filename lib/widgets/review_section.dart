@@ -23,10 +23,10 @@ class StarRating extends StatelessWidget {
         for (var i = 1; i <= 5; i++)
           Icon(
             rating >= i
-                ? Icons.star
+                ? Icons.star_rounded
                 : rating >= i - 0.5
-                ? Icons.star_half
-                : Icons.star_border,
+                ? Icons.star_half_rounded
+                : Icons.star_border_rounded,
             color: AppColors.star,
             size: size,
           ),
@@ -60,7 +60,7 @@ class RatingSummary extends StatelessWidget {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.star, color: AppColors.star, size: 18),
+            const Icon(Icons.star_rounded, color: AppColors.star, size: 18),
             const SizedBox(width: 6),
             Text(
               average.toStringAsFixed(1),
@@ -201,7 +201,10 @@ class ReviewTile extends StatelessWidget {
             IconButton(
               tooltip: 'Hapus ulasan',
               onPressed: onDelete,
-              icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.danger,
+              ),
             ),
         ],
       ),
@@ -244,7 +247,9 @@ void showReviewDialog(BuildContext context, Product product) {
                           ),
                           onPressed: () => setDialog(() => rating = i),
                           icon: Icon(
-                            rating >= i ? Icons.star : Icons.star_border,
+                            rating >= i
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
                             color: AppColors.star,
                             size: 30,
                           ),

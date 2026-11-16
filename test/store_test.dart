@@ -232,7 +232,7 @@ void main() {
       type: 'Universal',
       price: 10000,
       stock: 5,
-      icon: Icons.settings,
+      icon: Icons.settings_rounded,
       description: 'Produk untuk pengujian.',
     );
 

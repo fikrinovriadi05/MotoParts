@@ -4,13 +4,13 @@ class Product {
   /// Ikon yang dikenal aplikasi, dipakai untuk menyimpan/memuat produk.
   /// (Tidak menyimpan codePoint mentah agar icon tree-shaking tetap jalan.)
   static const Map<String, IconData> icons = {
-    'disc_full': Icons.disc_full,
-    'filter_alt': Icons.filter_alt,
-    'electric_bolt': Icons.electric_bolt,
-    'oil_barrel': Icons.oil_barrel,
-    'lightbulb': Icons.lightbulb,
-    'settings': Icons.settings,
-    'build': Icons.build,
+    'disc_full': Icons.disc_full_rounded,
+    'filter_alt': Icons.filter_alt_rounded,
+    'electric_bolt': Icons.electric_bolt_rounded,
+    'oil_barrel': Icons.oil_barrel_rounded,
+    'lightbulb': Icons.lightbulb_rounded,
+    'settings': Icons.settings_rounded,
+    'build': Icons.build_rounded,
   };
 
   final int id;
@@ -41,7 +41,7 @@ class Product {
       type: json['type'] as String,
       price: json['price'] as int,
       stock: json['stock'] as int,
-      icon: icons[json['icon']] ?? Icons.build,
+      icon: icons[json['icon']] ?? Icons.build_rounded,
       description: json['description'] as String,
     );
   }
@@ -50,7 +50,7 @@ class Product {
     final iconName = icons.entries
         .firstWhere(
           (e) => e.value == icon,
-          orElse: () => const MapEntry('build', Icons.build),
+          orElse: () => const MapEntry('build', Icons.build_rounded),
         )
         .key;
     return {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/navigation.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/pages/admin/admin_shell.dart';
@@ -65,6 +66,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    userTabIndex.value = UserTab.home;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -207,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                       obscureText: obscure,
                       decoration: InputDecoration(
                         hintText: 'Masukkan password',
-                        prefixIcon: const Icon(Icons.lock_outline),
+                        prefixIcon: const Icon(Icons.lock_outline_rounded),
                         suffixIcon: IconButton(
                           onPressed: () {
                             setState(() => obscure = !obscure);
@@ -223,7 +225,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24),
                     PrimaryButton(
                       text: 'Masuk',
-                      icon: Icons.login,
+                      icon: Icons.login_rounded,
                       onPressed: login,
                     ),
                     const SizedBox(height: 4),

@@ -59,7 +59,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         obscureText: obscure,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: const Icon(Icons.lock_outline),
+          prefixIcon: const Icon(Icons.lock_outline_rounded),
           suffixIcon: IconButton(
             tooltip: obscure ? 'Tampilkan password' : 'Sembunyikan password',
             onPressed: () => setState(() => obscure = !obscure),
@@ -90,7 +90,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           const SizedBox(height: 8),
           PrimaryButton(
             text: 'Simpan Password',
-            icon: Icons.check,
+            icon: Icons.check_rounded,
             onPressed: submit,
           ),
         ],

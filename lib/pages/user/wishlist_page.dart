@@ -23,7 +23,7 @@ class WishlistPage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.favorite_border,
+                      Icons.favorite_border_rounded,
                       size: 56,
                       color: context.palette.textMuted,
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/navigation.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/user/user_shell.dart';
 import 'package:motopart/widgets/primary_button.dart';
@@ -23,7 +24,7 @@ class PaymentSuccessPage extends StatelessWidget {
                   color: AppColors.success.withValues(alpha: 0.12),
                 ),
                 child: const Icon(
-                  Icons.check_circle,
+                  Icons.check_circle_rounded,
                   color: AppColors.success,
                   size: 76,
                 ),
@@ -48,6 +49,7 @@ class PaymentSuccessPage extends StatelessWidget {
               PrimaryButton(
                 text: 'Kembali ke Beranda',
                 onPressed: () {
+                  userTabIndex.value = UserTab.home;
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const UserShell()),

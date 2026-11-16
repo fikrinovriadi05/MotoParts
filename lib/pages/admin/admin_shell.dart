@@ -31,22 +31,22 @@ class _AdminShellState extends State<AdminShell> {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            selectedIcon: Icon(Icons.dashboard_rounded),
             label: 'Dashboard',
           ),
           NavigationDestination(
             icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2),
+            selectedIcon: Icon(Icons.inventory_2_rounded),
             label: 'Produk',
           ),
           NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
+            selectedIcon: Icon(Icons.receipt_long_rounded),
             label: 'Pesanan',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
+            selectedIcon: Icon(Icons.bar_chart_rounded),
             label: 'Laporan',
           ),
         ],
