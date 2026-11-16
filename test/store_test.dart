@@ -13,10 +13,10 @@ void main() {
 
   group('formatRupiah', () {
     test('memberi titik pemisah ribuan', () {
-      expect(formatRupiah(0), 'Rp0');
-      expect(formatRupiah(999), 'Rp999');
-      expect(formatRupiah(45000), 'Rp45.000');
-      expect(formatRupiah(1250000), 'Rp1.250.000');
+      expect(formatRupiah(0), 'Rp 0');
+      expect(formatRupiah(999), 'Rp 999');
+      expect(formatRupiah(45000), 'Rp 45.000');
+      expect(formatRupiah(1250000), 'Rp 1.250.000');
     });
   });
 

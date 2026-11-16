@@ -86,6 +86,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
 
   /// Oranye untuk teks/ikon kecil: lebih gelap di mode terang agar kontras.
   final Color primaryText;
+
+  /// Merah untuk teks kecil (stok menipis, error): kontras cukup di kedua mode.
+  final Color dangerText;
   final Color shadow;
 
   const AppPalette({
@@ -96,6 +99,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.text,
     required this.textMuted,
     required this.primaryText,
+    required this.dangerText,
     required this.shadow,
   });
 
@@ -107,6 +111,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     text: Color(0xFFF5F5F7),
     textMuted: Color(0xFFA1A1AA),
     primaryText: AppColors.primary,
+    dangerText: Color(0xFFF87171),
     shadow: Color(0x66000000),
   );
 
@@ -118,6 +123,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     text: AppColors.charcoal,
     textMuted: Color(0xFF5F6068),
     primaryText: Color(0xFFC24A00),
+    dangerText: Color(0xFFB91C1C),
     shadow: Color(0x14000000),
   );
 
@@ -130,6 +136,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? text,
     Color? textMuted,
     Color? primaryText,
+    Color? dangerText,
     Color? shadow,
   }) {
     return AppPalette(
@@ -140,6 +147,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       text: text ?? this.text,
       textMuted: textMuted ?? this.textMuted,
       primaryText: primaryText ?? this.primaryText,
+      dangerText: dangerText ?? this.dangerText,
       shadow: shadow ?? this.shadow,
     );
   }
@@ -155,6 +163,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       text: Color.lerp(text, other.text, t)!,
       textMuted: Color.lerp(textMuted, other.textMuted, t)!,
       primaryText: Color.lerp(primaryText, other.primaryText, t)!,
+      dangerText: Color.lerp(dangerText, other.dangerText, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
     );
   }

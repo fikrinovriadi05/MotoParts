@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:motopart/core/categories.dart';
 import 'package:flutter/services.dart';
 import 'package:motopart/theme/app_theme.dart';
-import 'package:motopart/pages/user/product_detail_page.dart';
 import 'package:motopart/store/store.dart';
-import 'package:motopart/widgets/product_card.dart';
+import 'package:motopart/widgets/product_grid.dart';
 
 class CatalogPage extends StatefulWidget {
   final String? selectedCategory;
@@ -20,6 +22,8 @@ class _CatalogPageState extends State<CatalogPage> {
   int? minPrice;
   int? maxPrice;
   ProductSort sort = ProductSort.standard;
+  late bool loading = UiConfig.simulateLoading;
+  Timer? loadingTimer;
 
   bool get filterActive =>
       minPrice != null || maxPrice != null || sort != ProductSort.standard;
@@ -28,6 +32,24 @@ class _CatalogPageState extends State<CatalogPage> {
   void initState() {
     super.initState();
     currentCategory = widget.selectedCategory ?? 'Semua';
+    if (loading) {
+      loadingTimer = Timer(UiConfig.loadingDuration, () {
+        if (mounted) setState(() => loading = false);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    loadingTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Tarik-untuk-muat-ulang: menampilkan kerangka sesaat lalu daftar terbaru.
+  Future<void> _refresh() async {
+    setState(() => loading = true);
+    await Future<void>.delayed(UiConfig.loadingDuration);
+    if (mounted) setState(() => loading = false);
   }
 
   void _openFilterSheet() {
@@ -189,14 +211,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      'Semua',
-      'Mesin',
-      'Kelistrikan',
-      'Rem',
-      'Body',
-      'Transmisi',
-    ];
+    final categories = ['Semua', ...productCategoryNames];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Katalog Produk')),
@@ -254,12 +269,9 @@ class _CatalogPageState extends State<CatalogPage> {
                         onSelected: (_) {
                           setState(() => currentCategory = category);
                         },
-                        selectedColor: AppColors.primary.withValues(
-                          alpha: 0.15,
-                        ),
                         labelStyle: TextStyle(
                           color: selected
-                              ? AppColors.primary
+                              ? context.palette.primaryText
                               : context.palette.text,
                           fontWeight: FontWeight.w700,
                         ),
@@ -270,39 +282,35 @@ class _CatalogPageState extends State<CatalogPage> {
               ),
               const SizedBox(height: 6),
               Expanded(
-                child: products.isEmpty
-                    ? Center(
-                        child: Text(
-                          'Tidak ada produk yang cocok.',
-                          style: TextStyle(color: context.palette.textMuted),
-                        ),
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(18),
-                        itemCount: products.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 14,
-                              crossAxisSpacing: 14,
-                              childAspectRatio: 0.74,
-                            ),
-                        itemBuilder: (context, index) {
-                          final product = products[index];
-                          return ProductCard(
-                            product: product,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      ProductDetailPage(product: product),
+                child: RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: _refresh,
+                  child: !loading && products.isEmpty
+                      ? LayoutBuilder(
+                          builder: (context, constraints) =>
+                              SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: SizedBox(
+                                  height: constraints.maxHeight,
+                                  child: Center(
+                                    child: Text(
+                                      'Tidak ada produk yang cocok.',
+                                      style: TextStyle(
+                                        color: context.palette.textMuted,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                              ),
+                        )
+                      : ProductGrid(
+                          products: products,
+                          loading: loading,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(AppSpacing.page),
+                          skeletonCount: 6,
+                        ),
+                ),
               ),
             ],
           );

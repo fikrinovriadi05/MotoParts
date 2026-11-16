@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/categories.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
@@ -10,13 +11,7 @@ import 'package:motopart/widgets/review_section.dart';
 class AdminProductsPage extends StatelessWidget {
   const AdminProductsPage({super.key});
 
-  static const _categories = [
-    'Mesin',
-    'Kelistrikan',
-    'Rem',
-    'Body',
-    'Transmisi',
-  ];
+  static final _categories = productCategoryNames;
 
   /// Dialog tambah produk (jika [product] null) atau edit produk.
   void productDialog(BuildContext context, {Product? product}) {

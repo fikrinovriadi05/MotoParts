@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/core/format.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/pages/admin/admin_orders_page.dart';
@@ -42,14 +43,14 @@ void main() {
     expect(find.text(order.code), findsOneWidget);
     expect(find.text('Pelanggan: Siti'), findsOneWidget);
     expect(find.text('Kampas Rem Depan'), findsOneWidget);
-    expect(find.text('2 x Rp45.000'), findsOneWidget);
-    expect(find.text('Rp90.000'), findsOneWidget);
+    expect(find.text('2 x Rp 45.000'), findsOneWidget);
+    expect(find.text('Rp 90.000'), findsOneWidget);
     expect(find.text('Filter Oli Honda'), findsOneWidget);
     expect(find.text('Subtotal Barang'), findsOneWidget);
-    expect(find.text('Rp115.000'), findsOneWidget); // 90.000 + 25.000
+    expect(find.text('Rp 115.000'), findsOneWidget); // 90.000 + 25.000
     expect(find.text('Ongkos Kirim'), findsOneWidget);
-    expect(find.text('Rp10.000'), findsOneWidget);
-    expect(find.text('Rp125.000'), findsOneWidget); // total
+    expect(find.text('Rp 10.000'), findsOneWidget);
+    expect(find.text('Rp 125.000'), findsOneWidget); // total
   });
 
   testWidgets('pembeli tidak melihat pilihan status', (tester) async {
@@ -74,12 +75,7 @@ void main() {
       find.text('Rincian barang tidak tersedia untuk pesanan ini.'),
       findsOneWidget,
     );
-    expect(
-      find.text(
-        'Rp${order.total.toString().replaceAll(RegExp(r'(?<=\d)(?=(\d{3})+$)'), '.')}',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text(formatRupiah(order.total)), findsOneWidget);
   });
 
   testWidgets('tap pesanan di riwayat pembeli membuka detail', (tester) async {

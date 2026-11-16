@@ -439,6 +439,30 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Jumlah unit terjual per id produk (pesanan yang dibatalkan tidak dihitung).
+  Map<int, int> get unitsSold {
+    final sold = <int, int>{};
+    for (final order in orders) {
+      if (order.status == cancelledStatus) continue;
+      for (final line in order.lines) {
+        sold[line.productId] = (sold[line.productId] ?? 0) + line.qty;
+      }
+    }
+    return sold;
+  }
+
+  /// Semua produk, yang paling banyak terjual di depan. Produk dengan jumlah
+  /// terjual sama tetap berurutan seperti di daftar produk.
+  List<Product> productsBySales() {
+    final sold = unitsSold;
+    final indexed = products.asMap().entries.toList();
+    indexed.sort((a, b) {
+      final diff = (sold[b.value.id] ?? 0).compareTo(sold[a.value.id] ?? 0);
+      return diff != 0 ? diff : a.key.compareTo(b.key);
+    });
+    return [for (final e in indexed) e.value];
+  }
+
   /// Mencari produk untuk katalog. [category] 'Semua'/null = semua kategori;
   /// [keyword] dicocokkan ke nama produk (tanpa membedakan huruf besar/kecil);
   /// [minPrice]/[maxPrice] membatasi harga (inklusif). [ProductSort.standard]

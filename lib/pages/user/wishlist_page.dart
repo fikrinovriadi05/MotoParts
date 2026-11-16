@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/theme/app_theme.dart';
-import 'package:motopart/pages/user/product_detail_page.dart';
 import 'package:motopart/store/store.dart';
-import 'package:motopart/widgets/product_card.dart';
+import 'package:motopart/widgets/product_grid.dart';
 
 class WishlistPage extends StatelessWidget {
   const WishlistPage({super.key});
@@ -48,29 +47,9 @@ class WishlistPage extends StatelessWidget {
             );
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(18),
-            itemCount: products.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 14,
-              crossAxisSpacing: 14,
-              childAspectRatio: 0.74,
-            ),
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return ProductCard(
-                product: product,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductDetailPage(product: product),
-                    ),
-                  );
-                },
-              );
-            },
+          return ProductGrid(
+            products: products,
+            padding: const EdgeInsets.all(AppSpacing.page),
           );
         },
       ),

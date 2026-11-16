@@ -11,14 +11,14 @@ class SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 19,
-            fontWeight: FontWeight.w900,
-            color: context.palette.text,
+        Expanded(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontSize: 19),
           ),
         ),
         if (action != null)
@@ -26,8 +26,8 @@ class SectionTitle extends StatelessWidget {
             onPressed: onTap,
             child: Text(
               action!,
-              style: const TextStyle(
-                color: AppColors.primary,
+              style: TextStyle(
+                color: context.palette.primaryText,
                 fontWeight: FontWeight.w700,
               ),
             ),

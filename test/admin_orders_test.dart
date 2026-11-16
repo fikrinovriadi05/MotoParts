@@ -64,14 +64,14 @@ void main() {
       tester,
     ) async {
       await pump(tester);
-      expect(find.text('Budi Santoso • Rp80.000'), findsOneWidget);
-      expect(find.text('Andi Pratama • Rp125.000'), findsOneWidget);
+      expect(find.text('Budi Santoso • Rp 80.000'), findsOneWidget);
+      expect(find.text('Andi Pratama • Rp 125.000'), findsOneWidget);
 
       await tester.tap(find.text('Dikirim (1)'));
       await tester.pump();
 
-      expect(find.text('Budi Santoso • Rp80.000'), findsNothing);
-      expect(find.text('Andi Pratama • Rp125.000'), findsOneWidget);
+      expect(find.text('Budi Santoso • Rp 80.000'), findsNothing);
+      expect(find.text('Andi Pratama • Rp 125.000'), findsOneWidget);
     });
 
     testWidgets('pencarian menyaring dan menampilkan pesan saat kosong', (
@@ -81,8 +81,8 @@ void main() {
 
       await tester.enterText(find.byType(TextField), 'andi');
       await tester.pump();
-      expect(find.text('Budi Santoso • Rp80.000'), findsNothing);
-      expect(find.text('Andi Pratama • Rp125.000'), findsOneWidget);
+      expect(find.text('Budi Santoso • Rp 80.000'), findsNothing);
+      expect(find.text('Andi Pratama • Rp 125.000'), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), 'tidak ada');
       await tester.pump();
