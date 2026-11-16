@@ -426,11 +426,36 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
-  void checkout({
+  /// Item keranjang yang jumlahnya melebihi stok saat ini, sebagai pesan siap
+  /// tampil. Kosong jika semua item masih tersedia.
+  List<String> get cartStockProblems => [
+    for (final item in cart)
+      if (item.qty > item.product.stock)
+        item.product.stock <= 0
+            ? '${item.product.name} sudah habis.'
+            : 'Stok ${item.product.name} tinggal ${item.product.stock}.',
+  ];
+
+  /// Menyesuaikan keranjang dengan stok: qty dipangkas ke stok, item yang
+  /// stoknya habis dikeluarkan.
+  void trimCartToStock() {
+    for (final item in cart) {
+      if (item.qty > item.product.stock) item.qty = item.product.stock;
+    }
+    cart.removeWhere((item) => item.qty <= 0);
+    notifyListeners();
+  }
+
+  /// Membuat pesanan dari keranjang akun aktif. Mengembalikan `false` (tanpa
+  /// mengubah apa pun) jika keranjang kosong atau ada item yang melebihi
+  /// stok, misalnya karena pembeli lain sudah membeli lebih dulu.
+  bool checkout({
     required String customer,
     required int shippingCost,
     DateTime? now,
   }) {
+    if (cart.isEmpty || cartStockProblems.isNotEmpty) return false;
+
     final createdAt = now ?? DateTime.now();
     final orderCode = 'MP-${createdAt.millisecondsSinceEpoch}';
     for (final item in cart) {
@@ -457,6 +482,7 @@ class Store extends ChangeNotifier {
       ),
     );
     clearCart();
+    return true;
   }
 }
 

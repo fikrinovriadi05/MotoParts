@@ -24,10 +24,29 @@ class _PaymentPageState extends State<PaymentPage> {
   String method = 'Transfer Bank';
 
   void pay() {
-    store.checkout(
+    final problems = store.cartStockProblems;
+    final ok = store.checkout(
       customer: widget.customerName,
       shippingCost: widget.shippingCost,
     );
+
+    if (!ok) {
+      // Stok berubah sejak checkout dimulai: sesuaikan keranjang lalu kembali.
+      store.trimCartToStock();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            problems.isEmpty
+                ? 'Keranjang kosong.'
+                : '${problems.join(' ')} Keranjang disesuaikan, periksa kembali.',
+          ),
+        ),
+      );
+      Navigator.of(context)
+        ..pop() // PaymentPage
+        ..pop(); // CheckoutPage -> kembali ke keranjang
+      return;
+    }
 
     Navigator.pushAndRemoveUntil(
       context,

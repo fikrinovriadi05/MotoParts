@@ -41,6 +41,20 @@ class _CheckoutPageState extends State<CheckoutPage> {
       return;
     }
 
+    final problems = store.cartStockProblems;
+    if (problems.isNotEmpty) {
+      store.trimCartToStock();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${problems.join(' ')} Keranjang disesuaikan, periksa kembali.',
+          ),
+        ),
+      );
+      Navigator.pop(context);
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(

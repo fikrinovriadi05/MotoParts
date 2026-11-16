@@ -304,9 +304,19 @@ void main() {
       store.clearCart(); // 5
       store.deleteProduct(product); // 6
       store.updateOrderStatus(store.orders.first, 'Selesai'); // 7
-      store.checkout(customer: 'Siti', shippingCost: 0); // 8 (clearCart)
+      store.addToCart(store.products[0]); // 8
+      store.checkout(customer: 'Siti', shippingCost: 0); // 9 (clearCart)
 
-      expect(notified, 8);
+      expect(notified, 9);
+    });
+
+    test('checkout yang ditolak tidak memanggil listener', () {
+      var notified = 0;
+      store.addListener(() => notified++);
+
+      expect(store.checkout(customer: 'Siti', shippingCost: 0), isFalse);
+
+      expect(notified, 0);
     });
   });
 }
