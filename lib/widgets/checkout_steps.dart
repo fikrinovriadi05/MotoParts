@@ -70,17 +70,31 @@ class CheckoutSteps extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               for (var i = 0; i < labels.length; i++)
-                Text(
-                  labels[i],
-                  style: TextStyle(
-                    fontSize: AppTextSizes.small,
-                    fontWeight: i == current
-                        ? FontWeight.w800
-                        : FontWeight.w500,
-                    color: i <= current ? palette.text : palette.textMuted,
+                Expanded(
+                  child: Align(
+                    alignment: i == 0
+                        ? Alignment.centerLeft
+                        : i == labels.length - 1
+                        ? Alignment.centerRight
+                        : Alignment.center,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        labels[i],
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: AppTextSizes.small,
+                          fontWeight: i == current
+                              ? FontWeight.w800
+                              : FontWeight.w500,
+                          color: i <= current
+                              ? palette.text
+                              : palette.textMuted,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
             ],

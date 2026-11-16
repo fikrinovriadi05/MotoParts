@@ -4,6 +4,7 @@ import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/glass_card.dart';
+import 'package:motopart/widgets/status_badge.dart';
 
 class AdminOrdersPage extends StatefulWidget {
   const AdminOrdersPage({super.key});
@@ -90,9 +91,22 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               Expanded(
                 child: orders.isEmpty
                     ? Center(
-                        child: Text(
-                          'Tidak ada pesanan yang cocok.',
-                          style: TextStyle(color: context.palette.textMuted),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.inbox_rounded,
+                              size: 48,
+                              color: context.palette.textMuted,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              'Tidak ada pesanan yang cocok.',
+                              style: TextStyle(
+                                color: context.palette.textMuted,
+                              ),
+                            ),
+                          ],
                         ),
                       )
                     : ListView.builder(
@@ -107,12 +121,23 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    order.code,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 15,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          order.code,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: AppTextSizes.body,
+                                            color: context.palette.text,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      StatusBadge(order.status),
+                                    ],
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
@@ -133,6 +158,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                                   ],
                                   const SizedBox(height: 12),
                                   DropdownButtonFormField<String>(
+                                    isExpanded: true,
                                     initialValue: order.status,
                                     decoration: const InputDecoration(
                                       labelText: 'Status Pesanan',

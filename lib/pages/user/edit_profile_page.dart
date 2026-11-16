@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/store/auth_store.dart';
+import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
 /// Ubah nama dan nomor telepon. Email tidak bisa diubah.
@@ -36,52 +38,92 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+    final initial = (auth.currentAccount?.firstName ?? '?').characters.first
+        .toUpperCase();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Data Akun')),
-      body: ListView(
-        padding: const EdgeInsets.all(22),
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: TextField(
-              controller: name,
-              decoration: const InputDecoration(
-                labelText: 'Nama Lengkap',
-                prefixIcon: Icon(Icons.person_outline_rounded),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.page),
+            children: [
+              Center(
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primarySoft, AppColors.primary],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      fontSize: 38,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.onPrimary,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: TextField(
-              enabled: false,
-              controller: TextEditingController(
-                text: auth.currentAccount?.email ?? '',
+              const SizedBox(height: AppSpacing.xl),
+              GlassCard(
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: name,
+                      textInputAction: TextInputAction.next,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Lengkap',
+                        prefixIcon: Icon(Icons.person_outline_rounded),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextField(
+                      enabled: false,
+                      controller: TextEditingController(
+                        text: auth.currentAccount?.email ?? '',
+                      ),
+                      style: TextStyle(color: palette.textMuted),
+                      decoration: const InputDecoration(
+                        labelText: 'Email (tidak dapat diubah)',
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextField(
+                      controller: phone,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                        labelText: 'No. HP',
+                        prefixIcon: Icon(Icons.phone_outlined),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              decoration: const InputDecoration(
-                labelText: 'Email (tidak dapat diubah)',
-                prefixIcon: Icon(Icons.email_outlined),
+              const SizedBox(height: AppSpacing.xl),
+              PrimaryButton(
+                text: 'Simpan',
+                icon: Icons.check_rounded,
+                onPressed: submit,
               ),
-            ),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: TextField(
-              controller: phone,
-              keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
-                labelText: 'No. HP',
-                prefixIcon: Icon(Icons.phone_outlined),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          PrimaryButton(
-            text: 'Simpan',
-            icon: Icons.check_rounded,
-            onPressed: submit,
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -4,7 +4,6 @@ import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
-import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/review_section.dart';
 
@@ -236,88 +235,228 @@ class AdminProductsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kelola Produk')),
-      body: AnimatedBuilder(
-        animation: store,
-        builder: (context, _) {
-          return ListView(
-            padding: const EdgeInsets.all(18),
-            children: [
-              PrimaryButton(
-                text: 'Tambah Produk',
-                icon: Icons.add_rounded,
-                onPressed: () => productDialog(context),
+      body: _ProductList(
+        onAdd: () => productDialog(context),
+        onEdit: (product) => productDialog(context, product: product),
+        onReviews: (product) => reviewsDialog(context, product),
+        onDelete: (product) => confirmDelete(context, product),
+      ),
+    );
+  }
+}
+
+/// Daftar produk admin dengan kolom cari.
+class _ProductList extends StatefulWidget {
+  final VoidCallback onAdd;
+  final ValueChanged<Product> onEdit;
+  final ValueChanged<Product> onReviews;
+  final ValueChanged<Product> onDelete;
+
+  const _ProductList({
+    required this.onAdd,
+    required this.onEdit,
+    required this.onReviews,
+    required this.onDelete,
+  });
+
+  @override
+  State<_ProductList> createState() => _ProductListState();
+}
+
+class _ProductListState extends State<_ProductList> {
+  String query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+
+    return AnimatedBuilder(
+      animation: store,
+      builder: (context, _) {
+        final q = query.trim().toLowerCase();
+        final products = store.products
+            .where(
+              (p) =>
+                  q.isEmpty ||
+                  p.name.toLowerCase().contains(q) ||
+                  p.category.toLowerCase().contains(q),
+            )
+            .toList();
+
+        return ListView(
+          padding: const EdgeInsets.all(AppSpacing.page),
+          children: [
+            TextField(
+              onChanged: (value) => setState(() => query = value),
+              decoration: const InputDecoration(
+                hintText: 'Cari nama atau kategori produk',
+                prefixIcon: Icon(Icons.search_rounded),
               ),
-              const SizedBox(height: 14),
-              ...store.products.map(
-                (product) => Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: GlassCard(
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(product.icon, color: AppColors.primary),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                product.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${formatRupiah(product.price)} • Stok ${product.stock}',
-                                style: TextStyle(
-                                  color: context.palette.textMuted,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Ulasan',
-                          onPressed: () => reviewsDialog(context, product),
-                          icon: Icon(
-                            Icons.rate_review_outlined,
-                            color: context.palette.textMuted,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Edit',
-                          onPressed: () =>
-                              productDialog(context, product: product),
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Hapus',
-                          onPressed: () => confirmDelete(context, product),
-                          icon: const Icon(
-                            Icons.delete_outline_rounded,
-                            color: AppColors.danger,
-                          ),
-                        ),
-                      ],
-                    ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            PrimaryButton(
+              text: 'Tambah Produk',
+              icon: Icons.add_rounded,
+              onPressed: widget.onAdd,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              '${products.length} produk',
+              style: TextStyle(
+                color: palette.textMuted,
+                fontSize: AppTextSizes.small,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            if (products.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Center(
+                  child: Text(
+                    'Tidak ada produk yang cocok.',
+                    style: TextStyle(color: palette.textMuted),
                   ),
                 ),
               ),
+            for (final product in products)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: _ProductTile(
+                  product: product,
+                  onEdit: () => widget.onEdit(product),
+                  onReviews: () => widget.onReviews(product),
+                  onDelete: () => widget.onDelete(product),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ProductTile extends StatelessWidget {
+  final Product product;
+  final VoidCallback onEdit;
+  final VoidCallback onReviews;
+  final VoidCallback onDelete;
+
+  const _ProductTile({
+    required this.product,
+    required this.onEdit,
+    required this.onReviews,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    final low = product.stock < 5;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md + 2,
+        AppSpacing.md + 2,
+        AppSpacing.sm,
+        AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: palette.border),
+        boxShadow: [
+          BoxShadow(
+            color: palette.shadow,
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.22),
+                      palette.surfaceAlt,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Icon(product.icon, color: palette.primaryText),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: palette.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${product.category} • ${product.type}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: AppTextSizes.small,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      '${formatRupiah(product.price)} • Stok ${product.stock}',
+                      style: TextStyle(
+                        color: low ? palette.dangerText : palette.primaryText,
+                        fontWeight: FontWeight.w700,
+                        fontSize: AppTextSizes.small,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
-          );
-        },
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                tooltip: 'Ulasan',
+                onPressed: onReviews,
+                icon: Icon(
+                  Icons.rate_review_outlined,
+                  color: palette.textMuted,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Edit',
+                onPressed: onEdit,
+                icon: Icon(Icons.edit_outlined, color: palette.primaryText),
+              ),
+              IconButton(
+                tooltip: 'Hapus',
+                onPressed: onDelete,
+                icon: Icon(
+                  Icons.delete_outline_rounded,
+                  color: palette.dangerText,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

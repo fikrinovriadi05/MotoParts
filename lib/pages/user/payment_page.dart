@@ -89,12 +89,16 @@ class _PaymentPageState extends State<PaymentPage> {
             children: [
               Icon(Icons.payment_rounded, size: 20, color: palette.primaryText),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Pilih Metode Pembayaran',
-                style: TextStyle(
-                  fontSize: AppTextSizes.bodyLarge,
-                  fontWeight: FontWeight.w800,
-                  color: palette.text,
+              Expanded(
+                child: Text(
+                  'Pilih Metode Pembayaran',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: AppTextSizes.bodyLarge,
+                    fontWeight: FontWeight.w800,
+                    color: palette.text,
+                  ),
                 ),
               ),
             ],

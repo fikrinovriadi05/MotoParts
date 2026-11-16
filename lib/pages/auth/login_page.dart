@@ -172,23 +172,26 @@ class _RoleTabs extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    icon,
-                    size: 18,
-                    color: selected ? AppColors.onPrimary : palette.textMuted,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: selected ? AppColors.onPrimary : palette.text,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 18,
+                      color: selected ? AppColors.onPrimary : palette.textMuted,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: selected ? AppColors.onPrimary : palette.text,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

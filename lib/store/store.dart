@@ -451,6 +451,36 @@ class Store extends ChangeNotifier {
     return sold;
   }
 
+  /// Pesanan yang dihitung sebagai penjualan (semua kecuali yang dibatalkan).
+  List<OrderItem> get salesOrders =>
+      orders.where((o) => o.status != cancelledStatus).toList();
+
+  /// Total penjualan: jumlah total semua pesanan yang tidak dibatalkan.
+  int get totalSales => salesOrders.fold(0, (sum, o) => sum + o.total);
+
+  /// Total unit barang terjual (pesanan yang dibatalkan tidak dihitung).
+  int get totalUnitsSold => unitsSold.values.fold(0, (sum, n) => sum + n);
+
+  /// Penjualan per hari untuk 7 hari terakhir sampai [now] (hari terlama di
+  /// depan). Pesanan tanpa tanggal tidak ikut dihitung per hari.
+  List<({DateTime day, int total})> salesLast7Days(DateTime now) {
+    final today = DateTime(now.year, now.month, now.day);
+    return [
+      for (var i = 6; i >= 0; i--)
+        (
+          day: DateTime(today.year, today.month, today.day - i),
+          total: salesOrders
+              .where((o) {
+                final t = o.createdAt;
+                return t != null &&
+                    DateTime(t.year, t.month, t.day) ==
+                        DateTime(today.year, today.month, today.day - i);
+              })
+              .fold(0, (sum, o) => sum + o.total),
+        ),
+    ];
+  }
+
   /// Semua produk, yang paling banyak terjual di depan. Produk dengan jumlah
   /// terjual sama tetap berurutan seperti di daftar produk.
   List<Product> productsBySales() {

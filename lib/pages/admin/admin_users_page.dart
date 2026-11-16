@@ -113,20 +113,44 @@ class AdminUsersPage extends StatelessWidget {
               return GlassCard(
                 child: Row(
                   children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary.withValues(alpha: 0.16),
+                      ),
+                      child: Text(
+                        account.firstName.characters.first.toUpperCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: context.palette.primaryText,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             account.name,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: context.palette.text,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             '${account.email} • ${account.phone}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: context.palette.textMuted,
-                              fontSize: 12,
+                              fontSize: AppTextSizes.small,
                             ),
                           ),
                         ],
@@ -135,9 +159,9 @@ class AdminUsersPage extends StatelessWidget {
                     IconButton(
                       tooltip: 'Reset password',
                       onPressed: () => _resetDialog(context, account),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.lock_reset_rounded,
-                        color: AppColors.primary,
+                        color: context.palette.primaryText,
                       ),
                     ),
                   ],

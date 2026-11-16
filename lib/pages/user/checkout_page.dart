@@ -80,12 +80,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
         children: [
           Icon(icon, size: 20, color: palette.primaryText),
           const SizedBox(width: AppSpacing.sm),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: AppTextSizes.bodyLarge,
-              fontWeight: FontWeight.w800,
-              color: palette.text,
+          Expanded(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: AppTextSizes.bodyLarge,
+                fontWeight: FontWeight.w800,
+                color: palette.text,
+              ),
             ),
           ),
         ],

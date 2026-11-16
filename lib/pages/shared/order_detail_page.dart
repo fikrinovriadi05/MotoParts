@@ -122,6 +122,7 @@ class OrderDetailPage extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: order.status,
                   decoration: const InputDecoration(
                     labelText: 'Status Pesanan',
