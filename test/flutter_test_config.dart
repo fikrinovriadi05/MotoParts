@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:motopart/core/location_service.dart';
 import 'package:motopart/core/payment_api.dart';
+import 'package:motopart/core/report_exporter.dart';
 import 'package:motopart/theme/app_theme.dart';
 
 import 'support/fakes.dart';
@@ -15,5 +16,6 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Tes tidak boleh memakai jaringan atau GPS sungguhan.
   paymentApi = FakePaymentApi();
   locationService = FakeLocationService();
+  reportExporter = FakeReportExporter();
   await testMain();
 }

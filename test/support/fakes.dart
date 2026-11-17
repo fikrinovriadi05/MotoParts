@@ -1,6 +1,7 @@
 import 'package:motopart/core/location_service.dart';
 import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/core/payment_methods.dart';
+import 'package:motopart/core/report_exporter.dart';
 import 'package:motopart/models/payment_info.dart';
 
 /// Server pembayaran palsu: tagihan dibuat di memori, status diatur tes.
@@ -81,4 +82,26 @@ class FakeLocationService implements LocationService {
   @override
   Future<PlaceInfo?> reverseGeocode(double latitude, double longitude) async =>
       place;
+}
+
+/// Pengekspor laporan palsu: mencatat berkas yang diekspor, tanpa lembar
+/// berbagi sungguhan.
+class FakeReportExporter implements ReportExporter {
+  final saved = <({String fileName, String content})>[];
+
+  /// Hasil yang dikembalikan; atur ke `cancelled` untuk meniru batal.
+  ExportResult result = ExportResult.done;
+
+  /// Jika diisi, ekspor melempar ini.
+  ExportException? failure;
+
+  @override
+  Future<ExportResult> saveCsv({
+    required String fileName,
+    required String content,
+  }) async {
+    if (failure != null) throw failure!;
+    saved.add((fileName: fileName, content: content));
+    return result;
+  }
 }

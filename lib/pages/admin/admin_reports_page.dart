@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/core/report_csv.dart';
+import 'package:motopart/core/report_exporter.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/glass_card.dart';
@@ -15,10 +17,45 @@ class AdminReportsPage extends StatelessWidget {
 
   const AdminReportsPage({super.key, this.now});
 
+  /// Mengekspor semua pesanan dan ringkasannya ke berkas CSV (Excel).
+  Future<void> _export(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (store.orders.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Belum ada pesanan untuk diekspor.')),
+      );
+      return;
+    }
+    final time = now ?? DateTime.now();
+    final fileName = ReportCsv.fileName(time);
+    try {
+      final result = await reportExporter.saveCsv(
+        fileName: fileName,
+        content: ReportCsv.build(orders: store.orders, generatedAt: time),
+      );
+      if (result == ExportResult.done) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Laporan diekspor: $fileName')),
+        );
+      }
+    } on ExportException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Laporan Penjualan')),
+      appBar: AppBar(
+        title: const Text('Laporan Penjualan'),
+        actions: [
+          IconButton(
+            tooltip: 'Ekspor laporan (CSV)',
+            onPressed: () => _export(context),
+            icon: const Icon(Icons.file_download_outlined),
+          ),
+        ],
+      ),
       body: AnimatedBuilder(
         animation: store,
         builder: (context, _) {
@@ -139,6 +176,35 @@ class AdminReportsPage extends StatelessWidget {
                           ],
                         ),
                       ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ekspor Laporan',
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontSize: 17),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Simpan ringkasan, penjualan per produk, dan daftar '
+                      'semua pesanan sebagai berkas CSV yang bisa dibuka di '
+                      'Excel atau Google Sheets.',
+                      style: TextStyle(color: context.palette.textMuted),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => _export(context),
+                        icon: const Icon(Icons.file_download_outlined),
+                        label: const Text('Ekspor ke CSV (Excel)'),
+                      ),
+                    ),
                   ],
                 ),
               ),

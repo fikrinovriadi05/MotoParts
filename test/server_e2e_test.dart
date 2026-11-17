@@ -54,7 +54,9 @@ void main() {
         ),
         isNull,
       );
-      final kampas = store.products.firstWhere((p) => p.name == 'Kampas Uji E2E');
+      final kampas = store.products.firstWhere(
+        (p) => p.name == 'Kampas Uji E2E',
+      );
       expect(kampas.id, greaterThan(12));
       auth.logout();
 

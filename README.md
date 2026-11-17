@@ -50,6 +50,14 @@ lokal seperti sebelumnya.
 
 Admin bawaan: `admin@motopart.id` / `admin123` (ganti dari menu Akun).
 
+## Ekspor laporan penjualan
+
+Admin: Dashboard > Laporan Penjualan > **Ekspor ke CSV (Excel)**. Berkas berisi
+ringkasan penjualan, penjualan per produk, dan daftar semua pesanan; bisa
+dibuka di Excel atau Google Sheets. Di web berkas langsung terunduh; di Android
+dan desktop muncul lembar berbagi (simpan ke Drive/Files, kirim lewat email,
+dll.).
+
 ## Pembayaran online (QRIS, Virtual Account, GoPay)
 
 Pembayaran QRIS, Virtual Account (BCA/Mandiri/BNI/BRI), dan GoPay dibuat lewat
