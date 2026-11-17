@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/order_item.dart';
+import 'package:motopart/models/product.dart';
 import 'package:motopart/pages/user/payment_waiting_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -8,6 +9,7 @@ import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/order_timeline.dart';
 import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/product_picture.dart';
+import 'package:motopart/widgets/review_section.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
 /// Detail satu pesanan. Dipakai pembeli (hanya lihat) dan admin
@@ -227,47 +229,132 @@ class OrderDetailPage extends StatelessWidget {
     final index = store.products.indexWhere((p) => p.id == line.productId);
     final product = index >= 0 ? store.products[index] : null;
 
+    // Penilaian hanya untuk pembeli, pada pesanan selesai, dan produk yang
+    // masih ada.
+    final canRate = !isAdmin && order.status == 'Selesai' && product != null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProductPicture.forProduct(
-            product,
-            width: 44,
-            height: 44,
-            iconSize: 22,
-            radius: AppRadius.sm,
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  line.name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: palette.text,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ProductPicture.forProduct(
+                product,
+                width: 44,
+                height: 44,
+                iconSize: 22,
+                radius: AppRadius.sm,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      line.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: palette.text,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${line.qty} x ${formatRupiah(line.price)}',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: AppTextSizes.small,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '${line.qty} x ${formatRupiah(line.price)}',
-                  style: TextStyle(
-                    color: palette.textMuted,
-                    fontSize: AppTextSizes.small,
-                  ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                formatRupiah(line.price * line.qty),
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: palette.text,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            formatRupiah(line.price * line.qty),
-            style: TextStyle(fontWeight: FontWeight.w800, color: palette.text),
-          ),
+          if (canRate) _rateRow(context, product),
         ],
+      ),
+    );
+  }
+
+  /// Baris penilaian di bawah satu barang pada pesanan yang sudah selesai:
+  /// tombol "Beri Penilaian", atau bintang + komentar milik pembeli.
+  Widget _rateRow(BuildContext context, Product product) {
+    final palette = context.palette;
+    final mine = store.myReviewFor(product);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: palette.accent.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: mine == null
+            ? Row(
+                children: [
+                  const Icon(
+                    Icons.star_border_rounded,
+                    color: AppColors.star,
+                    size: 22,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'Bagaimana barang ini?',
+                      style: TextStyle(
+                        color: palette.text,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => showReviewDialog(context, product),
+                    child: const Text('Beri Penilaian'),
+                  ),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      StarRating(rating: mine.rating.toDouble(), size: 18),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          'Penilaianmu',
+                          style: TextStyle(
+                            color: palette.textMuted,
+                            fontSize: AppTextSizes.small,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => showReviewDialog(context, product),
+                        child: const Text('Ubah'),
+                      ),
+                    ],
+                  ),
+                  if (mine.comment.isNotEmpty)
+                    Text(
+                      mine.comment,
+                      style: TextStyle(color: palette.text, height: 1.4),
+                    ),
+                ],
+              ),
       ),
     );
   }

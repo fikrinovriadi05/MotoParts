@@ -70,6 +70,14 @@ class _OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final color = orderStatusColor(context, order.status);
+    // Pesanan selesai: jumlah barang (yang produknya masih ada) belum dinilai.
+    var unrated = 0;
+    if (order.status == 'Selesai') {
+      for (final line in order.lines) {
+        final i = store.products.indexWhere((p) => p.id == line.productId);
+        if (i >= 0 && store.myReviewFor(store.products[i]) == null) unrated++;
+      }
+    }
 
     return PressScale(
       onTap: () => Navigator.push(
@@ -145,6 +153,32 @@ class _OrderCard extends StatelessWidget {
                       color: palette.primaryText,
                     ),
                   ),
+                  if (unrated > 0) ...[
+                    const SizedBox(height: AppSpacing.xs + 2),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star_rounded,
+                          color: AppColors.star,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'Beri penilaian ($unrated barang)',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: palette.primaryText,
+                              fontWeight: FontWeight.w700,
+                              fontSize: AppTextSizes.small,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
