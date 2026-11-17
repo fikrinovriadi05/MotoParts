@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/core/payment_methods.dart';
+import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/pages/user/payment_success_page.dart';
 import 'package:motopart/pages/user/payment_waiting_page.dart';
 import 'package:motopart/store/auth_store.dart';
@@ -60,23 +61,33 @@ class _PaymentPageState extends State<PaymentPage> {
       return;
     }
 
-    // COD: tidak lewat server, pesanan langsung diproses.
+    // COD: tidak lewat server pembayaran, pesanan langsung diproses.
     if (!choice.isOnline) {
-      final ok = store.checkout(
-        customer: widget.customerName,
-        shippingCost: widget.shippingCost,
-        address: widget.address,
-        paymentMethod: choice.label,
-      );
-      if (!ok) {
-        _stockChanged(problems);
-        return;
+      setState(() => paying = true);
+      try {
+        final failed = await store.placeOrder(
+          customer: widget.customerName,
+          shippingCost: widget.shippingCost,
+          address: widget.address,
+          paymentMethod: choice.label,
+        );
+        if (!mounted) return;
+        if (failed != null) {
+          _stockChanged(failed);
+          return;
+        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const PaymentSuccessPage()),
+          (route) => route.isFirst,
+        );
+      } on RemoteException catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
+      } finally {
+        if (mounted) setState(() => paying = false);
       }
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const PaymentSuccessPage()),
-        (route) => route.isFirst,
-      );
       return;
     }
 
@@ -94,7 +105,7 @@ class _PaymentPageState extends State<PaymentPage> {
       );
       if (!mounted) return;
 
-      final ok = store.checkout(
+      final failed = await store.placeOrder(
         customer: widget.customerName,
         shippingCost: widget.shippingCost,
         address: widget.address,
@@ -102,9 +113,10 @@ class _PaymentPageState extends State<PaymentPage> {
         payment: snapshot.info,
         code: code,
       );
-      if (!ok) {
+      if (!mounted) return;
+      if (failed != null) {
         // Stok habis selama menunggu server; tagihan di server kedaluwarsa sendiri.
-        _stockChanged(store.cartStockProblems);
+        _stockChanged(failed);
         return;
       }
       Navigator.pushAndRemoveUntil(
@@ -113,6 +125,10 @@ class _PaymentPageState extends State<PaymentPage> {
         (route) => route.isFirst,
       );
     } on PaymentApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
+    } on RemoteException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.message)));

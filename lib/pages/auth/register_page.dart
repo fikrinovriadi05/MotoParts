@@ -27,13 +27,23 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void submit() {
-    final error = auth.register(
-      name: name.text,
-      email: email.text,
-      phone: phone.text,
-      password: password.text,
-    );
+  bool busy = false;
+
+  Future<void> submit() async {
+    if (busy) return;
+    busy = true;
+    final String? error;
+    try {
+      error = await auth.registerAsync(
+        name: name.text,
+        email: email.text,
+        phone: phone.text,
+        password: password.text,
+      );
+    } finally {
+      busy = false;
+    }
+    if (!mounted) return;
     if (error != null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(error)));

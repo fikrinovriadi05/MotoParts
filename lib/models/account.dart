@@ -27,14 +27,18 @@ class Account {
   final String passwordHash;
   final String salt;
 
+  /// Hanya dari server: akun admin masih memakai password awal bawaan.
+  final bool usesDefaultPassword;
+
   const Account({
     required this.id,
     required this.name,
     required this.email,
     required this.phone,
     required this.role,
-    required this.passwordHash,
-    required this.salt,
+    this.passwordHash = '',
+    this.salt = '',
+    this.usesDefaultPassword = false,
     this.motorName = '',
     this.motorType = '',
     this.motorYear,
@@ -96,6 +100,7 @@ class Account {
       role: role,
       passwordHash: passwordHash ?? this.passwordHash,
       salt: salt ?? this.salt,
+      usesDefaultPassword: usesDefaultPassword,
       motorName: motorName ?? this.motorName,
       motorType: motorType ?? this.motorType,
       motorYear: clearMotorYear ? null : motorYear ?? this.motorYear,
@@ -119,8 +124,10 @@ class Account {
         (r) => r.name == json['role'],
         orElse: () => AccountRole.user,
       ),
-      passwordHash: json['passwordHash'] as String,
-      salt: json['salt'] as String,
+      // Dari server (mode database) tidak ada hash/salt.
+      passwordHash: json['passwordHash'] as String? ?? '',
+      salt: json['salt'] as String? ?? '',
+      usesDefaultPassword: json['usesDefaultPassword'] as bool? ?? false,
       motorName: json['motorName'] as String? ?? '',
       motorType: json['motorType'] as String? ?? '',
       motorYear: json['motorYear'] as int?,

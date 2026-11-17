@@ -26,7 +26,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     super.dispose();
   }
 
-  void submit() {
+  bool busy = false;
+
+  Future<void> submit() async {
+    if (busy) return;
     String? error;
     if (oldPassword.text.isEmpty ||
         newPassword.text.isEmpty ||
@@ -35,12 +38,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     } else if (newPassword.text != confirmPassword.text) {
       error = 'Konfirmasi password tidak sama.';
     } else {
-      error = auth.changePassword(
-        oldPassword: oldPassword.text,
-        newPassword: newPassword.text,
-      );
+      busy = true;
+      try {
+        error = await auth.changePasswordAsync(
+          oldPassword: oldPassword.text,
+          newPassword: newPassword.text,
+        );
+      } finally {
+        busy = false;
+      }
     }
 
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     if (error != null) {
       messenger.showSnackBar(SnackBar(content: Text(error)));

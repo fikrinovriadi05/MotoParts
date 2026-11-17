@@ -2,8 +2,14 @@
 
 Aplikasi toko sparepart motor (Flutter). Pembeli bisa menelusuri katalog,
 menyimpan wishlist, checkout, dan memantau pesanan; admin mengelola produk,
-pesanan, pengguna, dan melihat laporan penjualan. Semua data tersimpan di
-perangkat (belum ada server).
+pesanan, pengguna, dan melihat laporan penjualan.
+
+Data bisa disimpan di dua tempat:
+
+- **Database MySQL** (disarankan; wajib untuk tugas): lewat backend PHP di
+  folder `backend/`. Lihat bagian [Database](#database-mysql) di bawah.
+- **Lokal di perangkat** (bawaan bila `API_URL` tidak diatur): dipakai untuk
+  mencoba cepat dan oleh semua tes.
 
 ## Menjalankan
 
@@ -17,6 +23,32 @@ Akun admin bawaan: `admin@motopart.id`. Password awalnya ada di
 Pembeli mendaftar sendiri di layar Daftar, lalu bisa melengkapi data motor
 (nama, tipe, tahun), alamat pengiriman, dan metode pembayaran favorit di menu
 Akun.
+
+## Database (MySQL)
+
+Semua data (akun, alamat, produk, pesanan, ulasan, wishlist) disimpan di MySQL
+lewat API PHP di `backend/` (detail, daftar endpoint, dan cara pasang di hosting:
+`backend/README.md`). Dengan XAMPP:
+
+1. Nyalakan **Apache** dan **MySQL** di XAMPP, salin `backend/` ke
+   `C:\xampp\htdocs\motopart-api`.
+2. Buat database + data awal: `C:\xampp\php\php.exe C:\xampp\htdocs\motopart-api\tool\setup.php`
+3. Jalankan aplikasi dengan alamat API:
+
+   ```bash
+   flutter run --dart-define=API_URL=http://localhost/motopart-api      # Chrome/desktop
+   flutter run --dart-define=API_URL=http://10.0.2.2/motopart-api       # emulator Android
+   ```
+
+Cara kerjanya: aplikasi memperbarui tampilan lebih dulu, mengirim perubahan ke
+server berurutan, lalu menarik data terbaru (`GET /sync`) sehingga tampilan
+selalu sama dengan isi database. Checkout dilakukan di server dalam transaksi
+(stok dikunci, harga dari database). Password di-hash bcrypt di server dan
+aplikasi hanya menyimpan token sesi. Keranjang tetap di perangkat. Foto produk
+disimpan di database sebagai data URL. Tanpa `API_URL`, aplikasi berjalan
+lokal seperti sebelumnya.
+
+Admin bawaan: `admin@motopart.id` / `admin123` (ganti dari menu Akun).
 
 ## Pembayaran online (QRIS, Virtual Account, GoPay)
 
@@ -61,19 +93,26 @@ bisa diedit sebelum disimpan, dan titik GPS ikut tersimpan di alamat dan pesanan
 flutter analyze
 flutter test
 cd server && dart analyze && dart test
+powershell -ExecutionPolicy Bypass -File backend\tests\run.ps1 -E2E
 ```
 
-Sekitar 830 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
-kecil, berkas ikon, font, pembayaran online, GPS, dan konfigurasi proyek) dan 35
-tes server. Tes aplikasi memakai server pembayaran dan GPS palsu
-(`test/support/fakes.dart`), jadi tidak memakai jaringan.
+Sekitar 860 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
+kecil, berkas ikon, font, pembayaran online, GPS, mode database, dan konfigurasi
+proyek) dan 35 tes server. Tes aplikasi memakai server pembayaran, GPS, dan
+server database palsu (`test/support/fakes.dart`, `test/remote_test.dart`),
+jadi tidak memakai jaringan.
+
+Perintah terakhir menyalakan MariaDB **sementara** (bukan database XAMPP Anda)
+dan server PHP, lalu menjalankan 100 tes API dan satu tes ujung ke ujung
+(`test/server_e2e_test.dart`: aplikasi melawan database sungguhan).
 
 ## Struktur singkat
 
 | Folder | Isi |
 |---|---|
 | `lib/theme/` | Warna, ukuran, tema terang/gelap (`app_theme.dart`) |
-| `lib/store/` | `Store` (produk, keranjang, pesanan, ulasan) dan `AuthStore` (akun) |
+| `lib/store/` | `Store` (produk, keranjang, pesanan, ulasan), `AuthStore` (akun), `RemoteSync` (sinkron ke database) |
+| `backend/` | API PHP + MySQL (`database/schema.sql`, `src/`, `tests/`) |
 | `lib/pages/` | Halaman `auth/`, `user/`, `admin/`, `shared/` |
 | `lib/widgets/` | Komponen bersama (kartu produk, logo, dll.) |
 | `fonts/` | Inter (lisensi SIL OFL) |
@@ -181,9 +220,10 @@ versi yang harus naik di setiap rilis ke Play Store).
 - Font: iOS/macOS memakai San Francisco bawaan sistem; Android, Windows, dan
   Linux memakai Inter (mirip San Francisco). San Francisco tidak disertakan
   di aplikasi karena lisensi Apple hanya mengizinkannya di platform Apple.
-- Keamanan akun hanya setara demo lokal (password di-hash dan disimpan di
-  perangkat, tanpa server). Jangan dipakai untuk data pengguna sungguhan.
-- Produk, pesanan, dan akun masih tersimpan di perangkat; hanya pembayaran yang
-  lewat server. Server pembayaran belum punya login pengguna dan mempercayai
-  jumlah dari aplikasi (lihat batasan di `server/README.md`) sehingga belum siap
-  untuk uang sungguhan.
+- Keamanan akun setara demo/tugas: password di-hash bcrypt di server, tetapi API
+  belum memakai HTTPS (di hosting nyalakan HTTPS) dan belum membatasi percobaan
+  login. Jangan dipakai untuk data pengguna sungguhan.
+- Pada pembayaran online, status "lunas" masih dilaporkan oleh aplikasi ke
+  database (server database belum menerima notifikasi/webhook dari Midtrans),
+  dan server pembayaran mempercayai jumlah dari aplikasi (lihat
+  `server/README.md`). Belum siap untuk uang sungguhan.

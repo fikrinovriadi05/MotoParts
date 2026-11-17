@@ -53,12 +53,22 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void login() {
-    final error = auth.login(
-      email: email.text,
-      password: password.text,
-      role: admin ? AccountRole.admin : AccountRole.user,
-    );
+  bool busy = false;
+
+  Future<void> login() async {
+    if (busy) return;
+    busy = true;
+    final String? error;
+    try {
+      error = await auth.loginAsync(
+        email: email.text,
+        password: password.text,
+        role: admin ? AccountRole.admin : AccountRole.user,
+      );
+    } finally {
+      busy = false;
+    }
+    if (!mounted) return;
     if (error != null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(error)));

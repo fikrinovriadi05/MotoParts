@@ -4,12 +4,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/core/payment_api.dart';
+import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/core/safe_save.dart';
 import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/payment_info.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/models/review.dart';
+import 'package:motopart/store/remote_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum ProductSort {
@@ -32,6 +34,15 @@ class Store extends ChangeNotifier {
   /// Tanpa memanggil ini, [Store] hanya bekerja di memori (dipakai di tes).
   Future<void> attach(SharedPreferences prefs) async {
     _prefs = prefs;
+    if (isRemote) {
+      // Mode database: data berasal dari server, bukan dari perangkat. Mulai
+      // dari kosong sampai sinkronisasi pertama (jangan tampilkan data contoh).
+      products.clear();
+      orders.clear();
+      reviews.clear();
+      super.notifyListeners();
+      return;
+    }
     final raw = prefs.getString(storageKey);
     if (raw == null) return;
     try {
@@ -101,7 +112,7 @@ class Store extends ChangeNotifier {
 
   void _save() {
     final prefs = _prefs;
-    if (prefs == null) return;
+    if (prefs == null || isRemote) return;
     final data = {
       'products': products.map((e) => e.toJson()).toList(),
       'carts': {
@@ -123,6 +134,91 @@ class Store extends ChangeNotifier {
   void notifyListeners() {
     _save();
     super.notifyListeners();
+  }
+
+  /// Apakah data disimpan di database lewat server (bukan di perangkat).
+  bool get isRemote => remoteGateway != null;
+
+  /// Mengirim perubahan ke server (mode database); tidak melakukan apa pun di
+  /// mode lokal.
+  void _push(String method, String path, [Map<String, dynamic>? body]) {
+    RemoteSync.push((g) => g.send(method, path, body: body));
+  }
+
+  /// Menerapkan hasil `GET /sync`: produk, ulasan, pesanan, dan wishlist akun
+  /// aktif. Produk dan pesanan yang sudah ada diperbarui di tempat supaya
+  /// halaman yang sedang menampilkannya ikut berubah.
+  void applyRemoteSnapshot(Map<String, dynamic> json) {
+    final freshProducts = [
+      for (final e in (json['products'] as List?) ?? const [])
+        Product.fromJson(e as Map<String, dynamic>),
+    ];
+    final knownProducts = {for (final p in products) p.id: p};
+    final nextProducts = <Product>[];
+    for (final fresh in freshProducts) {
+      final known = knownProducts[fresh.id];
+      if (known == null || known.icon != fresh.icon) {
+        nextProducts.add(fresh);
+        continue;
+      }
+      known
+        ..name = fresh.name
+        ..category = fresh.category
+        ..type = fresh.type
+        ..price = fresh.price
+        ..stock = fresh.stock
+        ..description = fresh.description
+        ..imagePath = fresh.imagePath;
+      nextProducts.add(known);
+    }
+    products
+      ..clear()
+      ..addAll(nextProducts);
+
+    final knownOrders = {for (final o in orders) o.code: o};
+    final nextOrders = <OrderItem>[];
+    for (final e in (json['orders'] as List?) ?? const []) {
+      final fresh = OrderItem.fromJson(e as Map<String, dynamic>);
+      final known = knownOrders[fresh.code];
+      nextOrders.add(known == null ? fresh : (known..status = fresh.status));
+    }
+    orders
+      ..clear()
+      ..addAll(nextOrders);
+
+    reviews
+      ..clear()
+      ..addAll([
+        for (final e in (json['reviews'] as List?) ?? const [])
+          Review.fromJson(e as Map<String, dynamic>),
+      ]);
+
+    // Keranjang tetap di perangkat; hanya buang produk yang sudah dihapus dan
+    // arahkan ke objek produk terbaru.
+    final byId = {for (final p in products) p.id: p};
+    for (final entry in _carts.entries.toList()) {
+      _carts[entry.key] = [
+        for (final item in entry.value)
+          if (byId[item.product.id] != null)
+            CartItem(product: byId[item.product.id]!, qty: item.qty),
+      ];
+    }
+
+    if (json['me'] != null) {
+      _wishlists[currentAccountId] = {
+        for (final id in (json['wishlist'] as List?) ?? const [])
+          if (id is int && byId.containsKey(id)) id,
+      };
+    }
+    notifyListeners();
+  }
+
+  /// Mode database: setelah keluar akun, pesanan milik akun itu dibuang dari
+  /// perangkat. (Di mode lokal pesanan memang tersimpan di perangkat.)
+  void clearPrivateData() {
+    if (!isRemote) return;
+    orders.clear();
+    notifyListeners();
   }
 
   final List<Product> products = defaultProducts();
@@ -383,6 +479,56 @@ class Store extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Menambah produk baru. Di mode database produk dibuat di server (id dari
+  /// database); di mode lokal id dibuat dari waktu. Mengembalikan pesan
+  /// kesalahan, atau `null` jika berhasil.
+  Future<String?> createProduct({
+    required String name,
+    required String category,
+    required String type,
+    required int price,
+    required int stock,
+    required String description,
+    String? imagePath,
+  }) async {
+    if (!isRemote) {
+      addProduct(
+        Product(
+          id: DateTime.now().millisecondsSinceEpoch,
+          name: name,
+          category: category,
+          type: type,
+          price: price,
+          stock: stock,
+          icon: Icons.build_rounded,
+          description: description,
+          imagePath: imagePath,
+        ),
+      );
+      return null;
+    }
+    try {
+      await RemoteSync.run(
+        (g) => g.send(
+          'POST',
+          '/products',
+          body: {
+            'name': name,
+            'category': category,
+            'type': type,
+            'price': price,
+            'stock': stock,
+            'description': description,
+            'imagePath': imagePath,
+          },
+        ),
+      );
+      return null;
+    } on RemoteException catch (e) {
+      return e.message;
+    }
+  }
+
   /// Mengubah data produk. Hanya argumen yang diisi yang diubah. Keranjang
   /// ikut disesuaikan: qty dipangkas ke stok baru, dan item dikeluarkan jika
   /// stok menjadi 0.
@@ -418,6 +564,15 @@ class Store extends ChangeNotifier {
       items.removeWhere((item) => item.qty <= 0);
     }
     notifyListeners();
+    _push('PUT', '/products/${product.id}', {
+      'name': product.name,
+      'category': product.category,
+      'type': product.type,
+      'price': product.price,
+      'stock': product.stock,
+      'description': product.description,
+      'imagePath': product.imagePath,
+    });
   }
 
   /// Mengembalikan produk dan pesanan ke data contoh, dan mengosongkan semua
@@ -439,6 +594,7 @@ class Store extends ChangeNotifier {
     _carts.clear();
     _wishlists.clear();
     notifyListeners();
+    _push('POST', '/admin/reset-sample-data');
     return photos;
   }
 
@@ -452,6 +608,7 @@ class Store extends ChangeNotifier {
       ids.remove(product.id);
     }
     notifyListeners();
+    _push('DELETE', '/products/${product.id}');
   }
 
   bool isWishlisted(Product product) => wishlistIds.contains(product.id);
@@ -468,6 +625,9 @@ class Store extends ChangeNotifier {
     final added = wishlistIds.add(product.id);
     if (!added) wishlistIds.remove(product.id);
     notifyListeners();
+    if (currentAccountId != guestId) {
+      _push(added ? 'PUT' : 'DELETE', '/wishlist/${product.id}');
+    }
     return added;
   }
 
@@ -546,6 +706,11 @@ class Store extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _push('POST', '/reviews', {
+      'productId': product.id,
+      'rating': rating,
+      'comment': text,
+    });
     return null;
   }
 
@@ -553,6 +718,10 @@ class Store extends ChangeNotifier {
   void deleteReview(Review review) {
     reviews.remove(review);
     notifyListeners();
+    _push(
+      'DELETE',
+      '/reviews/${review.productId}/${Uri.encodeComponent(review.accountId)}',
+    );
   }
 
   /// Jumlah unit terjual per id produk (pesanan yang dibatalkan atau belum
@@ -720,6 +889,9 @@ class Store extends ChangeNotifier {
       }
     }
     notifyListeners();
+    _push('PUT', '/orders/${Uri.encodeComponent(order.code)}/status', {
+      'status': status,
+    });
   }
 
   /// Item keranjang yang jumlahnya melebihi stok saat ini, sebagai pesan siap
@@ -795,6 +967,63 @@ class Store extends ChangeNotifier {
     );
     clearCart();
     return true;
+  }
+
+  /// Membuat pesanan dari keranjang. Di mode database dibuat di server (stok
+  /// dikunci dan dipotong dalam transaksi, harga dari database); di mode lokal
+  /// sama dengan [checkout].
+  ///
+  /// Mengembalikan `null` jika berhasil, atau daftar masalah stok jika pesanan
+  /// ditolak karena stok (keranjang perlu disesuaikan). Kesalahan lain (mis.
+  /// server tidak terjangkau) dilempar sebagai [RemoteException].
+  Future<List<String>?> placeOrder({
+    required String customer,
+    required int shippingCost,
+    String? address,
+    String? paymentMethod,
+    PaymentInfo? payment,
+    String? code,
+  }) async {
+    if (!isRemote) {
+      final problems = cartStockProblems;
+      final ok = checkout(
+        customer: customer,
+        shippingCost: shippingCost,
+        address: address,
+        paymentMethod: paymentMethod,
+        payment: payment,
+        code: code,
+      );
+      return ok ? null : problems;
+    }
+    if (cart.isEmpty) return const [];
+
+    final orderCode = code ?? newOrderCode();
+    try {
+      await RemoteSync.run(
+        (g) => g.send(
+          'POST',
+          '/orders',
+          body: {
+            'code': orderCode,
+            'customer': customer,
+            'shippingCost': shippingCost,
+            'address': address,
+            'paymentMethod': paymentMethod,
+            'payment': payment?.toJson(),
+            'lines': [
+              for (final item in cart)
+                {'productId': item.product.id, 'qty': item.qty},
+            ],
+          },
+        ),
+      );
+    } on RemoteException catch (e) {
+      if (e.isConflict) return [e.message];
+      rethrow;
+    }
+    clearCart();
+    return null;
   }
 
   /// Pesanan dengan kode [code], atau null.

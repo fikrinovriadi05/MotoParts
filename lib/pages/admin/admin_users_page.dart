@@ -61,8 +61,12 @@ class AdminUsersPage extends StatelessWidget {
                   child: const Text('Batal'),
                 ),
                 FilledButton(
-                  onPressed: () {
-                    final result = auth.resetPassword(account, password.text);
+                  onPressed: () async {
+                    final result = await auth.resetPasswordAsync(
+                      account,
+                      password.text,
+                    );
+                    if (!context.mounted || !dialogContext.mounted) return;
                     if (result != null) {
                       setDialog(() => error = result);
                       return;

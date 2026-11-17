@@ -81,7 +81,8 @@ class OrderItem {
       lines: ((json['lines'] as List?) ?? const [])
           .map((e) => OrderLine.fromJson(e as Map<String, dynamic>))
           .toList(),
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '')
+          ?.toLocal(),
       accountId: json['accountId'] as String?,
       address: json['address'] as String?,
       paymentMethod: json['paymentMethod'] as String?,

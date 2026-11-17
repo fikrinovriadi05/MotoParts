@@ -1,0 +1,16 @@
+# Semua permintaan diarahkan ke index.php (Apache + mod_rewrite, mis. XAMPP).
+RewriteEngine On
+
+# Teruskan header Authorization ke PHP (sebagian konfigurasi Apache membuangnya).
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# Berkas sensitif tidak boleh dibuka dari web.
+<FilesMatch "^(config\.local\.php|.*\.sql|.*\.md)$">
+  Require all denied
+</FilesMatch>
+Options -Indexes

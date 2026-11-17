@@ -5,19 +5,27 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:motopart/core/payment_methods.dart';
+import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/core/safe_save.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/models/shipping_address.dart';
+import 'package:motopart/store/remote_sync.dart';
 import 'package:motopart/store/store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Akun pengguna lokal (tanpa server): pendaftaran, login, dan sesi.
+/// Akun pengguna: pendaftaran, login, dan sesi.
 ///
-/// Password disimpan sebagai hash SHA-256 + salt acak. Ini hanya mencegah
-/// password terbaca langsung dari penyimpanan perangkat; keamanan yang
-/// sebenarnya memerlukan server.
+/// Dua mode:
+/// * **Database** (`API_URL` diatur): akun ada di MySQL lewat backend PHP;
+///   password di-hash bcrypt di server dan aplikasi hanya menyimpan token sesi.
+/// * **Lokal** (tanpa `API_URL`, juga dipakai di tes): akun di perangkat dengan
+///   password SHA-256 + salt acak. Ini hanya mencegah password terbaca
+///   langsung dari penyimpanan perangkat.
 class AuthStore extends ChangeNotifier {
   static const storageKey = 'motopart_auth_v1';
+
+  /// Token sesi untuk mode database.
+  static const tokenKey = 'motopart_token_v1';
   static const minPasswordLength = 6;
 
   /// Akun admin bawaan, dibuat otomatis jika belum ada.
@@ -37,6 +45,9 @@ class AuthStore extends ChangeNotifier {
     : _random = random ?? Random.secure() {
     _ensureAdmin();
   }
+
+  /// Apakah data disimpan di database lewat server (bukan di perangkat).
+  bool get isRemote => remoteGateway != null;
 
   Account? get currentAccount => _current;
   bool get isLoggedIn => _current != null;
@@ -162,6 +173,110 @@ class AuthStore extends ChangeNotifier {
     return null;
   }
 
+  // ------------------------------------------- mode database (server)
+
+  /// Mendaftar. Di mode database akun dibuat di server; di mode lokal sama
+  /// dengan [register]. Tidak otomatis login. Mengembalikan pesan kesalahan
+  /// atau `null`.
+  Future<String?> registerAsync({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+  }) async {
+    final gateway = remoteGateway;
+    if (gateway == null) {
+      return register(
+        name: name,
+        email: email,
+        phone: phone,
+        password: password,
+      );
+    }
+    try {
+      await gateway.send(
+        'POST',
+        '/auth/register',
+        body: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+        },
+      );
+      return null;
+    } on RemoteException catch (e) {
+      return e.message;
+    }
+  }
+
+  /// Masuk. Di mode database lewat server (token disimpan); di mode lokal sama
+  /// dengan [login].
+  Future<String?> loginAsync({
+    required String email,
+    required String password,
+    required AccountRole role,
+  }) async {
+    final gateway = remoteGateway;
+    if (gateway == null) {
+      return login(email: email, password: password, role: role);
+    }
+    try {
+      final json = await gateway.send(
+        'POST',
+        '/auth/login',
+        body: {'email': email, 'password': password, 'role': role.name},
+      );
+      gateway.token = json['token'] as String;
+      unawaited(_prefs?.setString(tokenKey, gateway.token!));
+      _current = Account.fromJson(json['user'] as Map<String, dynamic>);
+      _store?.setCurrentAccount(_current!.id);
+      notifyListeners();
+      // Data pribadi (pesanan, wishlist, daftar pengguna untuk admin).
+      try {
+        await RemoteSync.pull();
+      } on RemoteException {
+        // Login sudah berhasil; data menyusul pada sinkronisasi berikutnya.
+      }
+      return null;
+    } on RemoteException catch (e) {
+      return e.message;
+    }
+  }
+
+  /// Menerapkan hasil `GET /sync` (mode database): akun yang sedang masuk dan,
+  /// untuk admin, daftar pengguna.
+  void applyRemoteSnapshot(Map<String, dynamic> json) {
+    final me = json['me'];
+    final previous = _current?.id;
+    if (me == null && remoteGateway?.token != null) {
+      // Server tidak mengenali token (kedaluwarsa/dicabut): jadi tamu.
+      remoteGateway!.token = null;
+      unawaited(_prefs?.remove(tokenKey));
+    }
+    _current = me is Map<String, dynamic> ? Account.fromJson(me) : null;
+    accounts
+      ..clear()
+      ..addAll([
+        ?_current,
+        for (final u in (json['users'] as List?) ?? const [])
+          Account.fromJson(u as Map<String, dynamic>),
+      ]);
+    if (previous != _current?.id) _store?.setCurrentAccount(_current?.id);
+    notifyListeners();
+  }
+
+  /// Token ditolak server (kedaluwarsa/dicabut): kembali menjadi tamu.
+  void sessionExpired() {
+    remoteGateway?.token = null;
+    unawaited(_prefs?.remove(tokenKey));
+    if (_current == null) return;
+    _current = null;
+    accounts.clear();
+    _store?.setCurrentAccount(null);
+    notifyListeners();
+  }
+
   // ------------------------------------------------------- kelola akun
 
   void _replace(Account updated) {
@@ -172,9 +287,53 @@ class AuthStore extends ChangeNotifier {
   }
 
   /// Apakah akun admin masih memakai password awal bawaan.
-  bool get adminUsesDefaultPassword => accounts.any(
-    (a) => a.isAdmin && _passwordMatches(a, adminInitialPassword),
-  );
+  bool get adminUsesDefaultPassword => isRemote
+      ? (_current?.isAdmin ?? false) && _current!.usesDefaultPassword
+      : accounts.any(
+          (a) => a.isAdmin && _passwordMatches(a, adminInitialPassword),
+        );
+
+  /// Ganti password. Di mode database lewat server; di mode lokal sama dengan
+  /// [changePassword].
+  Future<String?> changePasswordAsync({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final gateway = remoteGateway;
+    if (gateway == null) {
+      return changePassword(oldPassword: oldPassword, newPassword: newPassword);
+    }
+    try {
+      await RemoteSync.run(
+        (g) => g.send(
+          'PUT',
+          '/me/password',
+          body: {'oldPassword': oldPassword, 'newPassword': newPassword},
+        ),
+      );
+      return null;
+    } on RemoteException catch (e) {
+      return e.message;
+    }
+  }
+
+  /// Admin mengatur ulang password pembeli. Di mode database lewat server; di
+  /// mode lokal sama dengan [resetPassword].
+  Future<String?> resetPasswordAsync(Account target, String newPassword) async {
+    if (remoteGateway == null) return resetPassword(target, newPassword);
+    try {
+      await RemoteSync.run(
+        (g) => g.send(
+          'PUT',
+          '/users/${Uri.encodeComponent(target.id)}/password',
+          body: {'newPassword': newPassword},
+        ),
+      );
+      return null;
+    } on RemoteException catch (e) {
+      return e.message;
+    }
+  }
 
   /// Mengubah password akun yang sedang login. Mengembalikan pesan
   /// kesalahan, atau `null` jika berhasil.
@@ -259,7 +418,20 @@ class AuthStore extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _push('PUT', '/me', {
+      'name': name.trim(),
+      'phone': phone.trim(),
+      'motorName': newMotorName,
+      'motorType': newMotorType,
+      'motorYear': newYear,
+    });
     return null;
+  }
+
+  /// Mengirim perubahan ke server (mode database); tidak melakukan apa pun di
+  /// mode lokal.
+  void _push(String method, String path, [Map<String, dynamic>? body]) {
+    RemoteSync.push((g) => g.send(method, path, body: body));
   }
 
   // ------------------------------------------------------ alamat & bayar
@@ -319,6 +491,10 @@ class AuthStore extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _push('POST', '/addresses', {
+      ...address.toJson(),
+      'makeDefault': makeDefault,
+    });
     onSaved?.call(address);
     return null;
   }
@@ -373,6 +549,10 @@ class AuthStore extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _push('PUT', '/addresses/${Uri.encodeComponent(id)}', {
+      ...list[index].toJson(),
+      'makeDefault': makeDefault,
+    });
     return null;
   }
 
@@ -396,6 +576,7 @@ class AuthStore extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _push('DELETE', '/addresses/${Uri.encodeComponent(id)}');
     return null;
   }
 
@@ -407,6 +588,7 @@ class AuthStore extends ChangeNotifier {
     }
     _replace(account.copyWith(defaultAddressId: id));
     notifyListeners();
+    _push('PUT', '/addresses/${Uri.encodeComponent(id)}/default');
     return null;
   }
 
@@ -425,6 +607,7 @@ class AuthStore extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _push('PUT', '/me', {'preferredPayment': encoded});
     return null;
   }
 
@@ -463,8 +646,25 @@ class AuthStore extends ChangeNotifier {
   }
 
   void logout() {
+    final gateway = remoteGateway;
+    if (gateway != null) {
+      final token = gateway.token;
+      gateway.token = null;
+      unawaited(_prefs?.remove(tokenKey));
+      if (token != null) {
+        // Cabut sesi di server; kegagalan jaringan tidak masalah.
+        unawaited(
+          gateway
+              .send('POST', '/auth/logout', token: token)
+              .then<void>((_) {})
+              .catchError((Object _) {}),
+        );
+      }
+      accounts.clear();
+    }
     _current = null;
     _store?.setCurrentAccount(null);
+    _store?.clearPrivateData();
     notifyListeners();
   }
 
@@ -474,6 +674,17 @@ class AuthStore extends ChangeNotifier {
   /// lalu menyimpan otomatis setiap kali berubah.
   Future<void> attach(SharedPreferences prefs) async {
     _prefs = prefs;
+
+    final gateway = remoteGateway;
+    if (gateway != null) {
+      // Mode database: akun ada di server. Sesi dipulihkan dari token oleh
+      // RemoteSync.bootstrap() (dipanggil setelah store dan auth terpasang).
+      accounts.clear();
+      gateway.token = prefs.getString(tokenKey);
+      super.notifyListeners();
+      return;
+    }
+
     final raw = prefs.getString(storageKey);
     if (raw != null) {
       try {
@@ -500,7 +711,7 @@ class AuthStore extends ChangeNotifier {
 
   void _save() {
     final prefs = _prefs;
-    if (prefs == null) return;
+    if (prefs == null || isRemote) return;
     unawaited(
       safeSetString(
         prefs,

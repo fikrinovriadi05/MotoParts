@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/pages/auth/splash_page.dart';
+import 'package:motopart/store/remote_sync.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/theme/theme_controller.dart';
+
+/// Untuk menampilkan pesan dari luar pohon halaman (mis. galat sinkronisasi).
+final GlobalKey<ScaffoldMessengerState> rootMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 class MotoPartApp extends StatelessWidget {
   /// Lebar maksimum isi aplikasi. Di layar yang lebih lebar (desktop/web) isi
@@ -17,12 +22,14 @@ class MotoPartApp extends StatelessWidget {
       valueListenable: themeController,
       builder: (context, mode, _) {
         return MaterialApp(
+          scaffoldMessengerKey: rootMessengerKey,
           title: 'MotoPart',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: mode,
-          builder: (context, child) => _WideFrame(child: child!),
+          builder: (context, child) =>
+              _SyncErrorListener(child: _WideFrame(child: child!)),
           home: const SplashPage(),
         );
       },
@@ -76,4 +83,40 @@ class _WideFrame extends StatelessWidget {
       },
     );
   }
+}
+
+/// Menampilkan galat pengiriman data ke server sebagai snackbar.
+class _SyncErrorListener extends StatefulWidget {
+  final Widget child;
+
+  const _SyncErrorListener({required this.child});
+
+  @override
+  State<_SyncErrorListener> createState() => _SyncErrorListenerState();
+}
+
+class _SyncErrorListenerState extends State<_SyncErrorListener> {
+  @override
+  void initState() {
+    super.initState();
+    RemoteSync.error.addListener(_show);
+  }
+
+  @override
+  void dispose() {
+    RemoteSync.error.removeListener(_show);
+    super.dispose();
+  }
+
+  void _show() {
+    final message = RemoteSync.error.value;
+    if (message == null) return;
+    RemoteSync.error.value = null;
+    rootMessengerKey.currentState
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

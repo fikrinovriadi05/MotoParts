@@ -22,7 +22,7 @@ class Review {
       authorName: json['authorName'] as String,
       rating: json['rating'] as int,
       comment: (json['comment'] as String?) ?? '',
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      createdAt: DateTime.parse(json['createdAt'] as String).toLocal(),
     );
   }
 

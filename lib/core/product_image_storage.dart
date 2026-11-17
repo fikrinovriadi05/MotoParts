@@ -35,6 +35,10 @@ class DeviceProductImageStorage implements ProductImageStorage {
   /// (sekitar 5 MB untuk seluruh data aplikasi).
   static const maxWebPhotoBytes = 350 * 1024;
 
+  /// Simpan foto sebagai data URL (bukan berkas lokal) di perangkat non-web.
+  /// Dipakai mode database agar foto ikut tersimpan di server.
+  static bool storeInline = false;
+
   final ImagePicker _picker = ImagePicker();
 
   /// Data URL dari isi foto, mis. `data:image/jpeg;base64,/9j/...`.
@@ -70,7 +74,7 @@ class DeviceProductImageStorage implements ProductImageStorage {
 
   @override
   Future<String?> pickFromGallery() async {
-    if (kIsWeb) return _pickForWeb();
+    if (kIsWeb || storeInline) return _pickForWeb();
 
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,

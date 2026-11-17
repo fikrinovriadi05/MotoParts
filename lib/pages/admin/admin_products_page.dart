@@ -142,7 +142,7 @@ class AdminProductsPage extends StatelessWidget {
                   child: const Text('Batal'),
                 ),
                 FilledButton(
-                  onPressed: () {
+                  onPressed: () async {
                     final parsedPrice = int.tryParse(price.text.trim());
                     final parsedStock = int.tryParse(stock.text.trim());
 
@@ -178,19 +178,20 @@ class AdminProductsPage extends StatelessWidget {
                         clearImage: imagePath == null,
                       );
                     } else {
-                      store.addProduct(
-                        Product(
-                          id: DateTime.now().millisecondsSinceEpoch,
-                          name: name.text.trim(),
-                          category: category,
-                          type: typeText,
-                          price: parsedPrice,
-                          stock: parsedStock,
-                          icon: Icons.build_rounded,
-                          description: description.text.trim(),
-                          imagePath: imagePath,
-                        ),
+                      final failure = await store.createProduct(
+                        name: name.text.trim(),
+                        category: category,
+                        type: typeText,
+                        price: parsedPrice,
+                        stock: parsedStock,
+                        description: description.text.trim(),
+                        imagePath: imagePath,
                       );
+                      if (!dialogContext.mounted) return;
+                      if (failure != null) {
+                        setDialog(() => error = failure);
+                        return;
+                      }
                     }
 
                     // Foto lama yang diganti/dihapus tidak dipakai lagi.
