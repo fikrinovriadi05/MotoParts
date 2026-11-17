@@ -75,12 +75,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primarySoft, AppColors.primary],
+                    gradient: LinearGradient(
+                      colors: [
+                        context.palette.accentSoft,
+                        context.palette.accent,
+                      ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.3),
+                        color: context.palette.accent.withValues(alpha: 0.3),
                         blurRadius: 18,
                         offset: const Offset(0, 8),
                       ),
@@ -88,10 +91,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   child: Text(
                     initial,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 38,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.onPrimary,
+                      color: context.palette.onAccent,
                     ),
                   ),
                 ),

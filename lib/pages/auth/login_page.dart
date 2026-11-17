@@ -180,7 +180,7 @@ class _RoleTabs extends StatelessWidget {
                 duration: const Duration(milliseconds: 180),
                 height: AppSizes.minTap,
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.primary : Colors.transparent,
+                  color: selected ? context.palette.accent : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 alignment: Alignment.center,
@@ -193,7 +193,7 @@ class _RoleTabs extends StatelessWidget {
                         icon,
                         size: 18,
                         color: selected
-                            ? AppColors.onPrimary
+                            ? context.palette.onAccent
                             : palette.textMuted,
                       ),
                       const SizedBox(width: AppSpacing.sm),
@@ -201,7 +201,9 @@ class _RoleTabs extends StatelessWidget {
                         label,
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: selected ? AppColors.onPrimary : palette.text,
+                          color: selected
+                              ? context.palette.onAccent
+                              : palette.text,
                         ),
                       ),
                     ],

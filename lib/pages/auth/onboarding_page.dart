@@ -112,7 +112,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             color: i == page
-                                ? AppColors.primary
+                                ? context.palette.accent
                                 : palette.textMuted.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(AppRadius.pill),
                           ),
@@ -161,7 +161,7 @@ class _SlideView extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.28),
+                    context.palette.accent.withValues(alpha: 0.28),
                     palette.surfaceAlt,
                   ],
                 ),

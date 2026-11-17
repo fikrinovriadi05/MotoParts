@@ -39,13 +39,13 @@ class HoverIconCircle extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: hovered
-              ? AppColors.primary
+              ? context.palette.accent
               : (outlined
                     ? palette.surface
-                    : AppColors.primary.withValues(alpha: 0.16)),
+                    : context.palette.accent.withValues(alpha: 0.16)),
           border: outlined
               ? Border.all(
-                  color: AppColors.primary.withValues(
+                  color: context.palette.accent.withValues(
                     alpha: hovered ? 1 : 0.45,
                   ),
                   width: 1.4,
@@ -54,7 +54,7 @@ class HoverIconCircle extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: hovered
-                  ? AppColors.primary.withValues(alpha: 0.45)
+                  ? context.palette.accent.withValues(alpha: 0.45)
                   : (outlined ? palette.shadow : Colors.transparent),
               blurRadius: hovered ? 18 : 10,
               offset: const Offset(0, 4),
@@ -64,7 +64,7 @@ class HoverIconCircle extends StatelessWidget {
         child: Center(
           child: TweenAnimationBuilder<Color?>(
             tween: ColorTween(
-              end: hovered ? AppColors.onPrimary : palette.primaryText,
+              end: hovered ? context.palette.onAccent : palette.primaryText,
             ),
             duration: duration,
             builder: (context, color, _) =>

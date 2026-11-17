@@ -428,10 +428,13 @@ class _Bar extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: total == 0
                     ? null
-                    : const LinearGradient(
+                    : LinearGradient(
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
-                        colors: [AppColors.primary, AppColors.primarySoft],
+                        colors: [
+                          context.palette.accent,
+                          context.palette.accentSoft,
+                        ],
                       ),
                 color: total == 0 ? palette.surfaceAlt : null,
                 borderRadius: BorderRadius.circular(compact ? 3 : AppRadius.sm),

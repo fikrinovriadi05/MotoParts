@@ -395,7 +395,7 @@ class _CatalogPageState extends State<CatalogPage> {
               const SizedBox(height: 6),
               Expanded(
                 child: RefreshIndicator(
-                  color: AppColors.primary,
+                  color: context.palette.accent,
                   onRefresh: _refresh,
                   child: !loading && products.isEmpty
                       ? LayoutBuilder(

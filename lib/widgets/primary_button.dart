@@ -54,8 +54,11 @@ class PrimaryButton extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: enabled
-                    ? const LinearGradient(
-                        colors: [AppColors.primarySoft, AppColors.primary],
+                    ? LinearGradient(
+                        colors: [
+                          context.palette.accentSoft,
+                          context.palette.accent,
+                        ],
                       )
                     : null,
                 color: enabled ? null : palette.surfaceAlt,
@@ -63,7 +66,7 @@ class PrimaryButton extends StatelessWidget {
                 boxShadow: enabled
                     ? [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.28),
+                          color: context.palette.accent.withValues(alpha: 0.28),
                           blurRadius: 16,
                           offset: const Offset(0, 8),
                         ),
@@ -78,7 +81,7 @@ class PrimaryButton extends StatelessWidget {
                   backgroundColor: Colors.transparent,
                   disabledBackgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  foregroundColor: AppColors.onPrimary,
+                  foregroundColor: context.palette.onAccent,
                   disabledForegroundColor: palette.textMuted,
                 ),
               ),

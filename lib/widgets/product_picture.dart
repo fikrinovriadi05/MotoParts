@@ -96,7 +96,7 @@ class ProductPicture extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary.withValues(alpha: 0.22),
+            context.palette.accent.withValues(alpha: 0.22),
             palette.surfaceAlt,
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/pages/shared/appearance_page.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/pages/user/about_page.dart';
@@ -36,7 +37,7 @@ class ProfilePage extends StatelessWidget {
                     height: 72,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.primary.withValues(alpha: 0.16),
+                      color: context.palette.accent.withValues(alpha: 0.16),
                     ),
                     child: Icon(
                       Icons.person_rounded,
@@ -273,7 +274,7 @@ class _ThemeSwitcher extends StatelessWidget {
               expandedInsets: EdgeInsets.zero,
               style: SegmentedButton.styleFrom(
                 minimumSize: const Size(AppSizes.minTap, AppSizes.minTap),
-                selectedBackgroundColor: AppColors.primary.withValues(
+                selectedBackgroundColor: context.palette.accent.withValues(
                   alpha: 0.2,
                 ),
                 selectedForegroundColor: palette.primaryText,
@@ -300,6 +301,18 @@ class _ThemeSwitcher extends StatelessWidget {
               selected: {mode},
               onSelectionChanged: (selection) =>
                   themeController.setMode(selection.first),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AppearancePage()),
+              ),
+              icon: const Icon(Icons.palette_outlined),
+              label: const Text('Warna aksen & pratinjau'),
             ),
           ),
         ],

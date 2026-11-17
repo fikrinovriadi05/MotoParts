@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:motopart/theme/app_accent.dart';
 
 /// Pengaturan perilaku UI yang bisa dimatikan di tes.
 class UiConfig {
@@ -112,6 +113,13 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color dangerText;
   final Color shadow;
 
+  /// Warna aksen yang dipilih pengguna (bawaan oranye racing), versi
+  /// terangnya, dan warna teks/ikon di atasnya. Pakai ini (bukan
+  /// `AppColors.primary`) agar ikut berubah saat tema diganti.
+  final Color accent;
+  final Color accentSoft;
+  final Color onAccent;
+
   const AppPalette({
     required this.bg,
     required this.surface,
@@ -122,6 +130,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.primaryText,
     required this.dangerText,
     required this.shadow,
+    this.accent = AppColors.primary,
+    this.accentSoft = AppColors.primarySoft,
+    this.onAccent = AppColors.onPrimary,
   });
 
   static const dark = AppPalette(
@@ -159,6 +170,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? primaryText,
     Color? dangerText,
     Color? shadow,
+    Color? accent,
+    Color? accentSoft,
+    Color? onAccent,
   }) {
     return AppPalette(
       bg: bg ?? this.bg,
@@ -170,6 +184,9 @@ class AppPalette extends ThemeExtension<AppPalette> {
       primaryText: primaryText ?? this.primaryText,
       dangerText: dangerText ?? this.dangerText,
       shadow: shadow ?? this.shadow,
+      accent: accent ?? this.accent,
+      accentSoft: accentSoft ?? this.accentSoft,
+      onAccent: onAccent ?? this.onAccent,
     );
   }
 
@@ -186,6 +203,25 @@ class AppPalette extends ThemeExtension<AppPalette> {
       primaryText: Color.lerp(primaryText, other.primaryText, t)!,
       dangerText: Color.lerp(dangerText, other.dangerText, t)!,
       shadow: Color.lerp(shadow, other.shadow, t)!,
+      accent: Color.lerp(accent, other.accent, t)!,
+      accentSoft: Color.lerp(accentSoft, other.accentSoft, t)!,
+      onAccent: Color.lerp(onAccent, other.onAccent, t)!,
+    );
+  }
+
+  /// Palet untuk [brightness] dengan warna aksen [accent]. Oranye racing
+  /// mengembalikan palet bawaan apa adanya.
+  static AppPalette forAccent(Brightness brightness, AppAccent accent) {
+    final base = brightness == Brightness.dark ? dark : light;
+    if (accent == AppAccent.orange) return base;
+    return base.copyWith(
+      accent: accent.color,
+      accentSoft: accent.soft,
+      onAccent: accent.onColor,
+      // Teks aksen harus terbaca di atas permukaan paling gelap/terang.
+      primaryText: accent.readableOn(
+        brightness == Brightness.dark ? base.surfaceAlt : base.bg,
+      ),
     );
   }
 }
@@ -203,8 +239,10 @@ extension AppPaletteContext on BuildContext {
 }
 
 class AppTheme {
-  static ThemeData light() => _build(Brightness.light, AppPalette.light);
-  static ThemeData dark() => _build(Brightness.dark, AppPalette.dark);
+  static ThemeData light({AppAccent accent = AppAccent.orange}) =>
+      _build(Brightness.light, AppPalette.forAccent(Brightness.light, accent));
+  static ThemeData dark({AppAccent accent = AppAccent.orange}) =>
+      _build(Brightness.dark, AppPalette.forAccent(Brightness.dark, accent));
 
   /// Inter untuk semua teks (San Francisco sistem di iOS/macOS). Judul memakai
   /// bobot tebal dengan jarak huruf sedikit rapat seperti gaya SF.
@@ -233,13 +271,13 @@ class AppTheme {
     final isDark = brightness == Brightness.dark;
     final scheme =
         ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
+          seedColor: p.accent,
           brightness: brightness,
         ).copyWith(
-          primary: AppColors.primary,
-          onPrimary: AppColors.onPrimary,
-          secondary: AppColors.primarySoft,
-          onSecondary: AppColors.onPrimary,
+          primary: p.accent,
+          onPrimary: p.onAccent,
+          secondary: p.accentSoft,
+          onSecondary: p.onAccent,
           error: AppColors.danger,
           surface: p.surface,
           onSurface: p.text,
@@ -275,9 +313,7 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: p.border, space: 1),
       iconTheme: IconThemeData(color: p.text),
       listTileTheme: ListTileThemeData(iconColor: p.textMuted),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primary,
-      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: p.accent),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
@@ -320,13 +356,13 @@ class AppTheme {
         border: inputBorder(p.border),
         enabledBorder: inputBorder(p.border),
         disabledBorder: inputBorder(p.border),
-        focusedBorder: inputBorder(AppColors.primary, 1.6),
+        focusedBorder: inputBorder(p.accent, 1.6),
         errorBorder: inputBorder(AppColors.danger),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
+          backgroundColor: p.accent,
+          foregroundColor: p.onAccent,
           minimumSize: const Size(AppSizes.minTap, AppSizes.minTap),
           shape: roundedLg,
           textStyle: textTheme.labelLarge?.copyWith(
@@ -337,7 +373,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: p.primaryText,
-          side: const BorderSide(color: AppColors.primary, width: 1.4),
+          side: BorderSide(color: p.accent, width: 1.4),
           minimumSize: const Size(AppSizes.minTap, AppSizes.minTap),
           shape: roundedLg,
           textStyle: textTheme.labelLarge?.copyWith(
@@ -361,7 +397,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: p.surface,
-        selectedColor: AppColors.primary.withValues(alpha: 0.18),
+        selectedColor: p.accent.withValues(alpha: 0.18),
         disabledColor: p.surfaceAlt,
         side: BorderSide(color: p.border),
         labelStyle: textTheme.labelLarge?.copyWith(
@@ -379,9 +415,7 @@ class AppTheme {
         height: AppSizes.navBarHeight,
         backgroundColor: p.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.primary.withValues(
-          alpha: isDark ? 0.22 : 0.16,
-        ),
+        indicatorColor: p.accent.withValues(alpha: isDark ? 0.22 : 0.16),
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)
@@ -401,15 +435,15 @@ class AppTheme {
           ),
         ),
       ),
-      badgeTheme: const BadgeThemeData(
-        backgroundColor: AppColors.primary,
-        textColor: AppColors.onPrimary,
+      badgeTheme: BadgeThemeData(
+        backgroundColor: p.accent,
+        textColor: p.onAccent,
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: isDark ? p.surfaceAlt : AppColors.charcoal,
         contentTextStyle: const TextStyle(color: Color(0xFFF5F5F7)),
-        actionTextColor: AppColors.primarySoft,
+        actionTextColor: p.accentSoft,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
@@ -432,21 +466,18 @@ class AppTheme {
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? AppColors.primary
-              : p.textMuted,
+          (states) =>
+              states.contains(WidgetState.selected) ? p.accent : p.textMuted,
         ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? AppColors.onPrimary
-              : p.textMuted,
+          (states) =>
+              states.contains(WidgetState.selected) ? p.onAccent : p.textMuted,
         ),
         trackColor: WidgetStateProperty.resolveWith(
-          (states) => states.contains(WidgetState.selected)
-              ? AppColors.primary
-              : p.surfaceAlt,
+          (states) =>
+              states.contains(WidgetState.selected) ? p.accent : p.surfaceAlt,
         ),
       ),
     );

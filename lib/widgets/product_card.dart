@@ -121,13 +121,13 @@ class ProductCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
                   color: hovered
-                      ? AppColors.primary.withValues(alpha: 0.55)
+                      ? context.palette.accent.withValues(alpha: 0.55)
                       : palette.border,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: hovered
-                        ? AppColors.primary.withValues(alpha: 0.22)
+                        ? context.palette.accent.withValues(alpha: 0.22)
                         : palette.shadow,
                     blurRadius: hovered ? 22 : 12,
                     offset: Offset(0, hovered ? 10 : 5),
@@ -272,7 +272,7 @@ class _AddButtonState extends State<_AddButton> {
                 shape: BoxShape.circle,
                 color: !enabled
                     ? palette.surfaceAlt
-                    : (justAdded ? AppColors.success : AppColors.primary),
+                    : (justAdded ? AppColors.success : context.palette.accent),
               ),
               child: AnimatedSwitcher(
                 duration: UiConfig.motion(const Duration(milliseconds: 220)),
@@ -282,7 +282,7 @@ class _AddButtonState extends State<_AddButton> {
                   justAdded ? Icons.check_rounded : Icons.add_rounded,
                   key: ValueKey(justAdded),
                   size: 22,
-                  color: enabled ? AppColors.onPrimary : palette.textMuted,
+                  color: enabled ? context.palette.onAccent : palette.textMuted,
                 ),
               ),
             ),

@@ -35,9 +35,9 @@ class AppLogo extends StatelessWidget {
                     text: 'Moto',
                     style: TextStyle(color: textColor),
                   ),
-                  const TextSpan(
+                  TextSpan(
                     text: 'Part',
-                    style: TextStyle(color: AppColors.primary),
+                    style: TextStyle(color: context.palette.accent),
                   ),
                 ],
               ),

@@ -63,14 +63,16 @@ class CategoryPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppRadius.lg),
                           border: Border.all(
                             color: hovered
-                                ? AppColors.primary.withValues(alpha: 0.7)
+                                ? context.palette.accent.withValues(alpha: 0.7)
                                 : palette.border,
                             width: hovered ? 1.6 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: hovered
-                                  ? AppColors.primary.withValues(alpha: 0.22)
+                                  ? context.palette.accent.withValues(
+                                      alpha: 0.22,
+                                    )
                                   : palette.shadow,
                               blurRadius: hovered ? 22 : 12,
                               offset: Offset(0, hovered ? 10 : 5),

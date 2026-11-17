@@ -31,11 +31,11 @@ class AboutPage extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                       color: palette.text,
                     ),
-                    children: const [
+                    children: [
                       TextSpan(text: 'Moto'),
                       TextSpan(
                         text: 'Part',
-                        style: TextStyle(color: AppColors.primary),
+                        style: TextStyle(color: context.palette.accent),
                       ),
                     ],
                   ),
@@ -127,7 +127,7 @@ class _MemberRow extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.primary.withValues(alpha: 0.16),
+            color: context.palette.accent.withValues(alpha: 0.16),
           ),
           child: Text(
             '$number',

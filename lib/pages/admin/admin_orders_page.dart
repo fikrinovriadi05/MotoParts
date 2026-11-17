@@ -35,10 +35,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         label: Text('$label (${_countFor(status)})'),
         selected: selected,
         onSelected: (_) => setState(() => statusFilter = status),
-        selectedColor: AppColors.primary,
+        selectedColor: context.palette.accent,
         labelStyle: TextStyle(
           fontWeight: FontWeight.w700,
-          color: selected ? AppColors.onPrimary : context.palette.text,
+          color: selected ? context.palette.onAccent : context.palette.text,
         ),
       ),
     );

@@ -115,11 +115,11 @@ class OrderTimeline extends StatelessWidget {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: reached
-                                ? AppColors.primary
+                                ? context.palette.accent
                                 : palette.surfaceAlt,
                             border: Border.all(
                               color: reached
-                                  ? AppColors.primary
+                                  ? context.palette.accent
                                   : palette.border,
                               width: 1.4,
                             ),
@@ -130,7 +130,7 @@ class OrderTimeline extends StatelessWidget {
                                 : orderStatusIcon(steps[i]),
                             size: 16,
                             color: reached
-                                ? AppColors.onPrimary
+                                ? context.palette.onAccent
                                 : palette.textMuted,
                           ),
                         );
@@ -187,7 +187,7 @@ class _Bar extends StatelessWidget {
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: fill,
-              child: const ColoredBox(color: AppColors.primary),
+              child: ColoredBox(color: context.palette.accent),
             ),
           ),
         ],

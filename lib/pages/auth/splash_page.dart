@@ -47,14 +47,14 @@ class _SplashPageState extends State<SplashPage> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
               AppColors.charcoal,
               AppColors.charcoalSoft,
-              AppColors.primary,
+              context.palette.accent,
             ],
           ),
         ),

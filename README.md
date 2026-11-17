@@ -50,6 +50,15 @@ lokal seperti sebelumnya.
 
 Admin bawaan: `admin@motopart.id` / `admin123` (ganti dari menu Akun).
 
+## Tema dan warna aksen
+
+Menu Akun (pembeli) dan Dashboard Admin punya **Pengaturan Tampilan**: mode
+Terang / Gelap / Sistem, lima warna aksen (Oranye Racing bawaan, Merah, Biru,
+Hijau, Kuning), dan kartu pratinjau yang langsung berubah. Pilihan tersimpan di
+perangkat dan berlaku untuk seluruh aplikasi (sisi pembeli dan admin). Teks di
+atas aksen dan teks beraksen otomatis disesuaikan agar tetap terbaca di mode
+terang maupun gelap.
+
 ## Laporan penjualan dan ekspor Excel
 
 Admin: Dashboard > Laporan Penjualan. Pilih periode lewat chip **Semua**,

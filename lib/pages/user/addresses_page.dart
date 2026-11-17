@@ -174,7 +174,7 @@ class _AddressCard extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.16),
+                    color: context.palette.accent.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Text(

@@ -334,10 +334,7 @@ class _Header extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.lg),
-                borderSide: const BorderSide(
-                  color: AppColors.primary,
-                  width: 2,
-                ),
+                borderSide: BorderSide(color: context.palette.accent, width: 2),
               ),
               suffixIcon: keyword.isEmpty
                   ? null

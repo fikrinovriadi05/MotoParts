@@ -30,7 +30,7 @@ class SelectableCard extends StatelessWidget {
       label: title,
       child: Material(
         color: selected
-            ? AppColors.primary.withValues(alpha: 0.10)
+            ? context.palette.accent.withValues(alpha: 0.10)
             : palette.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: InkWell(
@@ -46,7 +46,7 @@ class SelectableCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppRadius.lg),
               border: Border.all(
-                color: selected ? AppColors.primary : palette.border,
+                color: selected ? context.palette.accent : palette.border,
                 width: selected ? 1.8 : 1,
               ),
             ),
@@ -57,7 +57,7 @@ class SelectableCard extends StatelessWidget {
                   height: 42,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.14),
+                    color: context.palette.accent.withValues(alpha: 0.14),
                   ),
                   child: Icon(icon, color: palette.primaryText, size: 22),
                 ),
@@ -98,7 +98,7 @@ class SelectableCard extends StatelessWidget {
                   selected
                       ? Icons.radio_button_checked_rounded
                       : Icons.radio_button_unchecked_rounded,
-                  color: selected ? AppColors.primary : palette.textMuted,
+                  color: selected ? context.palette.accent : palette.textMuted,
                 ),
               ],
             ),

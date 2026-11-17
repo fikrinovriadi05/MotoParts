@@ -3,6 +3,7 @@ import 'package:motopart/core/format.dart';
 import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/pages/admin/admin_users_page.dart';
 import 'package:motopart/pages/auth/login_page.dart';
+import 'package:motopart/pages/shared/appearance_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/auth_store.dart';
@@ -128,6 +129,20 @@ class AdminDashboardPage extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AppearancePage(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.palette_outlined),
+                        label: const Text('Pengaturan Tampilan'),
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                     GridView(
                       shrinkWrap: true,
@@ -150,7 +165,7 @@ class AdminDashboardPage extends StatelessWidget {
                             title: 'Total Produk',
                             value: store.products.length,
                             icon: Icons.inventory_2_rounded,
-                            color: AppColors.primary,
+                            color: context.palette.accent,
                           ),
                         ),
                         FadeSlideIn(

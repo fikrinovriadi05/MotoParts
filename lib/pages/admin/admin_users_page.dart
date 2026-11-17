@@ -123,7 +123,7 @@ class AdminUsersPage extends StatelessWidget {
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.primary.withValues(alpha: 0.16),
+                        color: context.palette.accent.withValues(alpha: 0.16),
                       ),
                       child: Text(
                         account.firstName.characters.first.toUpperCase(),

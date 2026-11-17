@@ -23,25 +23,25 @@ class CheckoutSteps extends StatelessWidget {
         height: 28,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: filled ? AppColors.primary : palette.surfaceAlt,
+          color: filled ? context.palette.accent : palette.surfaceAlt,
           border: Border.all(
-            color: filled ? AppColors.primary : palette.border,
+            color: filled ? context.palette.accent : palette.border,
             width: 1.4,
           ),
         ),
         alignment: Alignment.center,
         child: done
-            ? const Icon(
+            ? Icon(
                 Icons.check_rounded,
                 size: 16,
-                color: AppColors.onPrimary,
+                color: context.palette.onAccent,
               )
             : Text(
                 '${i + 1}',
                 style: TextStyle(
                   fontSize: AppTextSizes.small,
                   fontWeight: FontWeight.w800,
-                  color: active ? AppColors.onPrimary : palette.textMuted,
+                  color: active ? context.palette.onAccent : palette.textMuted,
                 ),
               ),
       );
@@ -51,7 +51,7 @@ class CheckoutSteps extends StatelessWidget {
       child: Container(
         height: 2,
         margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-        color: i < current ? AppColors.primary : palette.border,
+        color: i < current ? context.palette.accent : palette.border,
       ),
     );
 

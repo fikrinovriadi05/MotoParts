@@ -184,7 +184,7 @@ class _EmptyCart extends StatelessWidget {
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.14),
+                  color: context.palette.accent.withValues(alpha: 0.14),
                 ),
                 child: Icon(
                   Icons.shopping_bag_outlined,
@@ -354,7 +354,7 @@ class _QtyButton extends StatelessWidget {
       tooltip: tooltip,
       onPressed: onTap,
       style: IconButton.styleFrom(
-        backgroundColor: AppColors.primary.withValues(alpha: 0.14),
+        backgroundColor: context.palette.accent.withValues(alpha: 0.14),
         foregroundColor: context.palette.primaryText,
         minimumSize: const Size(AppSizes.minTap, AppSizes.minTap),
         maximumSize: const Size(AppSizes.minTap, AppSizes.minTap),

@@ -18,16 +18,23 @@ class MotoPartApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeController,
-      builder: (context, mode, _) {
+    return ListenableBuilder(
+      listenable: themeController.changes,
+      builder: (context, _) {
+        final mode = themeController.value;
+        final accent = themeController.accent.value;
         return MaterialApp(
           scaffoldMessengerKey: rootMessengerKey,
           title: 'MotoPart',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.light(),
-          darkTheme: AppTheme.dark(),
+          theme: AppTheme.light(accent: accent),
+          darkTheme: AppTheme.dark(accent: accent),
           themeMode: mode,
+          // Pergantian tema (mode/warna) berubah halus.
+          themeAnimationDuration: UiConfig.motion(
+            const Duration(milliseconds: 350),
+          ),
+          themeAnimationCurve: Curves.easeInOut,
           builder: (context, child) =>
               _SyncErrorListener(child: _WideFrame(child: child!)),
           home: const SplashPage(),

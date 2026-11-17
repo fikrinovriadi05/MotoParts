@@ -105,7 +105,7 @@ class _PromoBannerState extends State<PromoBanner> {
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   color: i == page
-                      ? AppColors.primary
+                      ? context.palette.accent
                       : palette.textMuted.withValues(alpha: 0.35),
                   borderRadius: BorderRadius.circular(AppRadius.pill),
                 ),
@@ -141,7 +141,9 @@ class _Slide extends StatelessWidget {
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: context.palette.accent.withValues(alpha: 0.5),
+            ),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -157,8 +159,8 @@ class _Slide extends StatelessWidget {
                       children: [
                         Text(
                           slide.label,
-                          style: const TextStyle(
-                            color: AppColors.primarySoft,
+                          style: TextStyle(
+                            color: context.palette.accentSoft,
                             fontWeight: FontWeight.w700,
                             fontSize: AppTextSizes.small,
                             letterSpacing: 0.8,
@@ -195,10 +197,14 @@ class _Slide extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.18),
+                      color: context.palette.accent.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(slide.icon, color: AppColors.primary, size: 38),
+                    child: Icon(
+                      slide.icon,
+                      color: context.palette.accent,
+                      size: 38,
+                    ),
                   ),
                 ],
               ),

@@ -183,7 +183,7 @@ class _EmptyOrders extends StatelessWidget {
                 height: 112,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.14),
+                  color: context.palette.accent.withValues(alpha: 0.14),
                 ),
                 child: Icon(
                   Icons.receipt_long_rounded,
