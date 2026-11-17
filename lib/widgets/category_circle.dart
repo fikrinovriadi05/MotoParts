@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/hover.dart';
 import 'package:motopart/widgets/press_scale.dart';
 
 /// Ikon kategori berbentuk lingkaran dengan label di bawahnya.
@@ -29,25 +30,34 @@ class CategoryCircle extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: palette.surface,
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.45),
-                    width: 1.4,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: palette.shadow,
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+              HoverBuilder(
+                builder: (context, hovered) => AnimatedContainer(
+                  duration: UiConfig.motion(const Duration(milliseconds: 160)),
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: hovered
+                        ? AppColors.primary.withValues(alpha: 0.12)
+                        : palette.surface,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(
+                        alpha: hovered ? 0.9 : 0.45,
+                      ),
+                      width: 1.4,
                     ),
-                  ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: hovered
+                            ? AppColors.primary.withValues(alpha: 0.28)
+                            : palette.shadow,
+                        blurRadius: hovered ? 16 : 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, color: palette.primaryText, size: 28),
                 ),
-                child: Icon(icon, color: palette.primaryText, size: 28),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(

@@ -161,36 +161,41 @@ class _RoleTabs extends StatelessWidget {
           selected: selected,
           label: 'Masuk sebagai $label',
           excludeSemantics: true,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => onChanged(value),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              height: AppSizes.minTap,
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              alignment: Alignment.center,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      icon,
-                      size: 18,
-                      color: selected ? AppColors.onPrimary : palette.textMuted,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: selected ? AppColors.onPrimary : palette.text,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onChanged(value),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                height: AppSizes.minTap,
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                alignment: Alignment.center,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 18,
+                        color: selected
+                            ? AppColors.onPrimary
+                            : palette.textMuted,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: selected ? AppColors.onPrimary : palette.text,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

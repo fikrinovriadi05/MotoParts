@@ -63,7 +63,7 @@ flutter test
 cd server && dart analyze && dart test
 ```
 
-Sekitar 650 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
+Sekitar 665 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
 kecil, berkas ikon, font, pembayaran online, GPS, dan konfigurasi proyek) dan 35
 tes server. Tes aplikasi memakai server pembayaran dan GPS palsu
 (`test/support/fakes.dart`), jadi tidak memakai jaringan.

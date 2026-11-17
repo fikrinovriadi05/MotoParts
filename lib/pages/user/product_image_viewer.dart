@@ -98,24 +98,27 @@ class _ProductImageViewerState extends State<ProductImageViewer>
       body: Stack(
         children: [
           Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onDoubleTapDown: (d) => doubleTapAt = d.localPosition,
-              onDoubleTap: _toggleZoom,
-              child: InteractiveViewer(
-                transformationController: transform,
-                minScale: 1,
-                maxScale: ProductImageViewer.maxScale,
-                child: Center(
-                  child: Hero(
-                    tag: productHeroTag(widget.product),
-                    child: ProductPicture.forProduct(
-                      widget.product,
-                      width: size.width,
-                      height: size.height * 0.7,
-                      iconSize: size.width * 0.45,
-                      radius: 0,
-                      fit: BoxFit.contain,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.grab,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onDoubleTapDown: (d) => doubleTapAt = d.localPosition,
+                onDoubleTap: _toggleZoom,
+                child: InteractiveViewer(
+                  transformationController: transform,
+                  minScale: 1,
+                  maxScale: ProductImageViewer.maxScale,
+                  child: Center(
+                    child: Hero(
+                      tag: productHeroTag(widget.product),
+                      child: ProductPicture.forProduct(
+                        widget.product,
+                        width: size.width,
+                        height: size.height * 0.7,
+                        iconSize: size.width * 0.45,
+                        radius: 0,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),

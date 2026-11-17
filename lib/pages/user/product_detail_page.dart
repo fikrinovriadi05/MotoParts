@@ -56,39 +56,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           Semantics(
             button: true,
             label: 'Gambar ${product.name}, ketuk untuk memperbesar',
-            child: GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  fullscreenDialog: true,
-                  builder: (_) => ProductImageViewer(product: product),
-                ),
-              ),
-              child: Stack(
-                children: [
-                  ProductImage(
-                    product: product,
-                    height: 260,
-                    iconSize: 110,
-                    radius: AppRadius.xl,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.zoomIn,
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    fullscreenDialog: true,
+                    builder: (_) => ProductImageViewer(product: product),
                   ),
-                  Positioned(
-                    right: AppSpacing.md,
-                    bottom: AppSpacing.md,
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.45),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.zoom_out_map_rounded,
-                        size: 18,
-                        color: Colors.white,
+                ),
+                child: Stack(
+                  children: [
+                    ProductImage(
+                      product: product,
+                      height: 260,
+                      iconSize: 110,
+                      radius: AppRadius.xl,
+                    ),
+                    Positioned(
+                      right: AppSpacing.md,
+                      bottom: AppSpacing.md,
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.zoom_out_map_rounded,
+                          size: 18,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

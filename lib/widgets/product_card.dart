@@ -5,6 +5,7 @@ import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/cart_feedback.dart';
+import 'package:motopart/widgets/hover.dart';
 import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/product_picture.dart';
@@ -108,73 +109,83 @@ class ProductCard extends StatelessWidget {
       data: media.copyWith(textScaler: scaler),
       child: PressScale(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: palette.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: palette.border),
-            boxShadow: [
-              BoxShadow(
-                color: palette.shadow,
-                blurRadius: 12,
-                offset: const Offset(0, 5),
+        // Saat kursor di atas: bayangan mengangkat dan bingkai berwarna utama.
+        child: HoverBuilder(
+          builder: (context, hovered) => AnimatedContainer(
+            duration: UiConfig.motion(const Duration(milliseconds: 160)),
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: palette.surface,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              border: Border.all(
+                color: hovered
+                    ? AppColors.primary.withValues(alpha: 0.55)
+                    : palette.border,
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                children: [
-                  ProductImage(product: product, height: 108, iconSize: 48),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: WishlistButton(product: product, size: 20),
+              boxShadow: [
+                BoxShadow(
+                  color: hovered
+                      ? AppColors.primary.withValues(alpha: 0.22)
+                      : palette.shadow,
+                  blurRadius: hovered ? 22 : 12,
+                  offset: Offset(0, hovered ? 10 : 5),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    ProductImage(product: product, height: 108, iconSize: 48),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: WishlistButton(product: product, size: 20),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm + 2),
+                Text(
+                  product.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: AppTextSizes.body,
+                    height: 1.25,
+                    color: palette.text,
                   ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm + 2),
-              Text(
-                product.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: AppTextSizes.body,
-                  height: 1.25,
-                  color: palette.text,
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                product.type,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: AppTextSizes.small,
+                const SizedBox(height: 2),
+                Text(
+                  product.type,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: palette.textMuted,
+                    fontSize: AppTextSizes.small,
+                  ),
                 ),
-              ),
-              const Spacer(),
-              Text(
-                formatRupiah(product.price),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: palette.primaryText,
-                  fontWeight: FontWeight.w800,
-                  fontSize: AppTextSizes.bodyLarge,
+                const Spacer(),
+                Text(
+                  formatRupiah(product.price),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: palette.primaryText,
+                    fontWeight: FontWeight.w800,
+                    fontSize: AppTextSizes.bodyLarge,
+                  ),
                 ),
-              ),
-              Row(
-                children: [
-                  Expanded(child: StockLabel(product: product)),
-                  _AddButton(product: product),
-                ],
-              ),
-            ],
+                Row(
+                  children: [
+                    Expanded(child: StockLabel(product: product)),
+                    _AddButton(product: product),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
