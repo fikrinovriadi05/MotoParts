@@ -55,7 +55,7 @@ Set `allow_origin` ke alamat web aplikasi bila ingin membatasi CORS.
 
 ## Struktur database
 
-`database/schema.sql`: `users`, `sessions`, `addresses`, `products`, `orders`,
+`database/schema.sql`: `users`, `sessions`, `addresses`, `products`, `categories`, `orders`,
 `order_items`, `reviews`, `wishlists`. Waktu disimpan UTC; password memakai
 bcrypt; sesi berupa token acak 64 heks (berlaku 30 hari).
 
@@ -76,6 +76,8 @@ sesuai. Token dikirim lewat header `Authorization: Bearer <token>`.
 | `POST /addresses`, `PUT/DELETE /addresses/{id}`, `PUT /addresses/{id}/default` | masuk | Alamat pengiriman |
 | `GET /products` | publik | Daftar produk |
 | `POST /products`, `PUT/DELETE /products/{id}` | admin | Kelola produk |
+| `GET /categories` | publik | Daftar kategori |
+| `POST /categories`, `PUT/DELETE /categories/{nama}` | admin | Kelola kategori (ganti nama memindahkan produknya; hapus ditolak bila masih dipakai) |
 | `GET /orders` | masuk | Pesanan sendiri (admin: semua) |
 | `POST /orders` | masuk | Checkout: stok dikunci & dipotong dalam transaksi; harga diambil dari database |
 | `PUT /orders/{code}/status` | admin (pembeli: hanya pesanannya yang menunggu bayar) | Ubah status; batal mengembalikan stok |
@@ -92,5 +94,5 @@ powershell -ExecutionPolicy Bypass -File backend\tests\run.ps1
 ```
 
 Skrip ini menyalakan MariaDB **sementara** (port 3307, folder data sementara)
-dan server PHP, menjalankan 100 tes API, lalu mematikan dan menghapusnya.
+dan server PHP, menjalankan 117 tes API, lalu mematikan dan menghapusnya.
 Database XAMPP Anda tidak disentuh.

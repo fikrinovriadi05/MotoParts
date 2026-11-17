@@ -4,7 +4,7 @@ import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/models/review.dart';
-import 'package:motopart/pages/admin/admin_dashboard_page.dart';
+import 'package:motopart/pages/admin/admin_settings_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -176,7 +176,7 @@ void main() {
     });
   });
 
-  group('tombol di dashboard admin', () {
+  group('tombol di pengaturan admin', () {
     late _FakeStorage fake;
     late ProductImageStorage original;
 
@@ -198,21 +198,20 @@ void main() {
 
     tearDown(() => productImageStorage = original);
 
-    Future<void> pumpDashboard(WidgetTester tester) async {
+    Future<void> pumpSettings(WidgetTester tester) async {
       tester.view.physicalSize = const Size(400, 3000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
-        MaterialApp(theme: AppTheme.light(), home: const AdminDashboardPage()),
+        MaterialApp(theme: AppTheme.light(), home: const AdminSettingsPage()),
       );
     }
 
-    testWidgets('menampilkan kartu Data Contoh dengan tombol reset', (
+    testWidgets('Pengaturan menampilkan tombol Reset Data Contoh', (
       tester,
     ) async {
-      await pumpDashboard(tester);
+      await pumpSettings(tester);
 
-      expect(find.text('Data Contoh'), findsOneWidget);
       expect(find.text('Reset Data Contoh'), findsOneWidget);
     });
 
@@ -221,7 +220,7 @@ void main() {
       (tester) async {
         store.products.first.stock = 1;
         store.products[1].imagePath = '/data/product_images/x.png';
-        await pumpDashboard(tester);
+        await pumpSettings(tester);
 
         await tester.tap(find.text('Reset Data Contoh'));
         await tester.pumpAndSettle();
@@ -245,7 +244,7 @@ void main() {
       store.deleteProduct(store.products.first);
       store.products[2].imagePath = '/data/product_images/x.png';
       store.orders.clear();
-      await pumpDashboard(tester);
+      await pumpSettings(tester);
 
       await tester.tap(find.text('Reset Data Contoh'));
       await tester.pumpAndSettle();
@@ -271,7 +270,7 @@ void main() {
         role: AccountRole.user,
       );
       store.addToCart(store.products.first);
-      await pumpDashboard(tester);
+      await pumpSettings(tester);
 
       await tester.tap(find.text('Reset Data Contoh'));
       await tester.pumpAndSettle();

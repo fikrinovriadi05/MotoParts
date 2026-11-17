@@ -625,17 +625,36 @@ void main() {
   });
 
   group('admin', () {
-    testWidgets('dashboard: jumlah pelanggan nyata, bukan angka tetap', (
+    testWidgets('dashboard: pesanan hari ini dihitung dari data nyata', (
       tester,
     ) async {
       size(tester, 400, 1400);
-      for (final e in ['a@e.com', 'b@e.com', 'c@e.com']) {
-        registerAndLogin(name: 'Pelanggan', email: e);
-        auth.logout();
+      final today = DateTime(2026, 11, 17, 10);
+      store.orders.clear();
+      for (var i = 0; i < 3; i++) {
+        store.orders.add(
+          OrderItem(
+            code: 'MP-T$i',
+            customer: 'Pelanggan',
+            total: 1000,
+            status: 'Diproses',
+            createdAt: today,
+          ),
+        );
       }
-      await tester.pumpWidget(app(const AdminDashboardPage()));
+      store.orders.add(
+        OrderItem(
+          code: 'MP-LAMA',
+          customer: 'Pelanggan',
+          total: 1000,
+          status: 'Diproses',
+          createdAt: DateTime(2026, 11, 16, 10),
+        ),
+      );
+      await tester.pumpWidget(app(AdminDashboardPage(now: today)));
+      await tester.pumpAndSettle();
 
-      expect(find.text('Pelanggan'), findsOneWidget);
+      expect(find.text('Pesanan Hari Ini'), findsOneWidget);
       expect(find.text('3'), findsOneWidget);
     });
 

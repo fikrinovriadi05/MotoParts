@@ -34,6 +34,11 @@ final class Api
         $r->add('PUT', '/products/{id}', [self::class, 'updateProduct']);
         $r->add('DELETE', '/products/{id}', [self::class, 'deleteProduct']);
 
+        $r->add('GET', '/categories', [self::class, 'categories']);
+        $r->add('POST', '/categories', [self::class, 'addCategory']);
+        $r->add('PUT', '/categories/{name}', [self::class, 'updateCategory']);
+        $r->add('DELETE', '/categories/{name}', [self::class, 'deleteCategory']);
+
         $r->add('GET', '/orders', [self::class, 'orders']);
         $r->add('POST', '/orders', [self::class, 'createOrder']);
         $r->add('PUT', '/orders/{code}/status', [self::class, 'updateOrderStatus']);
@@ -87,6 +92,7 @@ final class Api
         $out = [
             'me' => $user === null ? null : Serialize::user($user),
             'products' => $products,
+            'categories' => self::categoryList(),
             'reviews' => $reviews,
             'orders' => [],
             'wishlist' => [],
@@ -476,6 +482,100 @@ final class Api
         // Ulasan dan wishlist ikut terhapus (ON DELETE CASCADE).
         Db::pdo()->prepare('DELETE FROM products WHERE id = ?')->execute([$row['id']]);
         return ['ok' => true];
+    }
+
+    // ----------------------------------------------------- kategori
+
+    private static function categoryList(): array
+    {
+        $rows = Db::pdo()->query('SELECT name, icon FROM categories ORDER BY sort_order, id')->fetchAll();
+        return array_map(static fn(array $c) => ['name' => $c['name'], 'icon' => $c['icon']], $rows);
+    }
+
+    public static function categories(): array
+    {
+        return ['categories' => self::categoryList()];
+    }
+
+    /** @return array{0: string, 1: string} nama dan ikon tervalidasi */
+    private static function categoryInput(Request $req, ?string $except = null): array
+    {
+        $name = Validate::str($req->get('name'));
+        $icon = Validate::str($req->get('icon', 'build'));
+        if ($name === '') {
+            throw new HttpError(422, 'Nama kategori wajib diisi.');
+        }
+        if (mb_strlen($name) > Validate::MAX_CATEGORY_NAME) {
+            throw new HttpError(422, 'Nama kategori maksimal ' . Validate::MAX_CATEGORY_NAME . ' karakter.');
+        }
+        if (!in_array($icon, Validate::CATEGORY_ICONS, true)) {
+            $icon = 'build';
+        }
+        $stmt = Db::pdo()->prepare('SELECT name FROM categories WHERE name = ?');
+        $stmt->execute([$name]);
+        $existing = $stmt->fetchColumn();
+        if ($existing !== false && mb_strtolower((string) $existing) !== mb_strtolower((string) $except)) {
+            throw new HttpError(409, 'Kategori "' . $name . '" sudah ada.');
+        }
+        return [$name, $icon];
+    }
+
+    private static function categoryRow(string $name): array
+    {
+        $stmt = Db::pdo()->prepare('SELECT * FROM categories WHERE name = ?');
+        $stmt->execute([$name]);
+        return $stmt->fetch() ?: throw new HttpError(404, 'Kategori tidak ditemukan.');
+    }
+
+    public static function addCategory(Request $req): array
+    {
+        Auth::requireAdmin($req);
+        [$name, $icon] = self::categoryInput($req);
+        $pdo = Db::pdo();
+        $next = (int) $pdo->query('SELECT COALESCE(MAX(sort_order), -1) + 1 FROM categories')->fetchColumn();
+        $pdo->prepare('INSERT INTO categories (name, icon, sort_order) VALUES (?, ?, ?)')
+            ->execute([$name, $icon, $next]);
+        http_response_code(201);
+        return ['categories' => self::categoryList()];
+    }
+
+    public static function updateCategory(Request $req, array $p): array
+    {
+        Auth::requireAdmin($req);
+        $old = self::categoryRow($p['name']);
+        [$name, $icon] = self::categoryInput($req, $old['name']);
+
+        $pdo = Db::pdo();
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('UPDATE categories SET name = ?, icon = ? WHERE id = ?')
+                ->execute([$name, $icon, $old['id']]);
+            if ($name !== $old['name']) {
+                // Produk di kategori ini ikut pindah ke nama baru.
+                $pdo->prepare('UPDATE products SET category = ?, updated_at = ? WHERE category = ?')
+                    ->execute([$name, Db::now(), $old['name']]);
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+        return ['categories' => self::categoryList()];
+    }
+
+    public static function deleteCategory(Request $req, array $p): array
+    {
+        Auth::requireAdmin($req);
+        $row = self::categoryRow($p['name']);
+        $pdo = Db::pdo();
+        $used = $pdo->prepare('SELECT COUNT(*) FROM products WHERE category = ?');
+        $used->execute([$row['name']]);
+        $count = (int) $used->fetchColumn();
+        if ($count > 0) {
+            throw new HttpError(409, 'Kategori masih dipakai ' . $count . ' produk. Pindahkan atau hapus produknya dulu.');
+        }
+        $pdo->prepare('DELETE FROM categories WHERE id = ?')->execute([$row['id']]);
+        return ['categories' => self::categoryList()];
     }
 
     // ------------------------------------------------------ pesanan

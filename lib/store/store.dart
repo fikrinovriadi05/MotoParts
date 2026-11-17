@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:motopart/core/categories.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/core/remote_gateway.dart';
@@ -22,6 +23,15 @@ enum ProductSort {
 
   final String label;
   const ProductSort(this.label);
+}
+
+/// Catatan produk yang baru dihapus, untuk mengurungkan penghapusan.
+class RemovedProduct {
+  final Product product;
+  final int index;
+  final List<Review> reviews;
+
+  const RemovedProduct(this.product, this.index, this.reviews);
 }
 
 class Store extends ChangeNotifier {
@@ -93,6 +103,15 @@ class Store extends ChangeNotifier {
         Review.fromJson(e as Map<String, dynamic>),
     ].where((r) => loadedProducts.any((p) => p.id == r.productId)).toList();
 
+    final loadedCategories = <ProductCategory>[
+      for (final e in (data['categories'] as List?) ?? const [])
+        ProductCategory.fromJson(e as Map<String, dynamic>),
+    ];
+    categories
+      ..clear()
+      ..addAll(
+        loadedCategories.isEmpty ? defaultCategories() : loadedCategories,
+      );
     products
       ..clear()
       ..addAll(loadedProducts);
@@ -115,6 +134,7 @@ class Store extends ChangeNotifier {
     if (prefs == null || isRemote) return;
     final data = {
       'products': products.map((e) => e.toJson()).toList(),
+      'categories': categories.map((e) => e.toJson()).toList(),
       'carts': {
         for (final entry in _carts.entries)
           entry.key: entry.value
@@ -175,6 +195,16 @@ class Store extends ChangeNotifier {
       ..clear()
       ..addAll(nextProducts);
 
+    final freshCategories = json['categories'];
+    if (freshCategories is List) {
+      categories
+        ..clear()
+        ..addAll([
+          for (final e in freshCategories)
+            ProductCategory.fromJson(e as Map<String, dynamic>),
+        ]);
+    }
+
     final knownOrders = {for (final o in orders) o.code: o};
     final nextOrders = <OrderItem>[];
     for (final e in (json['orders'] as List?) ?? const []) {
@@ -222,6 +252,113 @@ class Store extends ChangeNotifier {
   }
 
   final List<Product> products = defaultProducts();
+
+  // ----------------------------------------------------------- kategori
+
+  /// Kategori produk (admin bisa menambah, mengubah, dan menghapus).
+  final List<ProductCategory> categories = defaultCategories();
+
+  static List<ProductCategory> defaultCategories() => [...productCategories];
+
+  List<String> get categoryNames => [for (final c in categories) c.name];
+
+  static const maxCategoryNameLength = 30;
+
+  /// Stok di bawah angka ini dianggap menipis (dasbor admin).
+  static const lowStockThreshold = 5;
+
+  /// Produk yang stoknya menipis, yang paling sedikit di depan.
+  List<Product> get lowStockProducts =>
+      (products.where((p) => p.stock < lowStockThreshold).toList()
+        ..sort((a, b) => a.stock.compareTo(b.stock)));
+
+  /// Jumlah pesanan yang dibuat pada tanggal [day] (semua status).
+  int ordersOn(DateTime day) => orders.where((o) {
+    final t = o.createdAt;
+    return t != null &&
+        t.year == day.year &&
+        t.month == day.month &&
+        t.day == day.day;
+  }).length;
+
+  /// Kesalahan untuk nama kategori [name] (setelah dipangkas), atau null.
+  /// [except] = kategori yang sedang diubah (boleh memakai namanya sendiri).
+  String? _categoryNameError(String name, {String? except}) {
+    if (name.isEmpty) return 'Nama kategori wajib diisi.';
+    if (name.length > maxCategoryNameLength) {
+      return 'Nama kategori maksimal $maxCategoryNameLength karakter.';
+    }
+    final taken = categories.any(
+      (c) =>
+          c.name.toLowerCase() == name.toLowerCase() &&
+          c.name.toLowerCase() != except?.toLowerCase(),
+    );
+    return taken ? 'Kategori "$name" sudah ada.' : null;
+  }
+
+  /// Jumlah produk yang memakai kategori [name].
+  int productCountIn(String name) =>
+      products.where((p) => p.category == name).length;
+
+  /// Menambah kategori. Mengembalikan pesan kesalahan, atau `null`.
+  String? addCategory(String name, String iconKey) {
+    final clean = name.trim();
+    final error = _categoryNameError(clean);
+    if (error != null) return error;
+    categories.add(
+      ProductCategory(clean, categoryIcons[iconKey] ?? Icons.build_rounded),
+    );
+    notifyListeners();
+    _push('POST', '/categories', {'name': clean, 'icon': iconKey});
+    return null;
+  }
+
+  /// Mengubah nama dan/atau ikon kategori. Produk di kategori itu ikut
+  /// berpindah ke nama baru. Mengembalikan pesan kesalahan, atau `null`.
+  String? updateCategory(
+    ProductCategory category, {
+    required String name,
+    required String iconKey,
+  }) {
+    final index = categories.indexWhere((c) => c.name == category.name);
+    if (index < 0) return 'Kategori tidak ditemukan.';
+    final clean = name.trim();
+    final error = _categoryNameError(clean, except: category.name);
+    if (error != null) return error;
+
+    final oldName = category.name;
+    categories[index] = ProductCategory(
+      clean,
+      categoryIcons[iconKey] ?? Icons.build_rounded,
+    );
+    if (clean != oldName) {
+      for (final p in products) {
+        if (p.category == oldName) p.category = clean;
+      }
+    }
+    notifyListeners();
+    _push('PUT', '/categories/${Uri.encodeComponent(oldName)}', {
+      'name': clean,
+      'icon': iconKey,
+    });
+    return null;
+  }
+
+  /// Menghapus kategori yang tidak dipakai produk. Mengembalikan pesan
+  /// kesalahan, atau `null`.
+  String? deleteCategory(ProductCategory category) {
+    final index = categories.indexWhere((c) => c.name == category.name);
+    if (index < 0) return 'Kategori tidak ditemukan.';
+    final used = productCountIn(category.name);
+    if (used > 0) {
+      return 'Kategori masih dipakai $used produk. Pindahkan atau hapus '
+          'produknya dulu.';
+    }
+    categories.removeAt(index);
+    notifyListeners();
+    _push('DELETE', '/categories/${Uri.encodeComponent(category.name)}');
+    return null;
+  }
 
   /// Jumlah produk dan pesanan contoh (untuk teks konfirmasi reset).
   static const sampleProductCount = 12;
@@ -587,6 +724,9 @@ class Store extends ChangeNotifier {
     products
       ..clear()
       ..addAll(defaultProducts());
+    categories
+      ..clear()
+      ..addAll(defaultCategories());
     orders
       ..clear()
       ..addAll(defaultOrders());
@@ -598,7 +738,16 @@ class Store extends ChangeNotifier {
     return photos;
   }
 
-  void deleteProduct(Product product) {
+  /// Menghapus produk (beserta ulasannya; keranjang dan wishlist ikut
+  /// dibersihkan). Mengembalikan catatan yang bisa dipakai [restoreProduct]
+  /// untuk mengurungkan.
+  RemovedProduct deleteProduct(Product product) {
+    final index = products.indexWhere((e) => e.id == product.id);
+    final removal = RemovedProduct(
+      product,
+      index < 0 ? products.length : index,
+      reviews.where((r) => r.productId == product.id).toList(),
+    );
     products.removeWhere((e) => e.id == product.id);
     reviews.removeWhere((r) => r.productId == product.id);
     for (final items in _carts.values) {
@@ -609,6 +758,27 @@ class Store extends ChangeNotifier {
     }
     notifyListeners();
     _push('DELETE', '/products/${product.id}');
+    return removal;
+  }
+
+  /// Mengurungkan [deleteProduct]: produk kembali ke posisi semula beserta
+  /// ulasannya. Di mode database produk dibuat ulang di server (id baru; ulasan
+  /// lama tidak ikut kembali di server).
+  void restoreProduct(RemovedProduct removal) {
+    if (products.any((p) => p.id == removal.product.id)) return;
+    products.insert(removal.index.clamp(0, products.length), removal.product);
+    reviews.addAll(removal.reviews);
+    notifyListeners();
+    final p = removal.product;
+    _push('POST', '/products', {
+      'name': p.name,
+      'category': p.category,
+      'type': p.type,
+      'price': p.price,
+      'stock': p.stock,
+      'description': p.description,
+      'imagePath': p.imagePath,
+    });
   }
 
   bool isWishlisted(Product product) => wishlistIds.contains(product.id);

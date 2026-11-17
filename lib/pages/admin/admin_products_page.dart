@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/categories.dart';
+import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
-import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/review_section.dart';
 
 class AdminProductsPage extends StatelessWidget {
   const AdminProductsPage({super.key});
-
-  static final _categories = productCategoryNames;
 
   /// Dialog tambah produk (jika [product] null) atau edit produk.
   void productDialog(BuildContext context, {Product? product}) {
@@ -25,8 +22,9 @@ class AdminProductsPage extends StatelessWidget {
       text: product?.description ?? 'Produk baru dari admin.',
     );
     final categories = [
-      ..._categories,
-      if (isEdit && !_categories.contains(product.category)) product.category,
+      ...store.categoryNames,
+      if (isEdit && !store.categoryNames.contains(product.category))
+        product.category,
     ];
     String category = product?.category ?? 'Mesin';
     String? error;
@@ -90,6 +88,11 @@ class AdminProductsPage extends StatelessWidget {
                       onChanged: (value) {
                         setDialog(() => category = value!);
                       },
+                    ),
+                    const SizedBox(height: 10),
+                    _MotorChips(
+                      controller: type,
+                      onChanged: () => setDialog(() {}),
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -257,7 +260,8 @@ class AdminProductsPage extends StatelessWidget {
   }
 
   void confirmDelete(BuildContext context, Product product) {
-    showDialog(
+    final messenger = ScaffoldMessenger.of(context);
+    showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -271,9 +275,26 @@ class AdminProductsPage extends StatelessWidget {
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
               onPressed: () {
-                store.deleteProduct(product);
-                productImageStorage.delete(product.imagePath);
                 Navigator.pop(dialogContext);
+                final removal = store.deleteProduct(product);
+                messenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: const Text('Produk dihapus'),
+                      persist: false,
+                      duration: const Duration(seconds: 6),
+                      action: SnackBarAction(
+                        label: 'Urungkan',
+                        onPressed: () => store.restoreProduct(removal),
+                      ),
+                    ),
+                  ).closed.then((reason) {
+                    // Foto baru dibuang jika penghapusan tidak diurungkan.
+                    if (reason != SnackBarClosedReason.action) {
+                      productImageStorage.delete(product.imagePath);
+                    }
+                  });
               },
               child: const Text('Hapus'),
             ),
@@ -287,6 +308,12 @@ class AdminProductsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Kelola Produk')),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        onPressed: () => productDialog(context),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Tambah Produk'),
+      ),
       body: _ProductList(
         onAdd: () => productDialog(context),
         onEdit: (product) => productDialog(context, product: product),
@@ -318,6 +345,9 @@ class _ProductList extends StatefulWidget {
 class _ProductListState extends State<_ProductList> {
   String query = '';
 
+  /// Kategori yang dipilih di filter; null = semua.
+  String? categoryFilter;
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
@@ -329,14 +359,20 @@ class _ProductListState extends State<_ProductList> {
         final products = store.products
             .where(
               (p) =>
-                  q.isEmpty ||
-                  p.name.toLowerCase().contains(q) ||
-                  p.category.toLowerCase().contains(q),
+                  (categoryFilter == null || p.category == categoryFilter) &&
+                  (q.isEmpty ||
+                      p.name.toLowerCase().contains(q) ||
+                      p.category.toLowerCase().contains(q)),
             )
             .toList();
 
         return ListView(
-          padding: const EdgeInsets.all(AppSpacing.page),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.page,
+            AppSpacing.page,
+            AppSpacing.page,
+            96, // ruang untuk tombol tambah
+          ),
           children: [
             TextField(
               onChanged: (value) => setState(() => query = value),
@@ -346,10 +382,22 @@ class _ProductListState extends State<_ProductList> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            PrimaryButton(
-              text: 'Tambah Produk',
-              icon: Icons.add_rounded,
-              onPressed: widget.onAdd,
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.xs,
+              children: [
+                ChoiceChip(
+                  label: const Text('Semua'),
+                  selected: categoryFilter == null,
+                  onSelected: (_) => setState(() => categoryFilter = null),
+                ),
+                for (final c in store.categoryNames)
+                  ChoiceChip(
+                    label: Text(c),
+                    selected: categoryFilter == c,
+                    onSelected: (_) => setState(() => categoryFilter = c),
+                  ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
@@ -363,11 +411,36 @@ class _ProductListState extends State<_ProductList> {
             if (products.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Center(
-                  child: Text(
-                    'Tidak ada produk yang cocok.',
-                    style: TextStyle(color: palette.textMuted),
-                  ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 56,
+                      color: palette.textMuted,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      store.products.isEmpty
+                          ? 'Belum ada produk.'
+                          : 'Tidak ada produk yang cocok.',
+                      style: TextStyle(color: palette.textMuted),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    if (store.products.isEmpty)
+                      FilledButton.icon(
+                        onPressed: widget.onAdd,
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Tambah Produk Pertama'),
+                      )
+                    else
+                      OutlinedButton(
+                        onPressed: () => setState(() {
+                          query = '';
+                          categoryFilter = null;
+                        }),
+                        child: const Text('Reset Filter'),
+                      ),
+                  ],
                 ),
               ),
             for (final product in products)
@@ -378,6 +451,10 @@ class _ProductListState extends State<_ProductList> {
                   onEdit: () => widget.onEdit(product),
                   onReviews: () => widget.onReviews(product),
                   onDelete: () => widget.onDelete(product),
+                  onStock: (delta) => store.updateProduct(
+                    product,
+                    stock: product.stock + delta,
+                  ),
                 ),
               ),
           ],
@@ -392,12 +469,14 @@ class _ProductTile extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onReviews;
   final VoidCallback onDelete;
+  final ValueChanged<int> onStock;
 
   const _ProductTile({
     required this.product,
     required this.onEdit,
     required this.onReviews,
     required this.onDelete,
+    required this.onStock,
   });
 
   @override
@@ -467,29 +546,62 @@ class _ProductTile extends StatelessWidget {
               ),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              IconButton(
-                tooltip: 'Ulasan',
-                onPressed: onReviews,
-                icon: Icon(
-                  Icons.rate_review_outlined,
-                  color: palette.textMuted,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Kurangi stok',
+                    onPressed: product.stock > 0 ? () => onStock(-1) : null,
+                    icon: const Icon(Icons.remove_circle_outline_rounded),
+                  ),
+                  SizedBox(
+                    width: 36,
+                    child: Text(
+                      '${product.stock}',
+                      textAlign: TextAlign.center,
+                      semanticsLabel: 'Stok ${product.stock}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: low ? palette.dangerText : palette.text,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Tambah stok',
+                    onPressed: () => onStock(1),
+                    icon: const Icon(Icons.add_circle_outline_rounded),
+                  ),
+                ],
               ),
-              IconButton(
-                tooltip: 'Edit',
-                onPressed: onEdit,
-                icon: Icon(Icons.edit_outlined, color: palette.primaryText),
-              ),
-              IconButton(
-                tooltip: 'Hapus',
-                onPressed: onDelete,
-                icon: Icon(
-                  Icons.delete_outline_rounded,
-                  color: palette.dangerText,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Ulasan',
+                    onPressed: onReviews,
+                    icon: Icon(
+                      Icons.rate_review_outlined,
+                      color: palette.textMuted,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Edit',
+                    onPressed: onEdit,
+                    icon: Icon(Icons.edit_outlined, color: palette.primaryText),
+                  ),
+                  IconButton(
+                    tooltip: 'Hapus',
+                    onPressed: onDelete,
+                    icon: Icon(
+                      Icons.delete_outline_rounded,
+                      color: palette.dangerText,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -543,6 +655,78 @@ class _PhotoField extends StatelessWidget {
                 onPressed: onRemove,
                 icon: const Icon(Icons.delete_outline_rounded, size: 18),
                 label: const Text('Hapus Foto'),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Pilihan cepat tipe motor yang cocok. Mengisi dan membaca isian "Tipe
+/// Motor" (daftar dipisah koma), jadi bisa dipadukan dengan mengetik.
+class _MotorChips extends StatelessWidget {
+  static const options = [
+    'Universal',
+    'Honda Beat',
+    'Honda Vario',
+    'Honda Scoopy',
+    'Honda Supra X',
+    'Yamaha Mio',
+    'Yamaha NMAX',
+    'Yamaha Vixion',
+    'Suzuki Satria',
+    'Kawasaki Ninja',
+  ];
+
+  final TextEditingController controller;
+  final VoidCallback onChanged;
+
+  const _MotorChips({required this.controller, required this.onChanged});
+
+  bool _has(List<String> current, String option) =>
+      current.any((e) => e.toLowerCase() == option.toLowerCase());
+
+  void _toggle(String option) {
+    final current = splitCompatibleBikes(controller.text);
+    if (_has(current, option)) {
+      current.removeWhere((e) => e.toLowerCase() == option.toLowerCase());
+    } else {
+      // "Universal" berlaku untuk semua motor: tidak digabung dengan lainnya.
+      if (option == 'Universal') {
+        current.clear();
+      } else {
+        current.removeWhere((e) => e.toLowerCase() == 'universal');
+      }
+      current.add(option);
+    }
+    controller.text = current.isEmpty ? 'Universal' : current.join(', ');
+    onChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = splitCompatibleBikes(controller.text);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Motor yang cocok',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: context.palette.text,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xs,
+          children: [
+            for (final option in options)
+              FilterChip(
+                label: Text(option),
+                selected: _has(current, option),
+                onSelected: (_) => _toggle(option),
               ),
           ],
         ),

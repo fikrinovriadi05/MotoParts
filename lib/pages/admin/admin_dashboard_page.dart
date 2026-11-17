@@ -1,333 +1,260 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
-import 'package:motopart/core/product_image_storage.dart';
-import 'package:motopart/pages/admin/admin_users_page.dart';
-import 'package:motopart/pages/auth/login_page.dart';
-import 'package:motopart/pages/shared/appearance_page.dart';
+import 'package:motopart/models/product.dart';
+import 'package:motopart/pages/admin/admin_products_page.dart';
+import 'package:motopart/pages/admin/admin_reports_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
-import 'package:motopart/widgets/press_scale.dart';
-import 'package:motopart/widgets/section_title.dart';
-import 'package:motopart/widgets/hover.dart';
+import 'package:motopart/widgets/admin/sales_chart.dart';
+import 'package:motopart/widgets/admin/stat_card.dart';
+import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/motion.dart';
+import 'package:motopart/widgets/press_scale.dart';
+import 'package:motopart/widgets/product_picture.dart';
+import 'package:motopart/widgets/section_title.dart';
+import 'package:motopart/widgets/shimmer.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
 /// Jumlah kolom kartu statistik: 2 di HP, 4 di layar lebar.
 int statColumns(double width) => width >= 700 ? 4 : 2;
 
-class AdminDashboardPage extends StatelessWidget {
-  const AdminDashboardPage({super.key});
+/// Jumlah pesanan terbaru yang ditampilkan di dasbor.
+const dashboardRecentOrders = 5;
 
-  void _logout(BuildContext context) {
-    auth.logout();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
-  }
+class AdminDashboardPage extends StatefulWidget {
+  /// Waktu acuan "sekarang" (bisa diatur di tes).
+  final DateTime? now;
 
-  /// Konfirmasi lalu mengembalikan produk & pesanan ke data contoh.
-  void _confirmResetSampleData(BuildContext context) {
-    final messenger = ScaffoldMessenger.of(context);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        final palette = dialogContext.palette;
-        return AlertDialog(
-          icon: Icon(
-            Icons.warning_amber_rounded,
-            color: palette.dangerText,
-            size: 32,
-          ),
-          title: const Text('Reset Data Contoh?'),
-          content: const Text(
-            'Semua produk, pesanan, keranjang, wishlist, dan ulasan saat ini '
-            'akan dihapus lalu diganti dengan data contoh '
-            '(${Store.sampleProductCount} produk dan '
-            '${Store.sampleOrderCount} pesanan). Foto produk yang sudah '
-            'diunggah ikut terhapus.\n\n'
-            'Akun pengguna tidak berubah. Tindakan ini tidak bisa dibatalkan.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Batal'),
-            ),
-            FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-              onPressed: () {
-                final photos = store.resetSampleData();
-                for (final path in photos) {
-                  productImageStorage.delete(path);
-                }
-                Navigator.pop(dialogContext);
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Data contoh dikembalikan.')),
-                );
-              },
-              child: const Text('Reset'),
-            ),
-          ],
-        );
-      },
-    );
+  const AdminDashboardPage({super.key, this.now});
+
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  /// Kerangka shimmer sesaat saat dasbor dibuka (dimatikan di tes).
+  bool loading = UiConfig.simulateLoading;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (loading) {
+      _timer = Timer(UiConfig.loadingDuration, () {
+        if (mounted) setState(() => loading = false);
+      });
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
+  DateTime get now => widget.now ?? DateTime.now();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedBuilder(
-        animation: Listenable.merge([store, auth]),
-        builder: (context, _) {
-          return SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return ListView(
-                  padding: const EdgeInsets.all(AppSpacing.page),
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: Listenable.merge([store, auth]),
+          builder: (context, _) {
+            if (loading) return const _DashboardSkeleton();
+            return LayoutBuilder(
+              builder: (context, constraints) =>
+                  _content(context, constraints.maxWidth),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _content(BuildContext context, double width) {
+    final palette = context.palette;
+    final columns = statColumns(width);
+    final low = store.lowStockProducts;
+    final recent = store.orders.take(dashboardRecentOrders).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.page),
+      children: [
+        _Header(name: auth.currentAccount?.firstName ?? 'Admin', now: now),
+        if (auth.adminUsesDefaultPassword) ...[
+          const SizedBox(height: AppSpacing.md),
+          const _DefaultPasswordBanner(),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        GridView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: AppSpacing.md + 2,
+            mainAxisSpacing: AppSpacing.md + 2,
+            // 4 kolom (layar lebar): tinggi tetap agar kartu tidak terlalu
+            // tinggi dan kosong; 2 kolom: rasio tetap.
+            mainAxisExtent: columns == 4 ? 136 : null,
+            childAspectRatio: 1.25,
+          ),
+          children: [
+            FadeSlideIn(
+              index: 0,
+              child: AdminStatCard(
+                title: 'Total Produk',
+                value: store.products.length,
+                icon: Icons.inventory_2_rounded,
+                color: palette.accent,
+              ),
+            ),
+            FadeSlideIn(
+              index: 1,
+              child: AdminStatCard(
+                title: 'Pesanan Hari Ini',
+                value: store.ordersOn(now),
+                icon: Icons.receipt_long_rounded,
+                color: AppColors.success,
+              ),
+            ),
+            FadeSlideIn(
+              index: 2,
+              child: AdminStatCard(
+                title: 'Pendapatan',
+                value: store.totalSales,
+                format: formatRupiah,
+                icon: Icons.payments_rounded,
+                color: AppColors.info,
+              ),
+            ),
+            FadeSlideIn(
+              index: 3,
+              child: AdminStatCard(
+                title: 'Stok Menipis',
+                value: low.length,
+                icon: Icons.warning_amber_rounded,
+                color: AppColors.warning,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        SectionTitle(
+          title: 'Penjualan 7 Hari Terakhir',
+          action: 'Laporan',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminReportsPage()),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        GlassCard(child: _salesChart(context)),
+        const SizedBox(height: AppSpacing.xl),
+        const SectionTitle(title: 'Stok Menipis'),
+        const SizedBox(height: AppSpacing.sm),
+        if (low.isEmpty)
+          const _EmptyHint(
+            icon: Icons.check_circle_outline_rounded,
+            text:
+                'Semua stok aman. Tidak ada produk di bawah '
+                '${Store.lowStockThreshold}.',
+          ),
+        for (final product in low)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: _LowStockTile(product: product),
+          ),
+        const SizedBox(height: AppSpacing.lg),
+        const SectionTitle(title: 'Pesanan Terbaru'),
+        const SizedBox(height: AppSpacing.sm),
+        if (recent.isEmpty)
+          const _EmptyHint(
+            icon: Icons.inbox_rounded,
+            text: 'Belum ada pesanan.',
+          ),
+        for (final order in recent)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: PressScale(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OrderDetailPage(order: order, isAdmin: true),
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.md + 2),
+                decoration: BoxDecoration(
+                  color: palette.surface,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: palette.border),
+                ),
+                child: Row(
                   children: [
-                    _Header(
-                      name: auth.currentAccount?.name ?? 'Admin',
-                      onLogout: () => _logout(context),
-                    ),
-                    if (auth.adminUsesDefaultPassword) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      _DefaultPasswordBanner(),
-                    ],
-                    const SizedBox(height: AppSpacing.md),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AdminUsersPage(),
-                              ),
-                            ),
-                            icon: const Icon(Icons.group_outlined),
-                            label: const Text('Pengguna'),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ChangePasswordPage(),
-                              ),
-                            ),
-                            icon: const Icon(Icons.lock_outline_rounded),
-                            label: const Text('Password'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AppearancePage(),
-                          ),
-                        ),
-                        icon: const Icon(Icons.palette_outlined),
-                        label: const Text('Pengaturan Tampilan'),
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    GridView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: statColumns(constraints.maxWidth),
-                        crossAxisSpacing: AppSpacing.md + 2,
-                        mainAxisSpacing: AppSpacing.md + 2,
-                        // 4 kolom (layar lebar): tinggi tetap agar kartu tidak
-                        // terlalu tinggi dan kosong; 2 kolom: rasio tetap.
-                        mainAxisExtent: statColumns(constraints.maxWidth) == 4
-                            ? 136
-                            : null,
-                        childAspectRatio: 1.25,
-                      ),
-                      children: [
-                        FadeSlideIn(
-                          index: 0,
-                          child: _StatCard(
-                            title: 'Total Produk',
-                            value: store.products.length,
-                            icon: Icons.inventory_2_rounded,
-                            color: context.palette.accent,
-                          ),
-                        ),
-                        FadeSlideIn(
-                          index: 1,
-                          child: _StatCard(
-                            title: 'Total Pesanan',
-                            value: store.orders.length,
-                            icon: Icons.receipt_long_rounded,
-                            color: AppColors.success,
-                          ),
-                        ),
-                        FadeSlideIn(
-                          index: 2,
-                          child: _StatCard(
-                            title: 'Stok Menipis',
-                            value: store.products
-                                .where((p) => p.stock < 10)
-                                .length,
-                            icon: Icons.warning_amber_rounded,
-                            color: AppColors.warning,
-                          ),
-                        ),
-                        FadeSlideIn(
-                          index: 3,
-                          child: _StatCard(
-                            title: 'Pelanggan',
-                            value: auth.userAccounts.length,
-                            icon: Icons.people_alt_rounded,
-                            color: palette.primaryText,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    const SectionTitle(title: 'Pesanan Terbaru'),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (store.orders.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        child: Center(
-                          child: Text(
-                            'Belum ada pesanan.',
-                            style: TextStyle(color: palette.textMuted),
-                          ),
-                        ),
-                      ),
-                    for (final order in store.orders.take(3))
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: PressScale(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  OrderDetailPage(order: order, isAdmin: true),
-                            ),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(AppSpacing.md + 2),
-                            decoration: BoxDecoration(
-                              color: palette.surface,
-                              borderRadius: BorderRadius.circular(AppRadius.lg),
-                              border: Border.all(color: palette.border),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        order.code,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          color: palette.text,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        '${order.customer} • ${formatRupiah(order.total)}',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: palette.textMuted,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                StatusBadge(order.status),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md + 2),
-                      decoration: BoxDecoration(
-                        color: palette.surface,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        border: Border.all(color: palette.border),
-                      ),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Data Contoh',
+                            order.code,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               color: palette.text,
                             ),
                           ),
-                          const SizedBox(height: AppSpacing.xs),
+                          const SizedBox(height: 2),
                           Text(
-                            'Kembalikan produk dan pesanan ke data contoh '
-                            'bawaan. Berguna untuk mencoba ulang atau '
-                            'mendapatkan produk contoh terbaru.',
-                            style: TextStyle(
-                              color: palette.textMuted,
-                              fontSize: AppTextSizes.small,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          OutlinedButton.icon(
-                            onPressed: () => _confirmResetSampleData(context),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: palette.dangerText,
-                              side: BorderSide(color: palette.dangerText),
-                            ),
-                            icon: const Icon(Icons.restart_alt_rounded),
-                            label: const Text('Reset Data Contoh'),
+                            '${order.customer} • ${formatRupiah(order.total)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: palette.textMuted),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
+                    StatusBadge(order.status),
                   ],
-                );
-              },
+                ),
+              ),
             ),
-          );
-        },
-      ),
+          ),
+      ],
     );
+  }
+
+  Widget _salesChart(BuildContext context) {
+    final days = store.salesLast7Days(now);
+    final hasSales = days.any((d) => d.total > 0);
+    if (!hasSales) {
+      return const _EmptyHint(
+        icon: Icons.bar_chart_rounded,
+        text: 'Belum ada penjualan dalam 7 hari terakhir.',
+      );
+    }
+    return SalesChart(days: days);
   }
 }
 
-/// Header gelap: sapaan admin dan tombol keluar.
+/// Header gelap: sapaan menurut jam dan tanggal hari ini.
 class _Header extends StatelessWidget {
   final String name;
-  final VoidCallback onLogout;
+  final DateTime now;
 
-  const _Header({required this.name, required this.onLogout});
+  const _Header({required this.name, required this.now});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -341,35 +268,38 @@ class _Header extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Dashboard Admin',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: AppTextSizes.heading,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Halo, $name. Kelola seluruh aktivitas toko dari satu tempat.',
-                  style: const TextStyle(color: Colors.white70, height: 1.5),
-                ),
-              ],
+          Text(
+            '${salamWaktu(now)}, $name',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: AppTextSizes.heading,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          IconButton(
-            tooltip: 'Keluar',
-            onPressed: onLogout,
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.10),
-            ),
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today_rounded,
+                size: 14,
+                color: Colors.white70,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  formatTanggalLengkap(now),
+                  style: const TextStyle(color: Colors.white70),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Kelola seluruh aktivitas toko dari satu tempat.',
+            style: TextStyle(color: Colors.white70, height: 1.5),
           ),
         ],
       ),
@@ -378,6 +308,8 @@ class _Header extends StatelessWidget {
 }
 
 class _DefaultPasswordBanner extends StatelessWidget {
+  const _DefaultPasswordBanner();
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
@@ -416,84 +348,145 @@ class _DefaultPasswordBanner extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String title;
-  final int value;
-  final IconData icon;
-  final Color color;
+/// Produk bernstok menipis; ketuk untuk langsung mengeditnya.
+class _LowStockTile extends StatelessWidget {
+  final Product product;
 
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
+  const _LowStockTile({required this.product});
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    // Saat kursor di atas: kartu terangkat dan bingkai berwarna sesuai kartu.
-    return HoverBuilder(
-      cursor: SystemMouseCursors.basic,
-      builder: (context, hovered) => AnimatedContainer(
-        duration: UiConfig.motion(const Duration(milliseconds: 160)),
-        padding: const EdgeInsets.all(AppSpacing.md + 2),
-        transform: Matrix4.translationValues(0, hovered ? -4 : 0, 0),
+    return PressScale(
+      onTap: () =>
+          const AdminProductsPage().productDialog(context, product: product),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: palette.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: hovered ? color.withValues(alpha: 0.6) : palette.border,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: hovered ? color.withValues(alpha: 0.25) : palette.shadow,
-              blurRadius: hovered ? 22 : 12,
-              offset: Offset(0, hovered ? 10 : 5),
-            ),
-          ],
+          border: Border.all(color: palette.border),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            AnimatedScale(
-              scale: hovered ? 1.12 : 1,
-              duration: UiConfig.motion(const Duration(milliseconds: 180)),
-              curve: Curves.easeOutBack,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: hovered ? 0.28 : 0.16),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
+            ProductPicture.forProduct(product, width: 48, height: 48),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: palette.text,
+                    ),
+                  ),
+                  Text(
+                    product.category,
+                    style: TextStyle(
+                      color: palette.textMuted,
+                      fontSize: AppTextSizes.small,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color:
+                    (product.stock == 0 ? AppColors.danger : AppColors.warning)
+                        .withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Text(
+                product.stock == 0 ? 'Habis' : 'Sisa ${product.stock}',
+                style: TextStyle(
+                  color: product.stock == 0
+                      ? palette.dangerText
+                      : palette.primaryText,
+                  fontWeight: FontWeight.w800,
+                  fontSize: AppTextSizes.small,
                 ),
-                child: Icon(icon, color: color, size: 22),
               ),
             ),
-            const Spacer(),
-            // Angka berhitung naik dari 0 saat kartu pertama tampil.
-            AnimatedCount(
-              value: value,
-              fromZero: true,
-              builder: (v) => '$v',
-              style: TextStyle(
-                fontSize: AppTextSizes.display,
-                fontWeight: FontWeight.w800,
-                color: palette.text,
-              ),
-            ),
+            Icon(Icons.edit_outlined, color: palette.textMuted, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Keterangan kosong yang ramah (ikon besar + teks).
+class _EmptyHint extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _EmptyHint({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 44, color: palette.textMuted),
+            const SizedBox(height: AppSpacing.sm),
             Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: palette.textMuted,
-                fontWeight: FontWeight.w600,
-                fontSize: AppTextSizes.small,
-              ),
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: palette.textMuted),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Kerangka shimmer saat dasbor dimuat.
+class _DashboardSkeleton extends StatelessWidget {
+  const _DashboardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppSpacing.page),
+        children: [
+          const ShimmerBox(height: 120, radius: AppRadius.xl),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: const [
+              Expanded(child: ShimmerBox(height: 120, radius: AppRadius.lg)),
+              SizedBox(width: AppSpacing.md),
+              Expanded(child: ShimmerBox(height: 120, radius: AppRadius.lg)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: const [
+              Expanded(child: ShimmerBox(height: 120, radius: AppRadius.lg)),
+              SizedBox(width: AppSpacing.md),
+              Expanded(child: ShimmerBox(height: 120, radius: AppRadius.lg)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          const ShimmerBox(height: 220, radius: AppRadius.lg),
+          const SizedBox(height: AppSpacing.lg),
+          const ShimmerBox(height: 64, radius: AppRadius.lg),
+          const SizedBox(height: AppSpacing.md),
+          const ShimmerBox(height: 64, radius: AppRadius.lg),
+        ],
       ),
     );
   }

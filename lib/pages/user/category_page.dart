@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:motopart/core/categories.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -30,7 +29,7 @@ class CategoryPage extends StatelessWidget {
             builder: (context, constraints) {
               return GridView.builder(
                 padding: const EdgeInsets.all(AppSpacing.page),
-                itemCount: productCategories.length,
+                itemCount: store.categories.length,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: categoryGridColumns(constraints.maxWidth),
                   mainAxisSpacing: AppSpacing.md + 2,
@@ -38,7 +37,7 @@ class CategoryPage extends StatelessWidget {
                   mainAxisExtent: 140,
                 ),
                 itemBuilder: (context, index) {
-                  final category = productCategories[index];
+                  final category = store.categories[index];
                   final count = store.products
                       .where((p) => p.category == category.name)
                       .length;

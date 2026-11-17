@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motopart/app.dart';
-import 'package:motopart/pages/admin/admin_dashboard_page.dart';
+import 'package:motopart/pages/admin/admin_settings_page.dart';
 import 'package:motopart/pages/shared/appearance_page.dart';
 import 'package:motopart/pages/user/profile_page.dart';
 import 'package:motopart/store/auth_store.dart';
@@ -327,10 +327,10 @@ void main() {
       expect(find.byType(AppearancePage), findsOneWidget);
     });
 
-    testWidgets('dari dasbor admin', (tester) async {
+    testWidgets('dari pengaturan admin', (tester) async {
       auth.logout();
       size(tester, 400, 1600);
-      await tester.pumpWidget(themedApp(const AdminDashboardPage()));
+      await tester.pumpWidget(themedApp(const AdminSettingsPage()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Pengaturan Tampilan'));

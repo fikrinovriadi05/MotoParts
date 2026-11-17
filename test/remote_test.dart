@@ -662,6 +662,71 @@ void main() {
     });
   });
 
+  group('kategori', () {
+    setUp(() {
+      useGateway((_, _, _) => snapshot(me: userJson()));
+      auth.applyRemoteSnapshot(snapshot(me: userJson()));
+      store.categories
+        ..clear()
+        ..addAll(Store.defaultCategories());
+    });
+
+    tearDown(() {
+      store.categories
+        ..clear()
+        ..addAll(Store.defaultCategories());
+    });
+
+    test('snapshot server mengganti daftar kategori', () {
+      store.applyRemoteSnapshot({
+        ...snapshot(),
+        'categories': [
+          {'name': 'Aki', 'icon': 'electric_bolt'},
+          {'name': 'Rem', 'icon': 'album'},
+        ],
+      });
+      expect(store.categoryNames, ['Aki', 'Rem']);
+      expect(store.categories.first.iconKey, 'electric_bolt');
+    });
+
+    test('server lama tanpa kategori: daftar lokal dipertahankan', () {
+      store.applyRemoteSnapshot(snapshot());
+      expect(store.categoryNames, Store.defaultCategories().map((c) => c.name));
+    });
+
+    test('tambah, ubah, hapus dikirim ke alamat yang benar', () async {
+      store.addCategory('Aki dan Kabel', 'electric_bolt');
+      await pumpEventQueue();
+      expect(gateway.writes, ['POST /categories']);
+      expect(gateway.bodies.first, {
+        'name': 'Aki dan Kabel',
+        'icon': 'electric_bolt',
+      });
+
+      final aki = store.categories.last;
+      store.updateCategory(aki, name: 'Aki', iconKey: 'build');
+      await pumpEventQueue();
+      expect(gateway.writes.last, 'PUT /categories/Aki%20dan%20Kabel');
+      expect(
+        gateway.bodies[gateway.calls.indexOf(
+          'PUT /categories/Aki%20dan%20Kabel',
+        )],
+        {'name': 'Aki', 'icon': 'build'},
+      );
+
+      store.deleteCategory(store.categories.last);
+      await pumpEventQueue();
+      expect(gateway.writes.last, 'DELETE /categories/Aki');
+    });
+
+    test('kategori yang ditolak lokal tidak dikirim', () async {
+      store.addCategory('Mesin', 'build'); // ganda
+      store.deleteCategory(store.categories.first); // masih dipakai produk
+      await pumpEventQueue();
+      expect(gateway.writes, isEmpty);
+    });
+  });
+
   group('produk baru', () {
     test('dibuat di server (id dari database)', () async {
       useGateway((method, path, body) {

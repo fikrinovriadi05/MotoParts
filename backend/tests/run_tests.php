@@ -242,6 +242,35 @@ expect('token lama dicabut', call('GET', '/me', null, $ut), 401);
 expect('login dengan password reset', call('POST', '/auth/login', ['email' => $email, 'password' => 'direset99', 'role' => 'user']), 200);
 expect('reset password admin ditolak', call('PUT', '/users/admin/password', ['newPassword' => 'abcdef'], $at), 403);
 
+// ---- Kategori
+[, $cats] = call('GET', '/categories');
+check('7 kategori bawaan', count($cats['categories'] ?? []) === 7, $cats);
+check('bentuk kategori', ($cats['categories'][0] ?? null) === ['name' => 'Mesin', 'icon' => 'settings'], $cats['categories'][0] ?? null);
+expect('kategori: bukan admin', call('POST', '/categories', ['name' => 'Aki', 'icon' => 'bolt'], $ot), 403);
+expect('kategori: tanpa login', call('POST', '/categories', ['name' => 'Aki']), 401);
+expect('kategori: nama kosong', call('POST', '/categories', ['name' => '  '], $at), 422);
+expect('kategori: nama panjang', call('POST', '/categories', ['name' => str_repeat('a', 31)], $at), 422);
+expect('kategori: nama ganda (huruf beda)', call('POST', '/categories', ['name' => 'mesin'], $at), 409, 'sudah ada');
+[$s, $nc] = call('POST', '/categories', ['name' => 'Aki', 'icon' => 'tidak-ada'], $at);
+check('kategori ditambah, ikon asing jadi build', $s === 201 && end($nc['categories']) === ['name' => 'Aki', 'icon' => 'build'], $nc);
+[, $nc2] = call('PUT', '/categories/Aki', ['name' => 'Aki dan Kabel', 'icon' => 'electric_bolt'], $at);
+check('kategori diubah', in_array(['name' => 'Aki dan Kabel', 'icon' => 'electric_bolt'], $nc2['categories'], true), $nc2);
+expect('kategori ubah: nama bentrok', call('PUT', '/categories/' . rawurlencode('Aki dan Kabel'), ['name' => 'Rem'], $at), 409);
+expect('kategori ubah: tak ada', call('PUT', '/categories/Tidak', ['name' => 'X'], $at), 404);
+// Ganti nama membawa produknya.
+[, $cp] = call('POST', '/products', array_merge($newProduct, ['name' => 'Aki Uji', 'category' => 'Aki dan Kabel']), $at);
+call('PUT', '/categories/' . rawurlencode('Aki dan Kabel'), ['name' => 'Aki', 'icon' => 'electric_bolt'], $at);
+[, $pl] = call('GET', '/products');
+$moved = array_values(array_filter($pl['products'], fn($p) => $p['name'] === 'Aki Uji'));
+check('produk ikut pindah kategori', ($moved[0]['category'] ?? '') === 'Aki', $moved);
+expect('kategori hapus: masih dipakai', call('DELETE', '/categories/Aki', null, $at), 409, 'masih dipakai 1 produk');
+call('DELETE', '/products/' . $cp['product']['id'], null, $at);
+expect('kategori hapus: bukan admin', call('DELETE', '/categories/Aki', null, $ot), 403);
+expect('kategori hapus', call('DELETE', '/categories/Aki', null, $at), 200);
+expect('kategori hapus lagi', call('DELETE', '/categories/Aki', null, $at), 404);
+[, $sc] = call('GET', '/sync');
+check('sync memuat kategori', count($sc['categories'] ?? []) === 7, count($sc['categories'] ?? []));
+
 // ---- Sync
 [, $sy] = call('GET', '/sync', null, $at);
 check('sync admin', count($sy['products']) >= 12 && count($sy['orders']) >= 4 && isset($sy['users']) && $sy['me']['role'] === 'admin', array_keys($sy));

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/models/account.dart';
+import 'package:motopart/models/product.dart';
 import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/remote_sync.dart';
 import 'package:motopart/store/store.dart';
@@ -58,6 +59,37 @@ void main() {
         (p) => p.name == 'Kampas Uji E2E',
       );
       expect(kampas.id, greaterThan(12));
+      // Kategori: tambah, ubah nama (produk ikut pindah), lalu hapus.
+      Product kampasNow() =>
+          store.products.firstWhere((p) => p.id == kampas.id);
+      expect(store.addCategory('Aki', 'electric_bolt'), isNull);
+      await RemoteSync.settled;
+      expect(store.categoryNames, contains('Aki'));
+      store.updateProduct(kampasNow(), category: 'Aki');
+      await RemoteSync.settled;
+      final aki = store.categories.firstWhere((c) => c.name == 'Aki');
+      expect(
+        store.updateCategory(aki, name: 'Aki Motor', iconKey: 'speed'),
+        isNull,
+      );
+      await RemoteSync.settled;
+      expect(store.categoryNames, contains('Aki Motor'));
+      expect(store.categoryNames, isNot(contains('Aki')));
+      expect(
+        store.categories.firstWhere((c) => c.name == 'Aki Motor').iconKey,
+        'speed',
+      );
+      expect(kampasNow().category, 'Aki Motor');
+      store.updateProduct(kampasNow(), category: 'Rem');
+      await RemoteSync.settled;
+      expect(
+        store.deleteCategory(
+          store.categories.firstWhere((c) => c.name == 'Aki Motor'),
+        ),
+        isNull,
+      );
+      await RemoteSync.settled;
+      expect(store.categoryNames, isNot(contains('Aki Motor')));
       auth.logout();
 
       // --- Pembeli: daftar, masuk, lengkapi profil dan alamat.

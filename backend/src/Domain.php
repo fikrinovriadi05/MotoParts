@@ -27,6 +27,15 @@ final class Validate
         'settings', 'build', 'tire_repair', 'two_wheeler',
     ];
 
+    /** Ikon kategori (sama dengan `categoryIcons` di aplikasi). */
+    public const CATEGORY_ICONS = [
+        'settings', 'album', 'oil_barrel', 'tire_repair', 'electric_bolt',
+        'two_wheeler', 'build', 'filter_alt', 'lightbulb', 'speed',
+        'local_gas_station', 'handyman', 'shield', 'tune',
+    ];
+
+    public const MAX_CATEGORY_NAME = 30;
+
     /** Bentuk tersimpan metode pembayaran (PaymentChoice.encoded di aplikasi). */
     public const PAYMENT_CHOICES = [
         'QRIS', 'COD', 'E-Wallet|GoPay',
@@ -297,14 +306,33 @@ final class SampleData
      * Mengembalikan produk dan pesanan ke data contoh, dan menghapus semua
      * ulasan serta wishlist. Akun tidak diubah.
      */
+    /** Kategori bawaan (nama, ikon), sama dengan `productCategories` di aplikasi. */
+    public static function categories(): array
+    {
+        return [
+            ['Mesin', 'settings'], ['Rem', 'album'], ['Oli', 'oil_barrel'],
+            ['Ban', 'tire_repair'], ['Kelistrikan', 'electric_bolt'],
+            ['Body', 'two_wheeler'], ['Transmisi', 'build'],
+        ];
+    }
+
+    public static function seedCategories(PDO $pdo): void
+    {
+        $stmt = $pdo->prepare('INSERT INTO categories (name, icon, sort_order) VALUES (?, ?, ?)');
+        foreach (self::categories() as $i => [$name, $icon]) {
+            $stmt->execute([$name, $icon, $i]);
+        }
+    }
+
     public static function seed(PDO $pdo): void
     {
         $now = Db::now();
         $pdo->beginTransaction();
         try {
-            foreach (['order_items', 'orders', 'reviews', 'wishlists', 'products'] as $table) {
+            foreach (['order_items', 'orders', 'reviews', 'wishlists', 'products', 'categories'] as $table) {
                 $pdo->exec("DELETE FROM $table");
             }
+            self::seedCategories($pdo);
             $product = $pdo->prepare(
                 'INSERT INTO products (id, name, category, type, price, stock, icon, description, created_at, updated_at)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'

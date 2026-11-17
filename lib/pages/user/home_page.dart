@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:motopart/core/categories.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/pages/user/category_page.dart';
@@ -141,11 +140,11 @@ class _HomePageState extends State<HomePage> {
                       horizontal: AppSpacing.page,
                       vertical: AppSpacing.sm,
                     ),
-                    itemCount: productCategories.length,
+                    itemCount: store.categories.length,
                     separatorBuilder: (_, _) =>
                         const SizedBox(width: AppSpacing.sm),
                     itemBuilder: (context, index) {
-                      final category = productCategories[index];
+                      final category = store.categories[index];
                       return PopIn(
                         index: index,
                         child: CategoryCircle(

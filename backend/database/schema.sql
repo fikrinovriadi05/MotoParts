@@ -63,6 +63,15 @@ CREATE TABLE IF NOT EXISTS products (
   KEY idx_products_category (category)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS categories (
+  id         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name       VARCHAR(40)  NOT NULL,
+  icon       VARCHAR(30)  NOT NULL DEFAULT 'build',
+  sort_order INT UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_categories_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS orders (
   code           VARCHAR(40)  NOT NULL,
   user_id        VARCHAR(32)  NULL,

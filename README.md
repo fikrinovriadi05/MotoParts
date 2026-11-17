@@ -50,9 +50,32 @@ lokal seperti sebelumnya.
 
 Admin bawaan: `admin@motopart.id` / `admin123` (ganti dari menu Akun).
 
+## Panel admin
+
+Login admin lewat tab **Admin** di layar masuk. Menu: **Dashboard**, **Produk**,
+**Pesanan**, **Kategori**, **Pengaturan**. Di HP berupa bilah navigasi bawah;
+di layar lebar (> 900) berupa sidebar di kiri (dengan logo dan nama admin).
+Halaman admin tidak bisa dibuka tanpa login admin.
+
+- **Dashboard**: sapaan menurut jam + tanggal, kartu Total Produk, Pesanan Hari
+  Ini, Pendapatan, dan Stok Menipis (di bawah 5), grafik penjualan 7 hari,
+  daftar stok menipis (ketuk untuk mengedit), dan 5 pesanan terbaru.
+- **Produk**: cari + filter kategori, stok cepat dengan tombol - / +, form
+  tambah/edit (foto dari galeri, chip tipe motor yang cocok), hapus dengan
+  tombol Urungkan.
+- **Pesanan**: filter status, ubah status, detail pesanan.
+- **Kategori**: tambah, ubah nama/ikon, hapus (ditolak bila masih dipakai
+  produk; mengganti nama ikut memindahkan produknya).
+- **Pengaturan**: tampilan, laporan penjualan, pengguna, ganti password, reset
+  data contoh, dan keluar (dengan konfirmasi).
+
+Catatan database: fitur Kategori memakai tabel baru `categories`. Jika Anda
+sudah memasang backend sebelumnya, jalankan ulang `tool/setup.php` (aman
+diulang) agar tabel dan kategori bawaan dibuat.
+
 ## Tema dan warna aksen
 
-Menu Akun (pembeli) dan Dashboard Admin punya **Pengaturan Tampilan**: mode
+Menu Akun (pembeli) dan Pengaturan admin punya **Pengaturan Tampilan**: mode
 Terang / Gelap / Sistem, lima warna aksen (Oranye Racing bawaan, Merah, Biru,
 Hijau, Kuning), dan kartu pratinjau yang langsung berubah. Pilihan tersimpan di
 perangkat dan berlaku untuk seluruh aplikasi (sisi pembeli dan admin). Teks di

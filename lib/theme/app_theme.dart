@@ -55,6 +55,7 @@ class AppColors {
   static const Color warning = Color(0xFFF5A524);
   static const Color danger = Color(0xFFEF4444);
   static const Color star = Color(0xFFFFB400);
+  static const Color info = Color(0xFF3B82F6);
 }
 
 class AppRadius {

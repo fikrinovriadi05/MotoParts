@@ -61,6 +61,11 @@ if (!$admin->fetch()) {
     echo "Akun admin dibuat: {$config['admin_email']}\n";
 }
 
+if ((int) $pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn() === 0) {
+    SampleData::seedCategories($pdo);
+    echo "Kategori bawaan dimasukkan.\n";
+}
+
 $count = (int) $pdo->query('SELECT COUNT(*) FROM products')->fetchColumn();
 if ($count === 0) {
     SampleData::seed($pdo);

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:motopart/core/categories.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:flutter/services.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -305,7 +304,7 @@ class _CatalogPageState extends State<CatalogPage> {
 
   @override
   Widget build(BuildContext context) {
-    final categories = ['Semua', ...productCategoryNames];
+    final categories = ['Semua', ...store.categoryNames];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Katalog Produk')),

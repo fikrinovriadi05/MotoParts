@@ -434,7 +434,36 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(store.products.length, before - 1);
+      // Foto baru dibuang setelah Urungkan tidak dipakai (snackbar menutup).
+      expect(fake.deleted, isEmpty);
+      await tester.pump(const Duration(seconds: 7));
+      await tester.pumpAndSettle();
       expect(fake.deleted, [photo]);
+    });
+
+    testWidgets('Urungkan mengembalikan produk dan fotonya tetap ada', (
+      tester,
+    ) async {
+      final photo = newPhoto();
+      store.products[0].imagePath = photo;
+      final name = store.products[0].name;
+      final before = store.products.length;
+      await pumpAdmin(tester);
+
+      await tester.tap(find.byTooltip('Hapus').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Hapus'));
+      await tester.pumpAndSettle();
+      expect(find.text('Produk dihapus'), findsOneWidget);
+
+      await tester.tap(find.text('Urungkan'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 7));
+
+      expect(store.products.length, before);
+      expect(store.products[0].name, name, reason: 'kembali ke posisi semula');
+      expect(store.products[0].imagePath, photo);
+      expect(fake.deleted, isEmpty);
     });
   });
 }
