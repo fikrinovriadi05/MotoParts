@@ -110,11 +110,21 @@ dikembalikan. COD tidak lewat server.
 
 ```bash
 cd server && dart run bin/server.dart     # mode simulasi, tanpa akun Midtrans
-flutter run                                # emulator Android memakai http://10.0.2.2:8080
+flutter run --dart-define=PAYMENT_API_URL=http://10.0.2.2:8080   # emulator Android
 ```
 
-Tanpa server berjalan, hanya COD yang bisa dipakai. Pengaturan Midtrans Sandbox,
-webhook, dan batasan ada di [`server/README.md`](server/README.md).
+### Mode demo QRIS (tanpa server)
+
+Tanpa `PAYMENT_API_URL`, aplikasi berjalan dalam **mode demo**: metode yang
+ditawarkan **QRIS** dan **COD**. Memilih QRIS menampilkan kode QR contoh
+(`MOTOPART-DEMO|kode|jumlah`, tidak bisa dipakai membayar sungguhan), hitung
+mundur 15 menit, dan tombol **Simulasikan Pembayaran Berhasil** untuk
+menyelesaikan pesanan. Berlaku juga di versi web. Virtual Account dan e-wallet
+tetap butuh server pembayaran. Status demo tersimpan di perangkat, jadi tahan
+aplikasi ditutup.
+
+Pengaturan Midtrans Sandbox, webhook, dan batasan ada di
+[`server/README.md`](server/README.md).
 
 ## Filter sparepart berdasarkan tipe motor
 

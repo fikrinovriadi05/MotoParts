@@ -167,7 +167,15 @@ class _PaymentPageState extends State<PaymentPage> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          if (!PaymentMethods.onlineAvailable) ...[
+          if (PaymentMethods.demoMode) ...[
+            _DemoNotice(
+              text:
+                  'Mode demo: QRIS disimulasikan di aplikasi, tanpa uang '
+                  'sungguhan. Virtual Account dan e-wallet butuh server '
+                  'pembayaran.',
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ] else if (!PaymentMethods.onlineAvailable) ...[
             Text(
               'Pembayaran online (QRIS, Virtual Account, GoPay) tersedia di '
               'aplikasi dengan server pembayaran. Di sini hanya COD.',
@@ -232,6 +240,48 @@ class _PaymentPageState extends State<PaymentPage> {
           icon: Icons.lock_rounded,
           onPressed: paying ? null : pay,
         ),
+      ),
+    );
+  }
+}
+
+/// Catatan kecil bahwa pembayaran yang dipilih hanya simulasi.
+class _DemoNotice extends StatelessWidget {
+  final String text;
+
+  const _DemoNotice({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Container(
+      key: const ValueKey('demo-notice'),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.45)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.science_outlined,
+            color: AppColors.warning,
+            size: 20,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: palette.text,
+                fontSize: AppTextSizes.small,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

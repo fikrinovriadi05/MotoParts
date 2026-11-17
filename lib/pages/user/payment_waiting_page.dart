@@ -175,6 +175,10 @@ class _PaymentWaitingPageState extends State<PaymentWaitingPage> {
                     _cancelledCard(context)
                   else ...[
                     _paymentDetails(context, payment),
+                    if (paymentApi is DemoPaymentApi) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      _demoPanel(context, payment),
+                    ],
                     const SizedBox(height: AppSpacing.lg),
                     _autoCheckNote(context),
                     const SizedBox(height: AppSpacing.lg),
@@ -332,6 +336,64 @@ class _PaymentWaitingPageState extends State<PaymentWaitingPage> {
         ],
       ),
     );
+  }
+
+  /// Mode demo: tombol untuk menyimulasikan pembayaran QR berhasil.
+  Widget _demoPanel(BuildContext context, PaymentInfo payment) {
+    final palette = context.palette;
+    return Container(
+      key: const ValueKey('demo-panel'),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.45)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.science_outlined, color: AppColors.warning),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Mode Demo',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: palette.text,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Kode QR ini contoh dan tidak bisa dipakai membayar sungguhan. '
+            'Tekan tombol di bawah untuk menyimulasikan pembayaran berhasil.',
+            style: TextStyle(
+              color: palette.textMuted,
+              fontSize: AppTextSizes.small,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          FilledButton.icon(
+            onPressed: () => _simulatePaid(payment),
+            icon: const Icon(Icons.qr_code_scanner_rounded),
+            label: const Text('Simulasikan Pembayaran Berhasil'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _simulatePaid(PaymentInfo payment) async {
+    final api = paymentApi;
+    if (api is! DemoPaymentApi) return;
+    if (!api.simulatePaid(payment.paymentId)) {
+      _snack('Waktu pembayaran sudah habis.');
+    }
+    // Langsung periksa, tanpa menunggu selang berikutnya.
+    await _check(manual: false);
   }
 
   Widget _autoCheckNote(BuildContext context) {

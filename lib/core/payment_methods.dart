@@ -68,19 +68,28 @@ class PaymentMethods {
   /// Untuk tes: memaksa pembayaran online tersedia/tidak.
   static bool? onlineOverride;
 
+  /// Untuk tes: memaksa mode demo menyala/mati.
+  static bool? demoOverride;
+
+  /// Mode demo: tanpa server pembayaran (`PAYMENT_API_URL` kosong), QRIS
+  /// disimulasikan di aplikasi (lihat `DemoPaymentApi`) tanpa uang sungguhan.
+  /// Virtual Account dan e-wallet tetap butuh server.
+  static bool get demoMode => demoOverride ?? _apiUrl.isEmpty;
+
   /// Pembayaran online butuh server pembayaran. Di web tanpa alamat server
   /// (`--dart-define=PAYMENT_API_URL=...`) tidak mungkin: situs yang di-host
   /// tidak bisa menghubungi server di komputer pengembang, dan browser
   /// memblokir HTTP dari halaman HTTPS. Aplikasi asli selalu menawarkannya.
   static bool get onlineAvailable =>
-      onlineOverride ?? (!kIsWeb || _apiUrl.isNotEmpty);
+      onlineOverride ?? (!demoMode && (!kIsWeb || _apiUrl.isNotEmpty));
 
-  /// Kelompok yang ditawarkan ke pembeli saat ini.
+  /// Kelompok yang ditawarkan ke pembeli saat ini. Tanpa server: COD, ditambah
+  /// QRIS demo bila mode demo menyala.
   static List<PaymentGroup> get available => onlineAvailable
       ? groups
       : [
           for (final g in groups)
-            if (!g.isOnline) g,
+            if (!g.isOnline || (demoMode && g.apiType == 'qris')) g,
         ];
 
   /// [choice] bila masih ditawarkan; selain itu pilihan awal (mis. metode

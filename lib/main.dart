@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:motopart/app.dart';
+import 'package:motopart/core/payment_api.dart';
 import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/store/remote_sync.dart';
@@ -22,6 +23,8 @@ Future<void> main() async {
   await themeController.attach(prefs);
   await store.attach(prefs);
   await auth.attach(prefs); // setelah store: memulihkan sesi login
+  final payments = paymentApi;
+  if (payments is DemoPaymentApi) await payments.attach(prefs);
   if (ApiConfig.enabled) {
     // Mode database: foto produk disimpan di database (bukan berkas lokal),
     // lalu ambil data terbaru dari server.

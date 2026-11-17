@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:motopart/core/location_service.dart';
 import 'package:motopart/core/payment_api.dart';
+import 'package:motopart/core/payment_methods.dart';
 import 'package:motopart/core/report_exporter.dart';
 import 'package:motopart/theme/app_theme.dart';
 
@@ -14,6 +15,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   UiConfig.simulateLoading = false;
   UiConfig.animate = false; // animasi interaksi dinyalakan per tes yang menguji
   // Tes tidak boleh memakai jaringan atau GPS sungguhan.
+  PaymentMethods.demoOverride = false; // tes memakai server palsu, bukan demo
   paymentApi = FakePaymentApi();
   locationService = FakeLocationService();
   reportExporter = FakeReportExporter();
