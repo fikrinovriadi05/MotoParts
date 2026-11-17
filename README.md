@@ -50,13 +50,19 @@ lokal seperti sebelumnya.
 
 Admin bawaan: `admin@motopart.id` / `admin123` (ganti dari menu Akun).
 
-## Ekspor laporan penjualan
+## Laporan penjualan dan ekspor Excel
 
-Admin: Dashboard > Laporan Penjualan > **Ekspor ke CSV (Excel)**. Berkas berisi
-ringkasan penjualan, penjualan per produk, dan daftar semua pesanan; bisa
-dibuka di Excel atau Google Sheets. Di web berkas langsung terunduh; di Android
-dan desktop muncul lembar berbagi (simpan ke Drive/Files, kirim lewat email,
-dll.).
+Admin: Dashboard > Laporan Penjualan. Pilih periode lewat chip **Semua**,
+**7 Hari**, **30 Hari**, **Bulan Ini**, atau **Pilih Tanggal** (rentang bebas);
+total, rata-rata, barang terjual, dan grafik per hari mengikuti periode itu.
+
+Tombol **Ekspor ke Excel (.xlsx)** menyimpan periode terpilih sebagai buku kerja
+Excel dengan tiga lembar yang tertata rapi (judul berwarna, header, garis tabel,
+lebar kolom, format Rupiah dan tanggal, baris total, status berwarna):
+**Ringkasan**, **Per Produk**, dan **Pesanan**. Angka disimpan sebagai angka
+sehingga bisa langsung dijumlahkan atau dibuat grafik. Di web berkas langsung
+terunduh; di Android dan desktop muncul lembar berbagi (simpan ke Drive/Files,
+kirim lewat email, dll.).
 
 ## Pembayaran online (QRIS, Virtual Account, GoPay)
 

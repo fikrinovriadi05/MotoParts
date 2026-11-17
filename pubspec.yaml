@@ -44,6 +44,7 @@ dependencies:
   qr_flutter: ^4.1.0
   share_plus: ^13.3.1
   web: ^1.1.2
+  excel: ^4.0.6
 
 dev_dependencies:
   flutter_test:

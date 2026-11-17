@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:motopart/core/report_download_stub.dart'
     if (dart.library.js_interop) 'package:motopart/core/report_download_web.dart';
@@ -24,40 +22,35 @@ class ExportException implements Exception {
   String toString() => message;
 }
 
-/// Menyimpan/membagikan berkas teks (CSV). Diabstraksikan agar bisa diganti
-/// di tes (tanpa lembar berbagi sungguhan).
+/// Menyimpan/membagikan sebuah berkas (laporan Excel). Diabstraksikan agar
+/// bisa diganti di tes (tanpa lembar berbagi sungguhan).
 abstract class ReportExporter {
-  Future<ExportResult> saveCsv({
+  Future<ExportResult> saveFile({
     required String fileName,
-    required String content,
+    required List<int> bytes,
+    required String mimeType,
   });
 }
 
 class DeviceReportExporter implements ReportExporter {
-  static const mimeType = 'text/csv';
-
   @override
-  Future<ExportResult> saveCsv({
+  Future<ExportResult> saveFile({
     required String fileName,
-    required String content,
+    required List<int> bytes,
+    required String mimeType,
   }) async {
+    final data = Uint8List.fromList(bytes);
     try {
       if (kIsWeb) {
         // Web: unduh langsung ke folder Downloads browser.
-        downloadTextFile(fileName, content, mimeType);
+        downloadFile(fileName, data, mimeType);
         return ExportResult.done;
       }
       // Android/iOS/desktop: lembar berbagi sistem (simpan ke Drive/Files,
       // kirim lewat WhatsApp/email, dll.).
       final result = await SharePlus.instance.share(
         ShareParams(
-          files: [
-            XFile.fromData(
-              utf8.encode(content),
-              mimeType: mimeType,
-              name: fileName,
-            ),
-          ],
+          files: [XFile.fromData(data, mimeType: mimeType, name: fileName)],
           fileNameOverrides: [fileName],
           subject: 'Laporan Penjualan MotoPart',
         ),

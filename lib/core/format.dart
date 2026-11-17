@@ -26,3 +26,7 @@ String formatTanggal(DateTime value) {
   final menit = value.minute.toString().padLeft(2, '0');
   return '${value.day} ${_bulan[value.month - 1]} ${value.year}, $jam:$menit';
 }
+
+/// Contoh: `14 Nov 2026`.
+String formatTanggalSingkat(DateTime value) =>
+    '${value.day} ${_bulan[value.month - 1]} ${value.year}';

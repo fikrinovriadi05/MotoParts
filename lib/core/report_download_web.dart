@@ -1,13 +1,11 @@
 import 'dart:js_interop';
+import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
 
-/// Web: mengunduh [content] sebagai berkas lewat tautan sementara.
-void downloadTextFile(String fileName, String content, String mimeType) {
-  final blob = web.Blob(
-    [content.toJS].toJS,
-    web.BlobPropertyBag(type: '$mimeType;charset=utf-8'),
-  );
+/// Web: mengunduh [bytes] sebagai berkas lewat tautan sementara.
+void downloadFile(String fileName, Uint8List bytes, String mimeType) {
+  final blob = web.Blob([bytes.toJS].toJS, web.BlobPropertyBag(type: mimeType));
   final url = web.URL.createObjectURL(blob);
   final link = web.HTMLAnchorElement()
     ..href = url

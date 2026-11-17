@@ -87,7 +87,7 @@ class FakeLocationService implements LocationService {
 /// Pengekspor laporan palsu: mencatat berkas yang diekspor, tanpa lembar
 /// berbagi sungguhan.
 class FakeReportExporter implements ReportExporter {
-  final saved = <({String fileName, String content})>[];
+  final saved = <({String fileName, List<int> bytes, String mimeType})>[];
 
   /// Hasil yang dikembalikan; atur ke `cancelled` untuk meniru batal.
   ExportResult result = ExportResult.done;
@@ -96,12 +96,13 @@ class FakeReportExporter implements ReportExporter {
   ExportException? failure;
 
   @override
-  Future<ExportResult> saveCsv({
+  Future<ExportResult> saveFile({
     required String fileName,
-    required String content,
+    required List<int> bytes,
+    required String mimeType,
   }) async {
     if (failure != null) throw failure!;
-    saved.add((fileName: fileName, content: content));
+    saved.add((fileName: fileName, bytes: bytes, mimeType: mimeType));
     return result;
   }
 }
