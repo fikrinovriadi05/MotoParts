@@ -20,6 +20,14 @@ class UiConfig {
   /// Menampilkan efek shimmer sesaat sebelum produk tampil.
   static bool simulateLoading = true;
 
+  /// Animasi interaksi (muncul bergantian, hitung angka, konfeti, dll.).
+  /// Dimatikan di tes agar hasilnya langsung tampil dan tidak ada timer
+  /// tersisa.
+  static bool animate = true;
+
+  /// [d] bila animasi aktif, selain itu nol.
+  static Duration motion(Duration d) => animate ? d : Duration.zero;
+
   static Duration get loadingDuration =>
       simulateLoading ? const Duration(milliseconds: 650) : Duration.zero;
 }

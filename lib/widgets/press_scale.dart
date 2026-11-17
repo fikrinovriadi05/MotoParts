@@ -42,3 +42,44 @@ class _PressScaleState extends State<PressScale> {
     );
   }
 }
+
+/// Mengecilkan [child] sedikit selama disentuh, tanpa mengambil alih sentuhan
+/// (tombol di dalamnya tetap menerima ketukan). Dipakai untuk tombol.
+class PressEffect extends StatefulWidget {
+  final Widget child;
+  final bool enabled;
+  final double scale;
+
+  const PressEffect({
+    super.key,
+    required this.child,
+    this.enabled = true,
+    this.scale = 0.97,
+  });
+
+  @override
+  State<PressEffect> createState() => _PressEffectState();
+}
+
+class _PressEffectState extends State<PressEffect> {
+  bool pressed = false;
+
+  void _set(bool value) {
+    if (pressed != value && mounted) setState(() => pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => widget.enabled ? _set(true) : null,
+      onPointerUp: (_) => _set(false),
+      onPointerCancel: (_) => _set(false),
+      child: AnimatedScale(
+        scale: pressed && widget.enabled ? widget.scale : 1,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}

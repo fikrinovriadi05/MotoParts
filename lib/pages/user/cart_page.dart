@@ -5,6 +5,7 @@ import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/pages/user/checkout_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/product_picture.dart';
 
@@ -222,12 +223,13 @@ class _CartItemCard extends StatelessWidget {
                     ),
                     SizedBox(
                       width: 32,
-                      child: Text(
-                        '${item.qty}',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: palette.text,
+                      child: Center(
+                        child: AnimatedNumber(
+                          value: item.qty,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: palette.text,
+                          ),
                         ),
                       ),
                     ),
@@ -345,8 +347,9 @@ class _SummaryContent extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                formatRupiah(store.cartTotal),
+              AnimatedCount(
+                value: store.cartTotal,
+                builder: formatRupiah,
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: AppTextSizes.title,

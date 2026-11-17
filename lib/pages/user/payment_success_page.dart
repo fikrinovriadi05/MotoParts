@@ -5,6 +5,7 @@ import 'package:motopart/pages/user/orders_page.dart';
 import 'package:motopart/pages/user/user_shell.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/confetti.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/primary_button.dart';
 
@@ -37,89 +38,99 @@ class PaymentSuccessPage extends StatelessWidget {
     final order = orders.isEmpty ? null : orders.first;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xl + 2),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 700),
-                    curve: Curves.elasticOut,
-                    builder: (context, value, child) =>
-                        Transform.scale(scale: value, child: child),
-                    child: Container(
-                      width: 116,
-                      height: 116,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.success.withValues(alpha: 0.16),
-                        border: Border.all(
-                          color: AppColors.success.withValues(alpha: 0.5),
-                          width: 2,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.xl + 2),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: 1),
+                        duration: const Duration(milliseconds: 700),
+                        curve: Curves.elasticOut,
+                        builder: (context, value, child) =>
+                            Transform.scale(scale: value, child: child),
+                        child: Container(
+                          width: 116,
+                          height: 116,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.success.withValues(alpha: 0.16),
+                            border: Border.all(
+                              color: AppColors.success.withValues(alpha: 0.5),
+                              width: 2,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            color: AppColors.success,
+                            size: 68,
+                          ),
                         ),
                       ),
-                      child: const Icon(
-                        Icons.check_rounded,
-                        color: AppColors.success,
-                        size: 68,
+                      const SizedBox(height: AppSpacing.xl),
+                      Text(
+                        'Pembayaran Berhasil!',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.headlineSmall,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Text(
-                    'Pembayaran Berhasil!',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    'Pesanan kamu telah diterima dan sedang diproses.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: palette.textMuted, height: 1.6),
-                  ),
-                  if (order != null) ...[
-                    const SizedBox(height: AppSpacing.xl),
-                    GlassCard(
-                      child: Column(
-                        children: [
-                          _row(context, 'Kode Pesanan', order.code),
-                          if (order.paymentMethod != null) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            _row(context, 'Pembayaran', order.paymentMethod!),
-                          ],
-                          const SizedBox(height: AppSpacing.sm),
-                          _row(
-                            context,
-                            'Total',
-                            formatRupiah(order.total),
-                            highlight: true,
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Pesanan kamu telah diterima dan sedang diproses.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: palette.textMuted, height: 1.6),
+                      ),
+                      if (order != null) ...[
+                        const SizedBox(height: AppSpacing.xl),
+                        GlassCard(
+                          child: Column(
+                            children: [
+                              _row(context, 'Kode Pesanan', order.code),
+                              if (order.paymentMethod != null) ...[
+                                const SizedBox(height: AppSpacing.sm),
+                                _row(
+                                  context,
+                                  'Pembayaran',
+                                  order.paymentMethod!,
+                                ),
+                              ],
+                              const SizedBox(height: AppSpacing.sm),
+                              _row(
+                                context,
+                                'Total',
+                                formatRupiah(order.total),
+                                highlight: true,
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                      ],
+                      const SizedBox(height: AppSpacing.xxl),
+                      PrimaryButton(
+                        text: 'Lihat Pesanan',
+                        icon: Icons.receipt_long_rounded,
+                        onPressed: () => _viewOrders(context),
                       ),
-                    ),
-                  ],
-                  const SizedBox(height: AppSpacing.xxl),
-                  PrimaryButton(
-                    text: 'Lihat Pesanan',
-                    icon: Icons.receipt_long_rounded,
-                    onPressed: () => _viewOrders(context),
+                      const SizedBox(height: AppSpacing.md),
+                      PrimaryButton(
+                        text: 'Kembali ke Beranda',
+                        outline: true,
+                        onPressed: () => _goHome(context),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  PrimaryButton(
-                    text: 'Kembali ke Beranda',
-                    outline: true,
-                    onPressed: () => _goHome(context),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+          // Konfeti singkat di atas isi, tidak menangkap sentuhan.
+          const Positioned.fill(child: Confetti()),
+        ],
       ),
     );
   }

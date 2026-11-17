@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/pages/user/product_detail_page.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/product_card.dart';
 import 'package:motopart/widgets/shimmer.dart';
 
@@ -51,12 +52,15 @@ class ProductGrid extends StatelessWidget {
           itemBuilder: (context, index) {
             if (loading) return const ProductCardSkeleton();
             final product = products[index];
-            return ProductCard(
-              product: product,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProductDetailPage(product: product),
+            return FadeSlideIn(
+              index: index,
+              child: ProductCard(
+                product: product,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProductDetailPage(product: product),
+                  ),
                 ),
               ),
             );

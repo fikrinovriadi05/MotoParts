@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/cart_feedback.dart';
+import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/wishlist_button.dart';
@@ -179,38 +182,79 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-/// Tombol "+" kecil. Area sentuhnya 48x48 walau tampilannya lebih kecil.
-class _AddButton extends StatelessWidget {
+/// Tombol "+" kecil. Area sentuhnya 48x48 walau tampilannya lebih kecil. Setelah
+/// berhasil menambah, sesaat berubah menjadi centang hijau.
+class _AddButton extends StatefulWidget {
   final Product product;
 
   const _AddButton({required this.product});
 
   @override
+  State<_AddButton> createState() => _AddButtonState();
+}
+
+class _AddButtonState extends State<_AddButton> {
+  static const confirmDuration = Duration(milliseconds: 1100);
+
+  bool justAdded = false;
+  Timer? timer;
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  void _add() {
+    final added = addToCartWithFeedback(context, widget.product);
+    if (added == 0) return;
+    Haptics.light();
+    if (!UiConfig.animate) return;
+
+    timer?.cancel();
+    setState(() => justAdded = true);
+    timer = Timer(confirmDuration, () {
+      if (mounted) setState(() => justAdded = false);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final product = widget.product;
     final enabled = product.stock > 0;
+
     return Semantics(
       button: true,
       enabled: enabled,
       label: 'Tambah ${product.name} ke keranjang',
       child: InkResponse(
-        onTap: enabled ? () => addToCartWithFeedback(context, product) : null,
+        onTap: enabled ? _add : null,
         radius: 26,
         child: SizedBox(
           width: AppSizes.minTap,
           height: AppSizes.minTap,
           child: Center(
-            child: Container(
+            child: AnimatedContainer(
+              duration: UiConfig.motion(const Duration(milliseconds: 200)),
               width: 36,
               height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: enabled ? AppColors.primary : palette.surfaceAlt,
+                color: !enabled
+                    ? palette.surfaceAlt
+                    : (justAdded ? AppColors.success : AppColors.primary),
               ),
-              child: Icon(
-                Icons.add_rounded,
-                size: 22,
-                color: enabled ? AppColors.onPrimary : palette.textMuted,
+              child: AnimatedSwitcher(
+                duration: UiConfig.motion(const Duration(milliseconds: 220)),
+                transitionBuilder: (child, animation) =>
+                    ScaleTransition(scale: animation, child: child),
+                child: Icon(
+                  justAdded ? Icons.check_rounded : Icons.add_rounded,
+                  key: ValueKey(justAdded),
+                  size: 22,
+                  color: enabled ? AppColors.onPrimary : palette.textMuted,
+                ),
               ),
             ),
           ),

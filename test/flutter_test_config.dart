@@ -11,6 +11,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Font Ahem (lebar) agar overflow cepat ketahuan; tanpa penundaan shimmer.
   UiConfig.useBrandFonts = false;
   UiConfig.simulateLoading = false;
+  UiConfig.animate = false; // animasi interaksi dinyalakan per tes yang menguji
   // Tes tidak boleh memakai jaringan atau GPS sungguhan.
   paymentApi = FakePaymentApi();
   locationService = FakeLocationService();

@@ -8,6 +8,7 @@ import 'package:motopart/models/order_item.dart';
 import 'package:motopart/pages/shared/order_detail_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/status_badge.dart';
@@ -49,7 +50,10 @@ class _OrdersPageState extends State<OrdersPage> {
             padding: const EdgeInsets.all(AppSpacing.page),
             itemCount: orders.length,
             separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) => _OrderCard(order: orders[index]),
+            itemBuilder: (context, index) => FadeSlideIn(
+              index: index,
+              child: _OrderCard(order: orders[index]),
+            ),
           );
         },
       ),
