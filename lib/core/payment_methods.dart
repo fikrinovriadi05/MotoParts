@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Kelompok metode pembayaran. [providers] kosong berarti tidak perlu memilih
@@ -62,6 +63,33 @@ class PaymentChoice {
 class PaymentMethods {
   const PaymentMethods._();
 
+  static const _apiUrl = String.fromEnvironment('PAYMENT_API_URL');
+
+  /// Untuk tes: memaksa pembayaran online tersedia/tidak.
+  static bool? onlineOverride;
+
+  /// Pembayaran online butuh server pembayaran. Di web tanpa alamat server
+  /// (`--dart-define=PAYMENT_API_URL=...`) tidak mungkin: situs yang di-host
+  /// tidak bisa menghubungi server di komputer pengembang, dan browser
+  /// memblokir HTTP dari halaman HTTPS. Aplikasi asli selalu menawarkannya.
+  static bool get onlineAvailable =>
+      onlineOverride ?? (!kIsWeb || _apiUrl.isNotEmpty);
+
+  /// Kelompok yang ditawarkan ke pembeli saat ini.
+  static List<PaymentGroup> get available => onlineAvailable
+      ? groups
+      : [
+          for (final g in groups)
+            if (!g.isOnline) g,
+        ];
+
+  /// [choice] bila masih ditawarkan; selain itu pilihan awal (mis. metode
+  /// favorit online yang tersimpan, dibuka di web tanpa server).
+  static PaymentChoice usable(PaymentChoice? choice) =>
+      choice != null && available.any((g) => g.name == choice.group.name)
+      ? choice
+      : defaultChoice;
+
   static const groups = [
     PaymentGroup(
       name: 'QRIS',
@@ -93,7 +121,7 @@ class PaymentMethods {
   ];
 
   /// Pilihan awal jika pembeli belum menyimpan metode favorit.
-  static PaymentChoice get defaultChoice => firstOf(groups.first);
+  static PaymentChoice get defaultChoice => firstOf(available.first);
 
   /// Pilihan pertama yang valid untuk [group] (bank pertama, atau tanpa bank).
   static PaymentChoice firstOf(PaymentGroup group) =>

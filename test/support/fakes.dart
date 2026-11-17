@@ -60,6 +60,9 @@ class FakePaymentApi implements PaymentApi {
 class FakeLocationService implements LocationService {
   DeviceLocation? location = const DeviceLocation(-6.9175, 107.6191);
   LocationException? locationError;
+
+  /// Kesalahan tak terduga (bukan LocationException), mis. pustaka GPS gagal.
+  Object? unexpectedError;
   PlaceInfo? place = const PlaceInfo(
     street: 'Jl. Braga No. 10, Braga',
     city: 'Sumur Bandung, Bandung',
@@ -71,6 +74,7 @@ class FakeLocationService implements LocationService {
   Future<DeviceLocation> currentLocation() async {
     calls++;
     if (locationError != null) throw locationError!;
+    if (unexpectedError != null) throw unexpectedError!;
     return location!;
   }
 

@@ -63,7 +63,7 @@ flutter test
 cd server && dart analyze && dart test
 ```
 
-Sekitar 700 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
+Sekitar 830 tes aplikasi (logika `Store`/`AuthStore`, halaman, overflow di layar
 kecil, berkas ikon, font, pembayaran online, GPS, dan konfigurasi proyek) dan 35
 tes server. Tes aplikasi memakai server pembayaran dan GPS palsu
 (`test/support/fakes.dart`), jadi tidak memakai jaringan.
@@ -81,6 +81,51 @@ tes server. Tes aplikasi memakai server pembayaran dan GPS palsu
 | `tool/` | Pembuat ikon: `flutter test tool/generate_icons_test.dart` |
 
 Panduan lengkap untuk agent pengembang ada di `.claude/agents/main-agent.md`.
+
+## Versi web (untuk dibagikan lewat link)
+
+Aplikasi bisa dibuka di browser. Bangun dengan satu perintah:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tool/build_web.ps1
+```
+
+Hasilnya `build/web` (folder situs) dan `build/motopart-web.zip` (sekitar 15 MB,
+siap diunggah). Mencoba di komputer sendiri:
+
+```bash
+cd build/web && python -m http.server 8080     # buka http://localhost:8080
+```
+
+**Menerbitkan agar punya link** (pilih salah satu, semuanya gratis):
+
+1. **Netlify (paling mudah):** buka <https://app.netlify.com/drop>, seret folder
+   `build/web` (atau zip-nya). Anda langsung mendapat link `https://....netlify.app`.
+2. **GitHub Pages:** unggah repositori ke GitHub, lalu *Settings -> Pages ->
+   Source: GitHub Actions*. Workflow `.github/workflows/web.yml` menjalankan tes
+   dan menerbitkan otomatis setiap push ke `main`
+   (link: `https://<pengguna>.github.io/<nama-repo>/`).
+3. **Firebase Hosting:** `firebase init hosting` (folder publik `build/web`,
+   single-page: tidak perlu), lalu `firebase deploy`.
+
+Jika situs berada di subfolder (mis. GitHub Pages), beri `-BaseHref /nama-repo/`
+pada skrip build.
+
+**Perbedaan di web**
+
+- Data (akun, produk, pesanan) tersimpan di **browser tiap pengunjung**
+  (localStorage): akun yang dibuat di satu browser tidak terlihat di browser lain,
+  dan menghapus data situs menghapus semuanya. Akun admin bawaan selalu ada.
+- Pembayaran **hanya COD**. QRIS/Virtual Account/GoPay butuh server pembayaran
+  yang bisa dijangkau dari internet; beri `-PaymentApi https://alamat-server`
+  saat membangun jika sudah punya.
+- Foto produk disimpan di browser dan dibatasi **350 KB** per foto
+  (total penyimpanan browser sekitar 5 MB, jadi kira-kira belasan foto).
+- Tombol GPS butuh situs berprotokol **HTTPS** dan izin lokasi dari browser;
+  jika ditolak, alamat diisi manual.
+- Kunjungan pertama mengunduh sekitar 40 MB tanpa kompresi (dikompres server
+  hosting), jadi layar pemuatan tampil beberapa detik.
+- Efek hover (kursor mouse) aktif di versi web/desktop.
 
 ## Logo dan ikon
 

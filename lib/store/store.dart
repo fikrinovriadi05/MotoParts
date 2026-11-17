@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/core/payment_api.dart';
+import 'package:motopart/core/safe_save.dart';
 import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/payment_info.dart';
@@ -114,7 +116,7 @@ class Store extends ChangeNotifier {
         for (final entry in _wishlists.entries) entry.key: entry.value.toList(),
       },
     };
-    prefs.setString(storageKey, jsonEncode(data));
+    unawaited(safeSetString(prefs, storageKey, jsonEncode(data)));
   }
 
   @override

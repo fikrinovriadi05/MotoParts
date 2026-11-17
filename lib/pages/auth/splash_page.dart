@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/pages/admin/admin_shell.dart';
@@ -14,10 +16,18 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  Timer? timer;
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 2), () {
+    timer = Timer(const Duration(seconds: 2), () {
       if (!mounted) return;
       // Sesi login yang tersimpan: langsung ke beranda sesuai perannya.
       final Widget next = !auth.isLoggedIn

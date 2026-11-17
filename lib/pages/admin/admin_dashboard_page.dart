@@ -129,13 +129,20 @@ class AdminDashboardPage extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    GridView.count(
+                    GridView(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: statColumns(constraints.maxWidth),
-                      crossAxisSpacing: AppSpacing.md + 2,
-                      mainAxisSpacing: AppSpacing.md + 2,
-                      childAspectRatio: 1.25,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: statColumns(constraints.maxWidth),
+                        crossAxisSpacing: AppSpacing.md + 2,
+                        mainAxisSpacing: AppSpacing.md + 2,
+                        // 4 kolom (layar lebar): tinggi tetap agar kartu tidak
+                        // terlalu tinggi dan kosong; 2 kolom: rasio tetap.
+                        mainAxisExtent: statColumns(constraints.maxWidth) == 4
+                            ? 136
+                            : null,
+                        childAspectRatio: 1.25,
+                      ),
                       children: [
                         FadeSlideIn(
                           index: 0,

@@ -12,10 +12,13 @@ class UiConfig {
 
   static const bodyFont = 'Inter';
 
-  /// iOS dan macOS memakai font sistem (San Francisco).
+  /// iOS dan macOS (aplikasi asli) memakai font sistem (San Francisco). Di web
+  /// selalu Inter, karena browser tidak punya font sistem Flutter yang setara
+  /// dan akan jatuh ke Roboto yang diunduh.
   static bool get usesSystemFont =>
-      defaultTargetPlatform == TargetPlatform.iOS ||
-      defaultTargetPlatform == TargetPlatform.macOS;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.macOS);
 
   /// Menampilkan efek shimmer sesaat sebelum produk tampil.
   static bool simulateLoading = true;

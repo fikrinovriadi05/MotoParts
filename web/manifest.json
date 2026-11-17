@@ -3,10 +3,10 @@
     "short_name": "MotoPart",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#1A1A1D",
+    "theme_color": "#FF6B00",
+    "description": "MotoPart - toko sparepart motor lengkap: cari sparepart sesuai tipe motor, checkout, dan pantau pesanan.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
@@ -31,5 +31,6 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "lang": "id"
 }

@@ -29,9 +29,9 @@ class PaymentPage extends StatefulWidget {
 }
 
 class _PaymentPageState extends State<PaymentPage> {
-  PaymentChoice choice =
-      PaymentMethods.decode(auth.currentAccount?.preferredPayment) ??
-      PaymentMethods.defaultChoice;
+  PaymentChoice choice = PaymentMethods.usable(
+    PaymentMethods.decode(auth.currentAccount?.preferredPayment),
+  );
 
   bool paying = false;
 
@@ -151,6 +151,18 @@ class _PaymentPageState extends State<PaymentPage> {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
+          if (!PaymentMethods.onlineAvailable) ...[
+            Text(
+              'Pembayaran online (QRIS, Virtual Account, GoPay) tersedia di '
+              'aplikasi dengan server pembayaran. Di sini hanya COD.',
+              style: TextStyle(
+                color: palette.textMuted,
+                fontSize: AppTextSizes.small,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
           PaymentMethodPicker(
             value: choice,
             onChanged: (c) => setState(() => choice = c),

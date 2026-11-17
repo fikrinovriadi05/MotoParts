@@ -3,6 +3,9 @@ import 'package:motopart/core/navigation.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/store/store.dart';
 
+/// Lama notifikasi "Ditambahkan ke keranjang" tampil.
+const snackDuration = Duration(seconds: 3);
+
 /// Pindah ke tab Keranjang di halaman pembeli dari mana pun.
 void goToCartTab(NavigatorState navigator) {
   userTabIndex.value = UserTab.cart;
@@ -40,6 +43,10 @@ int addToCartWithFeedback(
   messenger.showSnackBar(
     SnackBar(
       content: Text('Ditambahkan ke keranjang$partial'),
+      // Snackbar ber-aksi tidak hilang sendiri secara bawaan dan akan menutupi
+      // tombol di bawahnya (mis. Checkout); paksa tertutup otomatis.
+      persist: false,
+      duration: snackDuration,
       action: SnackBarAction(
         label: 'Lihat',
         onPressed: () => goToCartTab(navigator),

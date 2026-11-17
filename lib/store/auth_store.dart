@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:motopart/core/payment_methods.dart';
+import 'package:motopart/core/safe_save.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/models/shipping_address.dart';
 import 'package:motopart/store/store.dart';
@@ -499,12 +501,15 @@ class AuthStore extends ChangeNotifier {
   void _save() {
     final prefs = _prefs;
     if (prefs == null) return;
-    prefs.setString(
-      storageKey,
-      jsonEncode({
-        'accounts': accounts.map((a) => a.toJson()).toList(),
-        'currentId': _current?.id,
-      }),
+    unawaited(
+      safeSetString(
+        prefs,
+        storageKey,
+        jsonEncode({
+          'accounts': accounts.map((a) => a.toJson()).toList(),
+          'currentId': _current?.id,
+        }),
+      ),
     );
   }
 

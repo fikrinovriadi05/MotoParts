@@ -23,7 +23,7 @@ class PaymentMethodPicker extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final group in PaymentMethods.groups) ...[
+        for (final group in PaymentMethods.available) ...[
           SelectableCard(
             selected: selected.name == group.name,
             onTap: () {

@@ -51,8 +51,17 @@ class AdminProductsPage extends StatelessWidget {
                       imagePath: imagePath,
                       icon: product?.icon ?? Icons.build_rounded,
                       onPick: () async {
-                        final path = await productImageStorage
-                            .pickFromGallery();
+                        final String? path;
+                        try {
+                          path = await productImageStorage.pickFromGallery();
+                        } on ProductImageException catch (e) {
+                          if (dialogContext.mounted) {
+                            ScaffoldMessenger.of(
+                              dialogContext,
+                            ).showSnackBar(SnackBar(content: Text(e.message)));
+                          }
+                          return;
+                        }
                         if (path == null) return;
                         if (!dialogContext.mounted) {
                           productImageStorage.delete(path);

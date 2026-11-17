@@ -89,6 +89,30 @@ class DeviceLocationService implements LocationService {
 
   @override
   Future<DeviceLocation> currentLocation() async {
+    try {
+      return await _locate();
+    } on LocationException {
+      rethrow;
+    } on TimeoutException {
+      throw const LocationException(
+        'Lokasi belum ditemukan. Coba lagi di tempat terbuka.',
+      );
+    } on LocationServiceDisabledException {
+      throw const LocationException(
+        'GPS mati. Aktifkan layanan lokasi lalu coba lagi.',
+      );
+    } on PermissionDeniedException {
+      throw const LocationException('Izin lokasi ditolak.');
+    } on Object {
+      // Platform tanpa GPS/izin (mis. browser yang memblokir lokasi).
+      throw const LocationException(
+        'Lokasi tidak dapat diakses di perangkat ini. '
+        'Isi alamat secara manual.',
+      );
+    }
+  }
+
+  Future<DeviceLocation> _locate() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
       throw const LocationException(
         'GPS mati. Aktifkan layanan lokasi lalu coba lagi.',
@@ -101,26 +125,21 @@ class DeviceLocationService implements LocationService {
     }
     if (permission == LocationPermission.deniedForever) {
       throw const LocationException(
-        'Izin lokasi ditolak permanen. Aktifkan lewat Pengaturan aplikasi.',
+        'Izin lokasi ditolak permanen. Aktifkan lewat Pengaturan aplikasi '
+        'atau pengaturan situs di browser.',
       );
     }
     if (permission == LocationPermission.denied) {
       throw const LocationException('Izin lokasi ditolak.');
     }
 
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 20),
-        ),
-      );
-      return DeviceLocation(position.latitude, position.longitude);
-    } on TimeoutException {
-      throw const LocationException(
-        'Lokasi belum ditemukan. Coba lagi di tempat terbuka.',
-      );
-    }
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 20),
+      ),
+    );
+    return DeviceLocation(position.latitude, position.longitude);
   }
 
   @override

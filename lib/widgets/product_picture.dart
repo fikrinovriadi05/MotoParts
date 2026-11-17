@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -51,9 +52,37 @@ class ProductPicture extends StatelessWidget {
     );
   }
 
-  /// Apakah [imagePath] menunjuk ke file foto yang bisa dipakai.
-  static bool hasPhoto(String? imagePath) =>
-      !kIsWeb && imagePath != null && File(imagePath).existsSync();
+  /// Foto berupa data URL (`data:image/...;base64,...`), dipakai di web yang
+  /// tidak punya folder berkas aplikasi.
+  static bool isDataUrl(String? path) =>
+      path != null &&
+      path.startsWith('data:image/') &&
+      path.contains(';base64,');
+
+  static final _decoded = <String, Uint8List>{};
+
+  /// Isi foto dari data URL; null jika rusak. Hasil disimpan sementara supaya
+  /// tidak didekode ulang di setiap penggambaran.
+  static Uint8List? bytesOf(String? dataUrl) {
+    if (!isDataUrl(dataUrl)) return null;
+    final cached = _decoded[dataUrl!];
+    if (cached != null) return cached;
+    try {
+      final bytes = base64Decode(dataUrl.substring(dataUrl.indexOf(',') + 1));
+      if (_decoded.length >= 48) _decoded.remove(_decoded.keys.first);
+      return _decoded[dataUrl] = bytes;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// Apakah [imagePath] menunjuk ke foto yang bisa dipakai: data URL yang
+  /// valid, atau (di luar web) file yang masih ada.
+  static bool hasPhoto(String? imagePath) {
+    if (imagePath == null) return false;
+    if (isDataUrl(imagePath)) return bytesOf(imagePath) != null;
+    return !kIsWeb && File(imagePath).existsSync();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,13 +109,22 @@ class ProductPicture extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: Image.file(
-        File(imagePath!),
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (context, error, stack) => fallback,
-      ),
+      child: isDataUrl(imagePath)
+          ? Image.memory(
+              bytesOf(imagePath)!,
+              width: width,
+              height: height,
+              fit: fit,
+              gaplessPlayback: true,
+              errorBuilder: (context, error, stack) => fallback,
+            )
+          : Image.file(
+              File(imagePath!),
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (context, error, stack) => fallback,
+            ),
     );
   }
 }

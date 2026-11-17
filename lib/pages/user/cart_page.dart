@@ -23,6 +23,9 @@ class CartPage extends StatelessWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text('${product.name} dihapus dari keranjang'),
+        // Tertutup otomatis (snackbar ber-aksi tidak otomatis secara bawaan).
+        persist: false,
+        duration: const Duration(seconds: 5),
         action: SnackBarAction(
           label: 'Batal',
           onPressed: () {

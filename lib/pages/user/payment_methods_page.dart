@@ -15,9 +15,9 @@ class PaymentMethodsPage extends StatefulWidget {
 }
 
 class _PaymentMethodsPageState extends State<PaymentMethodsPage> {
-  late PaymentChoice choice =
-      PaymentMethods.decode(auth.currentAccount?.preferredPayment) ??
-      PaymentMethods.defaultChoice;
+  late PaymentChoice choice = PaymentMethods.usable(
+    PaymentMethods.decode(auth.currentAccount?.preferredPayment),
+  );
 
   void save() {
     final error = auth.setPreferredPayment(choice.encoded);

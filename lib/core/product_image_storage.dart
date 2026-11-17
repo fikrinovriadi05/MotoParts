@@ -1,13 +1,26 @@
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// Memilih dan menyimpan foto produk di perangkat. Diabstraksikan agar bisa
 /// diganti di tes (tanpa galeri sungguhan).
+/// Kesalahan memilih foto dengan pesan yang bisa ditampilkan.
+class ProductImageException implements Exception {
+  final String message;
+  const ProductImageException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 abstract class ProductImageStorage {
   /// Membuka galeri; mengembalikan jalur file salinan foto di folder data
-  /// aplikasi, atau null jika dibatalkan.
+  /// aplikasi (di web: data URL foto), atau null jika dibatalkan. Melempar
+  /// [ProductImageException] jika foto tidak bisa dipakai.
   Future<String?> pickFromGallery();
 
   /// Menghapus file foto milik aplikasi. Aman dipanggil dengan null, jalur
@@ -18,7 +31,36 @@ abstract class ProductImageStorage {
 class DeviceProductImageStorage implements ProductImageStorage {
   static const folderName = 'product_images';
 
+  /// Batas ukuran foto di web, yang menyimpannya di penyimpanan browser
+  /// (sekitar 5 MB untuk seluruh data aplikasi).
+  static const maxWebPhotoBytes = 350 * 1024;
+
   final ImagePicker _picker = ImagePicker();
+
+  /// Data URL dari isi foto, mis. `data:image/jpeg;base64,/9j/...`.
+  static String dataUrlFromBytes(List<int> bytes, String mimeType) =>
+      'data:$mimeType;base64,${base64Encode(bytes)}';
+
+  /// Web: foto disimpan sebagai data URL (tidak ada folder berkas aplikasi).
+  Future<String?> _pickForWeb() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 70,
+    );
+    if (picked == null) return null;
+
+    final bytes = await picked.readAsBytes();
+    if (bytes.length > maxWebPhotoBytes) {
+      throw ProductImageException(
+        'Foto terlalu besar untuk versi web '
+        '(${(bytes.length / 1024).round()} KB, maksimal '
+        '${maxWebPhotoBytes ~/ 1024} KB). Pilih foto yang lebih kecil.',
+      );
+    }
+    return dataUrlFromBytes(bytes, picked.mimeType ?? 'image/jpeg');
+  }
 
   /// Hanya file di folder foto produk yang boleh dihapus.
   static bool isManagedPath(String path) {
@@ -28,6 +70,8 @@ class DeviceProductImageStorage implements ProductImageStorage {
 
   @override
   Future<String?> pickFromGallery() async {
+    if (kIsWeb) return _pickForWeb();
+
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
       // Diperkecil agar penyimpanan dan pemuatan tetap ringan.

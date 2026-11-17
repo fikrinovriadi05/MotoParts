@@ -492,6 +492,27 @@ void main() {
     });
 
     testWidgets(
+      'kesalahan tak terduga: tetap ada pesan dan tombol aktif lagi',
+      (tester) async {
+        login();
+        fakeLocation.unexpectedError = StateError('pustaka GPS gagal');
+        bigScreen(tester);
+        await tester.pumpWidget(app(const AddressFormPage()));
+
+        await tester.tap(find.text(gpsButton));
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Lokasi tidak dapat diambil. Isi alamat secara manual.'),
+          findsOneWidget,
+        );
+        expect(find.text(gpsButton), findsOneWidget);
+        expect(find.textContaining('Titik GPS:'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
       'selama mencari: tombol menampilkan status dan tidak bisa ditekan ganda',
       (tester) async {
         login();

@@ -85,6 +85,9 @@ class _AddressFormPageState extends State<AddressFormPage> {
       );
     } on LocationException catch (e) {
       _snack(e.message);
+    } on Object {
+      // Kesalahan tak terduga: tetap beri tahu pengguna, jangan diam.
+      _snack('Lokasi tidak dapat diambil. Isi alamat secara manual.');
     } finally {
       if (mounted) setState(() => locating = false);
     }
