@@ -10,6 +10,7 @@ import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/app_logo.dart';
 import 'package:motopart/widgets/category_circle.dart';
+import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/product_grid.dart';
 import 'package:motopart/widgets/promo_banner.dart';
 import 'package:motopart/widgets/section_title.dart';
@@ -145,10 +146,13 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(width: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final category = productCategories[index];
-                      return CategoryCircle(
-                        title: category.name,
-                        icon: category.icon,
-                        onTap: () => _openCatalog(category: category.name),
+                      return PopIn(
+                        index: index,
+                        child: CategoryCircle(
+                          title: category.name,
+                          icon: category.icon,
+                          onTap: () => _openCatalog(category: category.name),
+                        ),
                       );
                     },
                   ),

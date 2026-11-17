@@ -9,6 +9,7 @@ import 'package:motopart/pages/user/home_page.dart';
 import 'package:motopart/pages/user/profile_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/widgets/cart_badge_icon.dart';
+import 'package:motopart/widgets/motion.dart';
 
 class UserShell extends StatefulWidget {
   const UserShell({super.key});
@@ -67,12 +68,18 @@ class _UserShellState extends State<UserShell>
                 destinations: [
                   const NavigationDestination(
                     icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home_rounded),
+                    selectedIcon: PopIn(
+                      from: 0.5,
+                      child: Icon(Icons.home_rounded),
+                    ),
                     label: 'Beranda',
                   ),
                   const NavigationDestination(
                     icon: Icon(Icons.grid_view_outlined),
-                    selectedIcon: Icon(Icons.grid_view_rounded),
+                    selectedIcon: PopIn(
+                      from: 0.5,
+                      child: Icon(Icons.grid_view_rounded),
+                    ),
                     label: 'Kategori',
                   ),
                   NavigationDestination(
@@ -80,15 +87,21 @@ class _UserShellState extends State<UserShell>
                       count: store.cartCount,
                       icon: Icons.shopping_bag_outlined,
                     ),
-                    selectedIcon: CartBadgeIcon(
-                      count: store.cartCount,
-                      icon: Icons.shopping_bag_rounded,
+                    selectedIcon: PopIn(
+                      from: 0.5,
+                      child: CartBadgeIcon(
+                        count: store.cartCount,
+                        icon: Icons.shopping_bag_rounded,
+                      ),
                     ),
                     label: 'Keranjang',
                   ),
                   const NavigationDestination(
                     icon: Icon(Icons.person_outline_rounded),
-                    selectedIcon: Icon(Icons.person_rounded),
+                    selectedIcon: PopIn(
+                      from: 0.5,
+                      child: Icon(Icons.person_rounded),
+                    ),
                     label: 'Akun',
                   ),
                 ],

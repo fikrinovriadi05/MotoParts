@@ -288,10 +288,13 @@ void main() {
 
     testWidgets('kartu mengecil sedikit saat ditekan', (tester) async {
       await pumpCard(tester, product());
-      final scale = find.descendant(
-        of: find.byType(ProductCard),
-        matching: find.byType(AnimatedScale),
-      );
+      // AnimatedScale terluar = efek tekan (yang di dalamnya: zoom gambar saat hover).
+      final scale = find
+          .descendant(
+            of: find.byType(ProductCard),
+            matching: find.byType(AnimatedScale),
+          )
+          .first;
       expect(tester.widget<AnimatedScale>(scale).scale, 1);
 
       final gesture = await tester.startGesture(

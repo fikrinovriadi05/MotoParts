@@ -10,6 +10,8 @@ import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/section_title.dart';
+import 'package:motopart/widgets/hover.dart';
+import 'package:motopart/widgets/motion.dart';
 import 'package:motopart/widgets/status_badge.dart';
 
 /// Jumlah kolom kartu statistik: 2 di HP, 4 di layar lebar.
@@ -135,30 +137,43 @@ class AdminDashboardPage extends StatelessWidget {
                       mainAxisSpacing: AppSpacing.md + 2,
                       childAspectRatio: 1.25,
                       children: [
-                        _StatCard(
-                          title: 'Total Produk',
-                          value: '${store.products.length}',
-                          icon: Icons.inventory_2_rounded,
-                          color: AppColors.primary,
+                        FadeSlideIn(
+                          index: 0,
+                          child: _StatCard(
+                            title: 'Total Produk',
+                            value: store.products.length,
+                            icon: Icons.inventory_2_rounded,
+                            color: AppColors.primary,
+                          ),
                         ),
-                        _StatCard(
-                          title: 'Total Pesanan',
-                          value: '${store.orders.length}',
-                          icon: Icons.receipt_long_rounded,
-                          color: AppColors.success,
+                        FadeSlideIn(
+                          index: 1,
+                          child: _StatCard(
+                            title: 'Total Pesanan',
+                            value: store.orders.length,
+                            icon: Icons.receipt_long_rounded,
+                            color: AppColors.success,
+                          ),
                         ),
-                        _StatCard(
-                          title: 'Stok Menipis',
-                          value:
-                              '${store.products.where((p) => p.stock < 10).length}',
-                          icon: Icons.warning_amber_rounded,
-                          color: AppColors.warning,
+                        FadeSlideIn(
+                          index: 2,
+                          child: _StatCard(
+                            title: 'Stok Menipis',
+                            value: store.products
+                                .where((p) => p.stock < 10)
+                                .length,
+                            icon: Icons.warning_amber_rounded,
+                            color: AppColors.warning,
+                          ),
                         ),
-                        _StatCard(
-                          title: 'Pelanggan',
-                          value: '${auth.userAccounts.length}',
-                          icon: Icons.people_alt_rounded,
-                          color: palette.primaryText,
+                        FadeSlideIn(
+                          index: 3,
+                          child: _StatCard(
+                            title: 'Pelanggan',
+                            value: auth.userAccounts.length,
+                            icon: Icons.people_alt_rounded,
+                            color: palette.primaryText,
+                          ),
                         ),
                       ],
                     ),
@@ -381,7 +396,7 @@ class _DefaultPasswordBanner extends StatelessWidget {
 
 class _StatCard extends StatelessWidget {
   final String title;
-  final String value;
+  final int value;
   final IconData icon;
   final Color color;
 
@@ -395,52 +410,68 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md + 2),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: palette.border),
-        boxShadow: [
-          BoxShadow(
-            color: palette.shadow,
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+    // Saat kursor di atas: kartu terangkat dan bingkai berwarna sesuai kartu.
+    return HoverBuilder(
+      cursor: SystemMouseCursors.basic,
+      builder: (context, hovered) => AnimatedContainer(
+        duration: UiConfig.motion(const Duration(milliseconds: 160)),
+        padding: const EdgeInsets.all(AppSpacing.md + 2),
+        transform: Matrix4.translationValues(0, hovered ? -4 : 0, 0),
+        decoration: BoxDecoration(
+          color: palette.surface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(
+            color: hovered ? color.withValues(alpha: 0.6) : palette.border,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
+          boxShadow: [
+            BoxShadow(
+              color: hovered ? color.withValues(alpha: 0.25) : palette.shadow,
+              blurRadius: hovered ? 22 : 12,
+              offset: Offset(0, hovered ? 10 : 5),
             ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppTextSizes.display,
-              fontWeight: FontWeight.w800,
-              color: palette.text,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AnimatedScale(
+              scale: hovered ? 1.12 : 1,
+              duration: UiConfig.motion(const Duration(milliseconds: 180)),
+              curve: Curves.easeOutBack,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: hovered ? 0.28 : 0.16),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
             ),
-          ),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: palette.textMuted,
-              fontWeight: FontWeight.w600,
-              fontSize: AppTextSizes.small,
+            const Spacer(),
+            // Angka berhitung naik dari 0 saat kartu pertama tampil.
+            AnimatedCount(
+              value: value,
+              fromZero: true,
+              builder: (v) => '$v',
+              style: TextStyle(
+                fontSize: AppTextSizes.display,
+                fontWeight: FontWeight.w800,
+                color: palette.text,
+              ),
             ),
-          ),
-        ],
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: palette.textMuted,
+                fontWeight: FontWeight.w600,
+                fontSize: AppTextSizes.small,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

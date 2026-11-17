@@ -3,6 +3,7 @@ import 'package:motopart/core/format.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/glass_card.dart';
+import 'package:motopart/widgets/motion.dart';
 
 /// Inisial hari dalam bahasa Indonesia, diindeks dengan `DateTime.weekday`
 /// (1 = Senin ... 7 = Minggu).
@@ -59,8 +60,11 @@ class AdminReportsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      formatRupiah(store.totalSales),
+                    // Total berhitung naik dari 0 saat halaman dibuka.
+                    AnimatedCount(
+                      value: store.totalSales,
+                      fromZero: true,
+                      builder: formatRupiah,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 30,
