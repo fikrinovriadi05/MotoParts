@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/pages/auth/login_page.dart';
 import 'package:motopart/pages/shared/change_password_page.dart';
+import 'package:motopart/pages/user/about_page.dart';
 import 'package:motopart/pages/user/addresses_page.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/pages/user/edit_profile_page.dart';
@@ -177,7 +178,15 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             _menu(context, Icons.notifications_none_rounded, 'Notifikasi'),
-            _menu(context, Icons.info_outline_rounded, 'Tentang MotoPart'),
+            _menu(
+              context,
+              Icons.info_outline_rounded,
+              'Tentang MotoPart',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutPage()),
+              ),
+            ),
             const SizedBox(height: AppSpacing.md),
             PrimaryButton(
               text: 'Keluar',
