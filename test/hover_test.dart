@@ -2,12 +2,14 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/pages/user/product_detail_page.dart';
 import 'package:motopart/pages/user/product_image_viewer.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/category_circle.dart';
 import 'package:motopart/widgets/hover.dart';
+import 'package:motopart/widgets/hover_icon_circle.dart';
 import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/primary_button.dart';
 import 'package:motopart/widgets/product_card.dart';
@@ -423,5 +425,184 @@ void main() {
       expect(find.byType(ProductImageViewer), findsOneWidget);
       expect(cursorNow(), SystemMouseCursors.grab);
     });
+  });
+
+  group('Lingkaran ikon kategori: reaksi hover yang jelas', () {
+    Widget circle({bool outlined = true}) => app(
+      Scaffold(
+        body: Center(
+          child: HoverBuilder(
+            builder: (context, hovered) => HoverIconCircle(
+              icon: Icons.settings_rounded,
+              hovered: hovered,
+              outlined: outlined,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    BoxDecoration decorationOf(WidgetTester tester) =>
+        tester
+                .widget<AnimatedContainer>(
+                  find.descendant(
+                    of: find.byType(HoverIconCircle),
+                    matching: find.byType(AnimatedContainer),
+                  ),
+                )
+                .decoration!
+            as BoxDecoration;
+
+    Color? iconColor(WidgetTester tester) =>
+        tester.widget<Icon>(find.byType(Icon)).color;
+
+    double scaleOf(WidgetTester tester) => tester
+        .widget<AnimatedScale>(
+          find.descendant(
+            of: find.byType(HoverIconCircle),
+            matching: find.byType(AnimatedScale),
+          ),
+        )
+        .scale;
+
+    for (final outlined in [true, false]) {
+      testWidgets(
+        'terisi oranye penuh, ikon berwarna kontras, membesar, dan bersinar '
+        '(outlined: $outlined)',
+        (tester) async {
+          await tester.pumpWidget(circle(outlined: outlined));
+          await tester.pumpAndSettle();
+          final mouse = await newMouse(tester);
+          final before = decorationOf(tester);
+          final iconBefore = iconColor(tester);
+          expect(scaleOf(tester), 1.0);
+          expect(before.color, isNot(AppColors.primary));
+
+          await mouse.moveTo(tester.getCenter(find.byType(HoverIconCircle)));
+          await tester.pumpAndSettle();
+
+          final after = decorationOf(tester);
+          expect(after.color, AppColors.primary);
+          expect(iconColor(tester), AppColors.onPrimary);
+          expect(iconColor(tester), isNot(iconBefore));
+          expect(scaleOf(tester), 1.1);
+          expect(
+            after.boxShadow!.single.blurRadius,
+            greaterThan(before.boxShadow!.single.blurRadius),
+          );
+          expect(after.boxShadow!.single.color.a, greaterThan(0.3));
+
+          await mouse.moveTo(const Offset(1, 1));
+          await tester.pumpAndSettle();
+          expect(decorationOf(tester).color, before.color);
+          expect(iconColor(tester), iconBefore);
+          expect(scaleOf(tester), 1.0);
+        },
+      );
+    }
+
+    testWidgets(
+      'lingkaran di Beranda (CategoryCircle) memakai reaksi yang sama',
+      (tester) async {
+        var taps = 0;
+        await tester.pumpWidget(
+          app(
+            Scaffold(
+              body: Center(
+                child: CategoryCircle(
+                  title: 'Rem',
+                  icon: Icons.disc_full_rounded,
+                  onTap: () => taps++,
+                ),
+              ),
+            ),
+          ),
+        );
+        final mouse = await newMouse(tester);
+
+        await mouse.moveTo(tester.getCenter(find.byType(CategoryCircle)));
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<AnimatedContainer>(
+                find.descendant(
+                  of: find.byType(HoverIconCircle),
+                  matching: find.byType(AnimatedContainer),
+                ),
+              )
+              .decoration!,
+          isA<BoxDecoration>().having(
+            (d) => d.color,
+            'color',
+            AppColors.primary,
+          ),
+        );
+
+        await mouse.down(tester.getCenter(find.byType(CategoryCircle)));
+        await mouse.up();
+        await tester.pump();
+        expect(taps, 1);
+      },
+    );
+
+    testWidgets(
+      'halaman Kategori: kartu terangkat dan lingkaran ikon terisi saat hover',
+      (tester) async {
+        tester.view.physicalSize = const Size(800, 1600);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(app(const CategoryPage()));
+        await tester.pumpAndSettle();
+        final mouse = await newMouse(tester);
+
+        final first = find.byType(HoverIconCircle).first;
+        BoxDecoration circleDecoration() =>
+            tester
+                    .widget<AnimatedContainer>(
+                      find
+                          .descendant(
+                            of: first,
+                            matching: find.byType(AnimatedContainer),
+                          )
+                          .first,
+                    )
+                    .decoration!
+                as BoxDecoration;
+        final before = circleDecoration();
+        expect(before.color, isNot(AppColors.primary));
+
+        await mouse.moveTo(tester.getCenter(first));
+        await tester.pumpAndSettle();
+
+        expect(circleDecoration().color, AppColors.primary);
+        // Kartu: bingkai oranye dan bayangan terangkat.
+        final card = tester
+            .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
+            .map((c) => c.decoration)
+            .whereType<BoxDecoration>()
+            .firstWhere((d) => d.borderRadius != null);
+        expect(card.boxShadow!.single.blurRadius, 22);
+        expect((card.border! as Border).top.width, 1.6);
+        expect(cursorNow(), SystemMouseCursors.click);
+
+        // Kartu lain tidak ikut bereaksi.
+        final second = find.byType(HoverIconCircle).at(1);
+        final secondColor =
+            (tester
+                        .widget<AnimatedContainer>(
+                          find
+                              .descendant(
+                                of: second,
+                                matching: find.byType(AnimatedContainer),
+                              )
+                              .first,
+                        )
+                        .decoration!
+                    as BoxDecoration)
+                .color;
+        expect(secondColor, isNot(AppColors.primary));
+      },
+    );
   });
 }

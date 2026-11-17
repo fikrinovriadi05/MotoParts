@@ -3,6 +3,8 @@ import 'package:motopart/core/categories.dart';
 import 'package:motopart/pages/user/catalog_page.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
+import 'package:motopart/widgets/hover.dart';
+import 'package:motopart/widgets/hover_icon_circle.dart';
 import 'package:motopart/widgets/press_scale.dart';
 
 /// Jumlah kolom kartu kategori: 2 di HP, 3 di tablet kecil, 4 di layar lebar.
@@ -48,55 +50,62 @@ class CategoryPage extends StatelessWidget {
                             CatalogPage(selectedCategory: category.name),
                       ),
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: palette.surface,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        border: Border.all(color: palette.border),
-                        boxShadow: [
-                          BoxShadow(
-                            color: palette.shadow,
-                            blurRadius: 12,
-                            offset: const Offset(0, 5),
+                    // Saat kursor di atas: kartu terangkat, bingkai oranye, dan
+                    // lingkaran ikon terisi penuh.
+                    child: HoverBuilder(
+                      builder: (context, hovered) => AnimatedContainer(
+                        duration: UiConfig.motion(
+                          const Duration(milliseconds: 160),
+                        ),
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: palette.surface,
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                          border: Border.all(
+                            color: hovered
+                                ? AppColors.primary.withValues(alpha: 0.7)
+                                : palette.border,
+                            width: hovered ? 1.6 : 1,
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primary.withValues(alpha: 0.16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: hovered
+                                  ? AppColors.primary.withValues(alpha: 0.22)
+                                  : palette.shadow,
+                              blurRadius: hovered ? 22 : 12,
+                              offset: Offset(0, hovered ? 10 : 5),
                             ),
-                            child: Icon(
-                              category.icon,
-                              size: 28,
-                              color: palette.primaryText,
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            HoverIconCircle(
+                              icon: category.icon,
+                              hovered: hovered,
+                              size: 56,
+                              outlined: false,
                             ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            category.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: AppTextSizes.bodyLarge,
-                              fontWeight: FontWeight.w700,
-                              color: palette.text,
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              category.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: AppTextSizes.bodyLarge,
+                                fontWeight: FontWeight.w700,
+                                color: palette.text,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$count produk',
-                            style: TextStyle(
-                              fontSize: AppTextSizes.small,
-                              color: palette.textMuted,
+                            Text(
+                              '$count produk',
+                              style: TextStyle(
+                                fontSize: AppTextSizes.small,
+                                color: palette.textMuted,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
