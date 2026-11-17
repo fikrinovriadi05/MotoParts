@@ -8,8 +8,8 @@ import 'package:motopart/pages/user/category_page.dart';
 import 'package:motopart/pages/user/home_page.dart';
 import 'package:motopart/pages/user/profile_page.dart';
 import 'package:motopart/store/store.dart';
+import 'package:motopart/widgets/animated_bottom_nav.dart';
 import 'package:motopart/widgets/cart_badge_icon.dart';
-import 'package:motopart/widgets/motion.dart';
 
 class UserShell extends StatefulWidget {
   const UserShell({super.key});
@@ -62,47 +62,31 @@ class _UserShellState extends State<UserShell>
           bottomNavigationBar: AnimatedBuilder(
             animation: store,
             builder: (context, _) {
-              return NavigationBar(
+              return AnimatedBottomNav(
                 selectedIndex: index,
-                onDestinationSelected: (value) => userTabIndex.value = value,
-                destinations: [
-                  const NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: PopIn(
-                      from: 0.5,
-                      child: Icon(Icons.home_rounded),
-                    ),
+                onSelected: (value) => userTabIndex.value = value,
+                items: [
+                  const BottomNavItem(
                     label: 'Beranda',
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home_rounded,
                   ),
-                  const NavigationDestination(
-                    icon: Icon(Icons.grid_view_outlined),
-                    selectedIcon: PopIn(
-                      from: 0.5,
-                      child: Icon(Icons.grid_view_rounded),
-                    ),
+                  const BottomNavItem(
                     label: 'Kategori',
+                    icon: Icons.grid_view_outlined,
+                    activeIcon: Icons.grid_view_rounded,
                   ),
-                  NavigationDestination(
-                    icon: CartBadgeIcon(
-                      count: store.cartCount,
-                      icon: Icons.shopping_bag_outlined,
-                    ),
-                    selectedIcon: PopIn(
-                      from: 0.5,
-                      child: CartBadgeIcon(
-                        count: store.cartCount,
-                        icon: Icons.shopping_bag_rounded,
-                      ),
-                    ),
+                  BottomNavItem(
                     label: 'Keranjang',
+                    icon: Icons.shopping_bag_outlined,
+                    activeIcon: Icons.shopping_bag_rounded,
+                    iconBuilder: (icon) =>
+                        CartBadgeIcon(count: store.cartCount, icon: icon),
                   ),
-                  const NavigationDestination(
-                    icon: Icon(Icons.person_outline_rounded),
-                    selectedIcon: PopIn(
-                      from: 0.5,
-                      child: Icon(Icons.person_rounded),
-                    ),
+                  const BottomNavItem(
                     label: 'Akun',
+                    icon: Icons.person_outline_rounded,
+                    activeIcon: Icons.person_rounded,
                   ),
                 ],
               );

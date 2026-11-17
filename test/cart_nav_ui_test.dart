@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:motopart/widgets/animated_bottom_nav.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/core/navigation.dart';
@@ -201,7 +202,7 @@ void main() {
     testWidgets('4 tab: Beranda, Kategori, Keranjang, Akun', (tester) async {
       await pumpShell(tester);
 
-      final bar = find.byType(NavigationBar);
+      final bar = find.byType(AnimatedBottomNav);
       for (final label in ['Beranda', 'Kategori', 'Keranjang', 'Akun']) {
         expect(
           find.descendant(of: bar, matching: find.text(label)),
@@ -261,7 +262,7 @@ void main() {
 
       await tester.tap(
         find.descendant(
-          of: find.byType(NavigationBar),
+          of: find.byType(AnimatedBottomNav),
           matching: find.text('Keranjang'),
         ),
       );

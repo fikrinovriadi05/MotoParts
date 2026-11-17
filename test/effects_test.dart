@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:motopart/widgets/animated_bottom_nav.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/pages/admin/admin_dashboard_page.dart';
@@ -739,7 +740,7 @@ void main() {
       await dispose(tester);
     });
 
-    testWidgets('ikon menu yang dipilih melompat saat berpindah tab', (
+    testWidgets('lingkaran penanda bergeser dan ikon terpilih terangkat', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 3000);
@@ -748,41 +749,25 @@ void main() {
       await tester.pumpWidget(app(const UserShell()));
       await tester.pump(const Duration(seconds: 2));
 
-      Finder navPop() => find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.byType(PopIn),
-      );
-      expect(navPop(), findsOneWidget);
-      expect(
-        find.descendant(
-          of: navPop(),
-          matching: find.byIcon(Icons.home_rounded),
-        ),
-        findsOneWidget,
-      );
+      Finder indicator() => find.byKey(const ValueKey('nav-indicator'));
+      double indicatorX() => tester.getCenter(indicator()).dx;
+      final home = indicatorX();
 
       await tester.tap(
         find.descendant(
-          of: find.byType(NavigationBar),
+          of: find.byType(AnimatedBottomNav),
           matching: find.text('Kategori'),
         ),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 80));
-
-      expect(navPop(), findsOneWidget);
-      expect(
-        find.descendant(
-          of: navPop(),
-          matching: find.byIcon(Icons.grid_view_rounded),
-        ),
-        findsOneWidget,
-      );
-      // Sedang melompat: belum penuh.
-      expect(opacityOf(tester, navPop()), lessThan(1));
+      // Sedang bergeser: sudah meninggalkan Beranda tetapi belum sampai.
+      final during = indicatorX();
+      expect(during, greaterThan(home));
 
       await tester.pump(const Duration(seconds: 2));
-      expect(opacityOf(tester, navPop()), 1);
+      final settled = indicatorX();
+      expect(settled, greaterThan(during));
       await dispose(tester);
     });
   });
