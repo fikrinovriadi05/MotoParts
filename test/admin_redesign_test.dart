@@ -4,9 +4,11 @@ import 'package:motopart/core/categories.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/models/order_item.dart';
+import 'package:motopart/models/product.dart';
 import 'package:motopart/models/review.dart';
 import 'package:motopart/pages/admin/admin_categories_page.dart';
 import 'package:motopart/pages/admin/admin_dashboard_page.dart';
+import 'package:motopart/pages/admin/admin_product_form_page.dart';
 import 'package:motopart/pages/admin/admin_products_page.dart';
 import 'package:motopart/pages/admin/admin_settings_page.dart';
 import 'package:motopart/pages/admin/admin_shell.dart';
@@ -15,6 +17,7 @@ import 'package:motopart/store/auth_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/admin/sales_chart.dart';
+import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/shimmer.dart';
 import 'package:motopart/widgets/motopart_wordmark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -369,7 +372,8 @@ void main() {
       expect(find.byType(FloatingActionButton), findsOneWidget);
       await tester.tap(find.text('Tambah Produk'));
       await tester.pumpAndSettle();
-      expect(find.text('Tambah Produk'), findsWidgets);
+      expect(find.byType(AdminProductFormPage), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
       expect(find.text('Nama Produk'), findsOneWidget);
     });
 
@@ -508,6 +512,191 @@ void main() {
       await tester.pumpWidget(app(const AdminProductsPage(), scale: 1.3));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('form produk (halaman)', () {
+    Future<void> openForm(WidgetTester tester, {Product? product}) async {
+      size(tester, 400, 1800);
+      await tester.pumpWidget(app(AdminProductFormPage(product: product)));
+      await tester.pumpAndSettle();
+    }
+
+    Finder field(String label) => find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == label,
+    );
+
+    ProductPicture preview(WidgetTester tester) => tester
+        .widget<ProductPicture>(find.byKey(const ValueKey('photo-preview')));
+
+    testWidgets('tambah: simpan membuat produk dan menutup halaman', (
+      tester,
+    ) async {
+      size(tester, 400, 1800);
+      await tester.pumpWidget(
+        app(
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () =>
+                    const AdminProductsPage().productDialog(context),
+                child: const Text('buka'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('buka'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(field('Nama Produk'), 'Rantai Motor');
+      await tester.enterText(field('Harga'), '95000');
+      await tester.enterText(field('Stok'), '7');
+      await tester.ensureVisible(find.text('Simpan'));
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AdminProductFormPage), findsNothing);
+      expect(store.products.last.name, 'Rantai Motor');
+      expect(store.products.last.price, 95000);
+    });
+
+    testWidgets('validasi: nama wajib diisi', (tester) async {
+      await openForm(tester);
+      await tester.ensureVisible(find.text('Simpan'));
+      await tester.tap(find.text('Simpan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nama produk wajib diisi.'), findsOneWidget);
+      expect(find.byType(AdminProductFormPage), findsOneWidget);
+    });
+
+    testWidgets('edit: Batal tidak mengubah produk', (tester) async {
+      final product = store.products.first;
+      final name = product.name;
+      await openForm(tester, product: product);
+
+      expect(find.text('Edit Produk'), findsOneWidget);
+      expect(find.text('Simpan Perubahan'), findsOneWidget);
+      await tester.enterText(field('Nama Produk'), 'Nama Lain');
+      await tester.ensureVisible(find.text('Batal'));
+      await tester.tap(find.text('Batal'));
+      await tester.pumpAndSettle();
+      expect(product.name, name);
+    });
+
+    testWidgets('URL gambar: pratinjau dan tersimpan sebagai foto produk', (
+      tester,
+    ) async {
+      final product = store.products.first;
+      await openForm(tester, product: product);
+
+      await tester.enterText(
+        field('URL Gambar (opsional)'),
+        'https://contoh.com/foto.jpg',
+      );
+      await tester.pump();
+      expect(preview(tester).imagePath, 'https://contoh.com/foto.jpg');
+      expect(find.text('Hapus Foto'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Simpan Perubahan'));
+      await tester.tap(find.text('Simpan Perubahan'));
+      await tester.pumpAndSettle();
+      expect(product.imagePath, 'https://contoh.com/foto.jpg');
+    });
+
+    testWidgets('URL tidak valid: pesan galat dan tidak bisa disimpan', (
+      tester,
+    ) async {
+      final product = store.products.first;
+      await openForm(tester, product: product);
+
+      await tester.enterText(field('URL Gambar (opsional)'), 'foto.jpg');
+      await tester.pump();
+      expect(
+        find.text('Alamat gambar harus diawali http:// atau https://'),
+        findsWidgets,
+      );
+      expect(preview(tester).imagePath, isNull);
+
+      await tester.ensureVisible(find.text('Simpan Perubahan'));
+      await tester.tap(find.text('Simpan Perubahan'));
+      await tester.pumpAndSettle();
+      expect(product.imagePath, isNull);
+      expect(find.byType(AdminProductFormPage), findsOneWidget);
+    });
+
+    testWidgets('produk berfoto URL: kolom terisi; Hapus Foto mengosongkan', (
+      tester,
+    ) async {
+      final product = store.products.first
+        ..imagePath = 'https://contoh.com/a.png';
+      await openForm(tester, product: product);
+
+      expect(
+        tester
+            .widget<TextField>(field('URL Gambar (opsional)'))
+            .controller!
+            .text,
+        'https://contoh.com/a.png',
+      );
+      await tester.tap(find.text('Hapus Foto'));
+      await tester.pump();
+      expect(
+        tester
+            .widget<TextField>(field('URL Gambar (opsional)'))
+            .controller!
+            .text,
+        isEmpty,
+      );
+      expect(preview(tester).imagePath, isNull);
+    });
+
+    testWidgets('layar 320, teks besar: tanpa overflow', (tester) async {
+      size(tester, 320, 600);
+      await tester.pumpWidget(app(const AdminProductFormPage(), scale: 1.4));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('layar lebar: formulir dibatasi lebarnya', (tester) async {
+      size(tester, 1400, 900);
+      await tester.pumpWidget(app(const AdminProductFormPage()));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getSize(find.byType(ListView)).width,
+        lessThanOrEqualTo(640),
+      );
+    });
+  });
+
+  group('ProductPicture dan URL', () {
+    test('mengenali alamat web', () {
+      expect(ProductPicture.isNetworkUrl('https://a.com/x.png'), isTrue);
+      expect(ProductPicture.isNetworkUrl('http://a.com/x.png'), isTrue);
+      expect(ProductPicture.isNetworkUrl('  https://a.com/x.png  '), isTrue);
+      expect(ProductPicture.isNetworkUrl('ftp://a.com/x.png'), isFalse);
+      expect(ProductPicture.isNetworkUrl('https://'), isFalse);
+      expect(ProductPicture.isNetworkUrl('foto.png'), isFalse);
+      expect(ProductPicture.isNetworkUrl(null), isFalse);
+      expect(ProductPicture.hasPhoto('https://a.com/x.png'), isTrue);
+    });
+
+    testWidgets('gambar web yang gagal dimuat kembali ke ikon', (tester) async {
+      await tester.pumpWidget(
+        app(
+          const Scaffold(
+            body: ProductPicture(
+              imagePath: 'https://tidak-ada.example/x.png',
+              icon: Icons.build_rounded,
+              width: 80,
+              height: 80,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byIcon(Icons.build_rounded), findsOneWidget);
     });
   });
 
@@ -751,6 +940,50 @@ void main() {
         },
       );
     }
+  });
+
+  group('urutan kategori', () {
+    test('moveCategory memakai posisi akhir dan menjaga isi', () {
+      final names = store.categoryNames;
+      store.moveCategory(0, 2);
+      expect(store.categoryNames, [
+        names[1],
+        names[2],
+        names[0],
+        ...names.skip(3),
+      ]);
+      store.moveCategory(2, 0);
+      expect(store.categoryNames, names);
+    });
+
+    test('indeks di luar batas diabaikan atau dipangkas', () {
+      final names = store.categoryNames;
+      store.moveCategory(-1, 0);
+      store.moveCategory(99, 0);
+      store.moveCategory(2, 2);
+      expect(store.categoryNames, names);
+      store.moveCategory(0, 99);
+      expect(store.categoryNames.last, names.first);
+    });
+
+    testWidgets('seret pegangan memindahkan kategori', (tester) async {
+      size(tester, 400, 1600);
+      await tester.pumpWidget(app(const AdminCategoriesPage()));
+      await tester.pumpAndSettle();
+      final first = store.categoryNames.first;
+      expect(find.text('Seret untuk mengurutkan'), findsOneWidget);
+
+      final handle = find.byTooltip('Seret untuk mengurutkan $first');
+      final gesture = await tester.startGesture(tester.getCenter(handle));
+      await tester.pump(const Duration(milliseconds: 100));
+      await gesture.moveBy(const Offset(0, 160));
+      await tester.pump(const Duration(milliseconds: 100));
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(store.categoryNames.first, isNot(first));
+      expect(store.categoryNames.indexOf(first), greaterThan(0));
+    });
   });
 
   group('pengaturan admin', () {

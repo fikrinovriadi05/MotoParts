@@ -8,6 +8,7 @@ import 'package:motopart/core/safe_save.dart';
 import 'package:motopart/models/account.dart';
 import 'package:motopart/pages/admin/admin_dashboard_page.dart';
 import 'package:motopart/pages/admin/admin_orders_page.dart';
+import 'package:motopart/pages/admin/admin_product_form_page.dart';
 import 'package:motopart/pages/admin/admin_products_page.dart';
 import 'package:motopart/pages/admin/admin_reports_page.dart';
 import 'package:motopart/pages/admin/admin_users_page.dart';
@@ -272,9 +273,9 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.byType(AlertDialog),
+          find.byType(AdminProductFormPage),
           findsOneWidget,
-        ); // dialog tetap terbuka
+        ); // form tetap terbuka
         expect(product.imagePath, before);
       },
     );

@@ -719,6 +719,16 @@ void main() {
       expect(gateway.writes.last, 'DELETE /categories/Aki');
     });
 
+    test('urutan baru dikirim sebagai daftar nama', () async {
+      final names = store.categoryNames;
+      store.moveCategory(0, 3);
+      await pumpEventQueue();
+      expect(gateway.writes, ['POST /categories/reorder']);
+      expect(gateway.bodies.first, {
+        'names': [names[1], names[2], names[3], names[0], ...names.skip(4)],
+      });
+    });
+
     test('kategori yang ditolak lokal tidak dikirim', () async {
       store.addCategory('Mesin', 'build'); // ganda
       store.deleteCategory(store.categories.first); // masih dipakai produk

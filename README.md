@@ -61,11 +61,14 @@ Halaman admin tidak bisa dibuka tanpa login admin.
   Ini, Pendapatan, dan Stok Menipis (di bawah 5), grafik penjualan 7 hari,
   daftar stok menipis (ketuk untuk mengedit), dan 5 pesanan terbaru.
 - **Produk**: cari + filter kategori, stok cepat dengan tombol - / +, form
-  tambah/edit (foto dari galeri, chip tipe motor yang cocok), hapus dengan
-  tombol Urungkan.
+  tambah/edit sebagai halaman penuh (foto dari galeri **atau URL gambar** dengan
+  pratinjau, chip tipe motor yang cocok), hapus dengan tombol Urungkan. Gambar
+  dari URL dimuat saat ditampilkan; jika alamatnya salah atau situsnya
+  melarang, tampil ikon produk.
 - **Pesanan**: filter status, ubah status, detail pesanan.
-- **Kategori**: tambah, ubah nama/ikon, hapus (ditolak bila masih dipakai
-  produk; mengganti nama ikut memindahkan produknya).
+- **Kategori**: tambah, ubah nama/ikon, **seret untuk mengurutkan** (urutan juga
+  dipakai di beranda pembeli), hapus (ditolak bila masih dipakai produk;
+  mengganti nama ikut memindahkan produknya).
 - **Pengaturan**: tampilan, laporan penjualan, pengguna, ganti password, reset
   data contoh, dan keluar (dengan konfirmasi).
 

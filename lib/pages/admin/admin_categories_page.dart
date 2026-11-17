@@ -209,32 +209,72 @@ class AdminCategoriesPage extends StatelessWidget {
               ),
             );
           }
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.page,
-              AppSpacing.page,
-              96, // ruang untuk tombol tambah
-            ),
+          return Column(
             children: [
-              Text(
-                '${categories.length} kategori',
-                style: TextStyle(
-                  color: palette.textMuted,
-                  fontSize: AppTextSizes.small,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.page,
+                  AppSpacing.page,
+                  AppSpacing.page,
+                  AppSpacing.sm,
+                ),
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: AppSpacing.md,
+                  runSpacing: 2,
+                  children: [
+                    Text(
+                      '${categories.length} kategori',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: AppTextSizes.small,
+                      ),
+                    ),
+                    Text(
+                      'Seret untuk mengurutkan',
+                      style: TextStyle(
+                        color: palette.textMuted,
+                        fontSize: AppTextSizes.small,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              for (final category in categories)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                  child: _CategoryTile(
-                    category: category,
-                    productCount: store.productCountIn(category.name),
-                    onEdit: () => categoryDialog(context, category: category),
-                    onDelete: () => _delete(context, category),
+              Expanded(
+                child: ReorderableListView.builder(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.page,
+                    0,
+                    AppSpacing.page,
+                    96, // ruang untuk tombol tambah
                   ),
+                  buildDefaultDragHandles: false,
+                  itemCount: categories.length,
+                  onReorderItem: store.moveCategory,
+                  proxyDecorator: (child, index, animation) => Material(
+                    color: Colors.transparent,
+                    elevation: 6,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    child: child,
+                  ),
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+                    return Padding(
+                      key: ValueKey('category-${category.name}'),
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: _CategoryTile(
+                        category: category,
+                        index: index,
+                        productCount: store.productCountIn(category.name),
+                        onEdit: () =>
+                            categoryDialog(context, category: category),
+                        onDelete: () => _delete(context, category),
+                      ),
+                    );
+                  },
                 ),
+              ),
             ],
           );
         },
@@ -245,12 +285,14 @@ class AdminCategoriesPage extends StatelessWidget {
 
 class _CategoryTile extends StatelessWidget {
   final ProductCategory category;
+  final int index;
   final int productCount;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _CategoryTile({
     required this.category,
+    required this.index,
     required this.productCount,
     required this.onEdit,
     required this.onDelete,
@@ -283,6 +325,23 @@ class _CategoryTile extends StatelessWidget {
         ),
         child: Row(
           children: [
+            ReorderableDragStartListener(
+              index: index,
+              child: Tooltip(
+                message: 'Seret untuk mengurutkan ${category.name}',
+                child: SizedBox(
+                  width: 40,
+                  height: 48,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.grab,
+                    child: Icon(
+                      Icons.drag_indicator_rounded,
+                      color: palette.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Container(
               width: 48,
               height: 48,

@@ -77,7 +77,7 @@ sesuai. Token dikirim lewat header `Authorization: Bearer <token>`.
 | `GET /products` | publik | Daftar produk |
 | `POST /products`, `PUT/DELETE /products/{id}` | admin | Kelola produk |
 | `GET /categories` | publik | Daftar kategori |
-| `POST /categories`, `PUT/DELETE /categories/{nama}` | admin | Kelola kategori (ganti nama memindahkan produknya; hapus ditolak bila masih dipakai) |
+| `POST /categories`, `POST /categories/reorder` (`{names: [...]}` urutan lengkap), `PUT/DELETE /categories/{nama}` | admin | Kelola kategori (ganti nama memindahkan produknya; hapus ditolak bila masih dipakai) |
 | `GET /orders` | masuk | Pesanan sendiri (admin: semua) |
 | `POST /orders` | masuk | Checkout: stok dikunci & dipotong dalam transaksi; harga diambil dari database |
 | `PUT /orders/{code}/status` | admin (pembeli: hanya pesanannya yang menunggu bayar) | Ubah status; batal mengembalikan stok |
@@ -94,5 +94,5 @@ powershell -ExecutionPolicy Bypass -File backend\tests\run.ps1
 ```
 
 Skrip ini menyalakan MariaDB **sementara** (port 3307, folder data sementara)
-dan server PHP, menjalankan 117 tes API, lalu mematikan dan menghapusnya.
+dan server PHP, menjalankan 123 tes API, lalu mematikan dan menghapusnya.
 Database XAMPP Anda tidak disentuh.

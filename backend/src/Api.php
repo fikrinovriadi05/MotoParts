@@ -36,6 +36,7 @@ final class Api
 
         $r->add('GET', '/categories', [self::class, 'categories']);
         $r->add('POST', '/categories', [self::class, 'addCategory']);
+        $r->add('POST', '/categories/reorder', [self::class, 'reorderCategories']);
         $r->add('PUT', '/categories/{name}', [self::class, 'updateCategory']);
         $r->add('DELETE', '/categories/{name}', [self::class, 'deleteCategory']);
 
@@ -536,6 +537,40 @@ final class Api
         $pdo->prepare('INSERT INTO categories (name, icon, sort_order) VALUES (?, ?, ?)')
             ->execute([$name, $icon, $next]);
         http_response_code(201);
+        return ['categories' => self::categoryList()];
+    }
+
+    /** Mengatur urutan kategori: `names` harus memuat semua kategori tepat sekali. */
+    public static function reorderCategories(Request $req): array
+    {
+        Auth::requireAdmin($req);
+        $names = $req->get('names');
+        $pdo = Db::pdo();
+        $existing = $pdo->query('SELECT id, name FROM categories')->fetchAll();
+        if (!is_array($names) || count($names) !== count($existing)
+            || count(array_unique($names)) !== count($names)) {
+            throw new HttpError(422, 'Daftar urutan kategori tidak lengkap.');
+        }
+        $ids = [];
+        foreach ($existing as $row) {
+            $ids[$row['name']] = $row['id'];
+        }
+        foreach ($names as $name) {
+            if (!is_string($name) || !isset($ids[$name])) {
+                throw new HttpError(422, 'Daftar urutan kategori tidak lengkap.');
+            }
+        }
+        $pdo->beginTransaction();
+        try {
+            $stmt = $pdo->prepare('UPDATE categories SET sort_order = ? WHERE id = ?');
+            foreach (array_values($names) as $i => $name) {
+                $stmt->execute([$i, $ids[$name]]);
+            }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
         return ['categories' => self::categoryList()];
     }
 

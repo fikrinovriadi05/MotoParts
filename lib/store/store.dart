@@ -344,6 +344,17 @@ class Store extends ChangeNotifier {
     return null;
   }
 
+  /// Memindahkan kategori dari urutan [oldIndex] ke [newIndex] (semantik
+  /// `onReorderItem`: [newIndex] adalah posisi akhir setelah item dicabut).
+  void moveCategory(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= categories.length) return;
+    final target = newIndex.clamp(0, categories.length - 1);
+    if (target == oldIndex) return;
+    categories.insert(target, categories.removeAt(oldIndex));
+    notifyListeners();
+    _push('POST', '/categories/reorder', {'names': categoryNames});
+  }
+
   /// Menghapus kategori yang tidak dipakai produk. Mengembalikan pesan
   /// kesalahan, atau `null`.
   String? deleteCategory(ProductCategory category) {

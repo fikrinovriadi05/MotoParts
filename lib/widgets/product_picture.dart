@@ -59,6 +59,15 @@ class ProductPicture extends StatelessWidget {
       path.startsWith('data:image/') &&
       path.contains(';base64,');
 
+  /// Foto berupa alamat web (`http://` atau `https://`).
+  static bool isNetworkUrl(String? path) {
+    if (path == null) return false;
+    final uri = Uri.tryParse(path.trim());
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
+
   static final _decoded = <String, Uint8List>{};
 
   /// Isi foto dari data URL; null jika rusak. Hasil disimpan sementara supaya
@@ -77,9 +86,11 @@ class ProductPicture extends StatelessWidget {
   }
 
   /// Apakah [imagePath] menunjuk ke foto yang bisa dipakai: data URL yang
-  /// valid, atau (di luar web) file yang masih ada.
+  /// valid, alamat web (dimuat saat ditampilkan; jika gagal dimuat tampil
+  /// ikon), atau (di luar web) file yang masih ada.
   static bool hasPhoto(String? imagePath) {
     if (imagePath == null) return false;
+    if (isNetworkUrl(imagePath)) return true;
     if (isDataUrl(imagePath)) return bytesOf(imagePath) != null;
     return !kIsWeb && File(imagePath).existsSync();
   }
@@ -109,7 +120,19 @@ class ProductPicture extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: isDataUrl(imagePath)
+      child: isNetworkUrl(imagePath)
+          ? Image.network(
+              imagePath!.trim(),
+              width: width,
+              height: height,
+              fit: fit,
+              gaplessPlayback: true,
+              // Selama memuat dan bila gagal (alamat salah/diblokir): ikon.
+              loadingBuilder: (context, child, progress) =>
+                  progress == null ? child : fallback,
+              errorBuilder: (context, error, stack) => fallback,
+            )
+          : isDataUrl(imagePath)
           ? Image.memory(
               bytesOf(imagePath)!,
               width: width,

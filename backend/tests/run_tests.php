@@ -268,6 +268,19 @@ call('DELETE', '/products/' . $cp['product']['id'], null, $at);
 expect('kategori hapus: bukan admin', call('DELETE', '/categories/Aki', null, $ot), 403);
 expect('kategori hapus', call('DELETE', '/categories/Aki', null, $at), 200);
 expect('kategori hapus lagi', call('DELETE', '/categories/Aki', null, $at), 404);
+// Urutan kategori.
+$order = array_column($cats['categories'], 'name');
+$reversed = array_reverse($order);
+expect('urutan: bukan admin', call('POST', '/categories/reorder', ['names' => $reversed], $ot), 403);
+expect('urutan: kurang lengkap', call('POST', '/categories/reorder', ['names' => array_slice($reversed, 1)], $at), 422);
+expect('urutan: nama asing', call('POST', '/categories/reorder', ['names' => array_merge(array_slice($reversed, 1), ['Asing'])], $at), 422);
+expect('urutan: nama ganda', call('POST', '/categories/reorder', ['names' => array_merge(array_slice($reversed, 1), [$reversed[1]])], $at), 422);
+[$s, $ro] = call('POST', '/categories/reorder', ['names' => $reversed], $at);
+check('urutan diubah', $s === 200 && array_column($ro['categories'], 'name') === $reversed, $ro);
+[, $ro2] = call('GET', '/categories');
+check('urutan tersimpan', array_column($ro2['categories'], 'name') === $reversed, $ro2);
+call('POST', '/categories/reorder', ['names' => $order], $at);
+
 [, $sc] = call('GET', '/sync');
 check('sync memuat kategori', count($sc['categories'] ?? []) === 7, count($sc['categories'] ?? []));
 
