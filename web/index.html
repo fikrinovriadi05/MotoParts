@@ -49,6 +49,20 @@
       -webkit-touch-callout: none;
     }
     flt-semantics:focus, flt-semantics *:focus { outline: none !important; }
+
+    /* Klik cepat / klik dua kali tidak boleh "memilih" kanvas: browser akan
+       menimpanya dengan lapisan seleksi biru transparan seperti satu layar
+       penuh. Teks di kolom isian tetap bisa dipilih (digambar Flutter). */
+    flutter-view, flt-glass-pane, flt-scene-host, flt-semantics-host,
+    flt-semantics, canvas {
+      -webkit-user-select: none !important;
+      -moz-user-select: none !important;
+      user-select: none !important;
+    }
+    flutter-view ::selection, flt-glass-pane ::selection,
+    flt-semantics ::selection, canvas::selection {
+      background: transparent !important;
+    }
     #muat {
       position: fixed; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; gap: 22px;
