@@ -168,7 +168,7 @@ class AuthStore extends ChangeNotifier {
     }
 
     _current = account;
-    _store?.setCurrentAccount(account.id);
+    _store?.setCurrentAccount(account.id, isAdmin: _current?.isAdmin ?? false);
     notifyListeners();
     return null;
   }
@@ -230,7 +230,10 @@ class AuthStore extends ChangeNotifier {
       gateway.token = json['token'] as String;
       unawaited(_prefs?.setString(tokenKey, gateway.token!));
       _current = Account.fromJson(json['user'] as Map<String, dynamic>);
-      _store?.setCurrentAccount(_current!.id);
+      _store?.setCurrentAccount(
+        _current!.id,
+        isAdmin: _current?.isAdmin ?? false,
+      );
       notifyListeners();
       // Data pribadi (pesanan, wishlist, daftar pengguna untuk admin).
       try {
@@ -262,7 +265,12 @@ class AuthStore extends ChangeNotifier {
         for (final u in (json['users'] as List?) ?? const [])
           Account.fromJson(u as Map<String, dynamic>),
       ]);
-    if (previous != _current?.id) _store?.setCurrentAccount(_current?.id);
+    if (previous != _current?.id) {
+      _store?.setCurrentAccount(
+        _current?.id,
+        isAdmin: _current?.isAdmin ?? false,
+      );
+    }
     notifyListeners();
   }
 
@@ -273,7 +281,7 @@ class AuthStore extends ChangeNotifier {
     if (_current == null) return;
     _current = null;
     accounts.clear();
-    _store?.setCurrentAccount(null);
+    _store?.setCurrentAccount(null, isAdmin: _current?.isAdmin ?? false);
     notifyListeners();
   }
 
@@ -663,7 +671,7 @@ class AuthStore extends ChangeNotifier {
       accounts.clear();
     }
     _current = null;
-    _store?.setCurrentAccount(null);
+    _store?.setCurrentAccount(null, isAdmin: _current?.isAdmin ?? false);
     _store?.clearPrivateData();
     notifyListeners();
   }
@@ -705,7 +713,10 @@ class AuthStore extends ChangeNotifier {
         // Data rusak: abaikan dan pakai akun bawaan.
       }
     }
-    _store?.setCurrentAccount(_current?.id);
+    _store?.setCurrentAccount(
+      _current?.id,
+      isAdmin: _current?.isAdmin ?? false,
+    );
     super.notifyListeners();
   }
 

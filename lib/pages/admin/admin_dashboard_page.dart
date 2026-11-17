@@ -14,6 +14,7 @@ import 'package:motopart/widgets/admin/sales_chart.dart';
 import 'package:motopart/widgets/admin/stat_card.dart';
 import 'package:motopart/widgets/glass_card.dart';
 import 'package:motopart/widgets/motion.dart';
+import 'package:motopart/widgets/notification_bell.dart';
 import 'package:motopart/widgets/press_scale.dart';
 import 'package:motopart/widgets/product_picture.dart';
 import 'package:motopart/widgets/section_title.dart';
@@ -271,13 +272,20 @@ class _Header extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '${salamWaktu(now)}, $name',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: AppTextSizes.heading,
-              fontWeight: FontWeight.w800,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${salamWaktu(now)}, $name',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: AppTextSizes.heading,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const NotificationBell(admin: true),
+            ],
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(

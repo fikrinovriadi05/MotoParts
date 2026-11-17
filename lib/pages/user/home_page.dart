@@ -10,6 +10,7 @@ import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/app_logo.dart';
 import 'package:motopart/widgets/category_circle.dart';
 import 'package:motopart/widgets/motion.dart';
+import 'package:motopart/widgets/notification_bell.dart';
 import 'package:motopart/widgets/product_grid.dart';
 import 'package:motopart/widgets/promo_banner.dart';
 import 'package:motopart/widgets/section_title.dart';
@@ -274,17 +275,7 @@ class _Header extends StatelessWidget {
                   child: AppLogo(light: true, size: 24),
                 ),
               ),
-              IconButton(
-                tooltip: 'Notifikasi',
-                onPressed: () {},
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.10),
-                ),
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: Colors.white,
-                ),
-              ),
+              const NotificationBell(),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),

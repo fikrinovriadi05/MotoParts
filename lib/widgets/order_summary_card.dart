@@ -58,18 +58,18 @@ class OrderSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          for (final item in store.cart)
+          for (final item in store.checkoutItems)
             row(
               '${item.product.name} × ${item.qty}',
               formatRupiah(item.product.price * item.qty),
             ),
           const Divider(height: AppSpacing.xl),
-          row('Subtotal', formatRupiah(store.cartTotal)),
+          row('Subtotal', formatRupiah(store.checkoutTotal)),
           row('Ongkos Kirim', formatRupiah(shippingCost)),
           const SizedBox(height: AppSpacing.xs),
           row(
             'Total Pembayaran',
-            formatRupiah(store.cartTotal + shippingCost),
+            formatRupiah(store.checkoutTotal + shippingCost),
             bold: true,
           ),
         ],

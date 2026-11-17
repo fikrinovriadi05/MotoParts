@@ -11,7 +11,9 @@ import 'package:motopart/models/cart_item.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/payment_info.dart';
 import 'package:motopart/models/product.dart';
+import 'package:motopart/core/format.dart';
 import 'package:motopart/models/review.dart';
+import 'package:motopart/store/notification_store.dart';
 import 'package:motopart/store/remote_sync.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -177,6 +179,11 @@ class Store extends ChangeNotifier {
     final nextProducts = <Product>[];
     for (final fresh in freshProducts) {
       final known = knownProducts[fresh.id];
+      if (known != null &&
+          known.stock >= lowStockThreshold &&
+          fresh.stock < lowStockThreshold) {
+        _notifyAdminLowStock(fresh);
+      }
       if (known == null || known.icon != fresh.icon) {
         nextProducts.add(fresh);
         continue;
@@ -210,7 +217,33 @@ class Store extends ChangeNotifier {
     for (final e in (json['orders'] as List?) ?? const []) {
       final fresh = OrderItem.fromJson(e as Map<String, dynamic>);
       final known = knownOrders[fresh.code];
-      nextOrders.add(known == null ? fresh : (known..status = fresh.status));
+      if (known == null) {
+        // Pesanan baru (mis. baru dibuat di perangkat ini). Pesanan lama yang
+        // baru terunduh saat login tidak dinotifikasikan.
+        final created = fresh.createdAt;
+        if (created != null &&
+            DateTime.now().difference(created) < const Duration(minutes: 5)) {
+          _notifyOrder(fresh, null);
+          // Pesanan milik orang lain yang terlihat = perangkat admin.
+          if (fresh.accountId != currentAccountId) _notifyAdminNewOrder(fresh);
+        }
+        nextOrders.add(fresh);
+      } else {
+        final from = known.status;
+        known.status = fresh.status;
+        if (from != fresh.status) {
+          _notifyOrder(known, from);
+          if (known.accountId != currentAccountId &&
+              from == awaitingPaymentStatus) {
+            if (fresh.status == cancelledStatus) {
+              _notifyAdminUnpaid(known);
+            } else {
+              _notifyAdminPaid(known);
+            }
+          }
+        }
+        nextOrders.add(known);
+      }
     }
     orders
       ..clear()
@@ -540,6 +573,10 @@ class Store extends ChangeNotifier {
   /// mengikuti akun ini. Diatur oleh `AuthStore` lewat [setCurrentAccount].
   String currentAccountId = guestId;
 
+  /// Apakah akun aktif adalah admin. Di mode database hanya admin yang
+  /// menerima notifikasi toko (pesanan baru, pembayaran, stok menipis).
+  bool viewerIsAdmin = false;
+
   final Map<String, List<CartItem>> _carts = {};
   final Map<String, Set<int>> _wishlists = {};
 
@@ -551,8 +588,9 @@ class Store extends ChangeNotifier {
       _wishlists.putIfAbsent(currentAccountId, () => {});
 
   /// Berpindah ke akun [accountId] (null = tamu), mis. saat login/logout.
-  void setCurrentAccount(String? accountId) {
+  void setCurrentAccount(String? accountId, {bool isAdmin = false}) {
     currentAccountId = accountId ?? guestId;
+    viewerIsAdmin = isAdmin;
     notifyListeners();
   }
 
@@ -567,6 +605,43 @@ class Store extends ChangeNotifier {
 
   int get cartTotal =>
       cart.fold(0, (sum, item) => sum + (item.product.price * item.qty));
+
+  /// Barang yang dibeli lewat "Beli Sekarang" (melewati keranjang), atau null.
+  CartItem? _buyNow;
+
+  /// Barang yang sedang di-checkout: satu barang "Beli Sekarang", atau isi
+  /// keranjang jika tidak sedang beli langsung.
+  List<CartItem> get checkoutItems => _buyNow != null ? [_buyNow!] : cart;
+
+  /// Total harga barang yang sedang di-checkout (tanpa ongkir).
+  int get checkoutTotal => checkoutItems.fold(
+    0,
+    (sum, item) => sum + (item.product.price * item.qty),
+  );
+
+  /// Mulai beli langsung [qty] unit [product]. Keranjang tidak berubah.
+  void startBuyNow(Product product, int qty) {
+    _buyNow = CartItem(product: product, qty: qty);
+    notifyListeners();
+  }
+
+  /// Keluar dari mode beli langsung (selesai atau dibatalkan).
+  void endBuyNow() {
+    if (_buyNow == null) return;
+    _buyNow = null;
+    notifyListeners();
+  }
+
+  /// Mengosongkan barang yang baru di-checkout: barang beli langsung saja,
+  /// atau seluruh keranjang.
+  void _clearCheckoutItems() {
+    if (_buyNow != null) {
+      _buyNow = null;
+      notifyListeners();
+    } else {
+      clearCart();
+    }
+  }
 
   /// Jumlah produk [product] yang sudah ada di keranjang.
   int qtyInCart(Product product) {
@@ -887,6 +962,10 @@ class Store extends ChangeNotifier {
       ),
     );
     notifyListeners();
+    _notifyAdmin(
+      'Ulasan baru',
+      '$authorName memberi ${'★' * rating} untuk ${product.name}.',
+    );
     _push('POST', '/reviews', {
       'productId': product.id,
       'rating': rating,
@@ -1049,13 +1128,83 @@ class Store extends ChangeNotifier {
 
   static const cancelledStatus = 'Dibatalkan';
 
+  /// Notifikasi untuk admin toko. Mode lokal: selalu dicatat (satu perangkat
+  /// dipakai bersama). Mode database: hanya di perangkat admin.
+  void _notifyAdmin(
+    String title,
+    String body, {
+    String? orderCode,
+    String? status,
+  }) {
+    if (isRemote && !viewerIsAdmin) return;
+    notifications.add(
+      accountId: NotificationStore.adminAudience,
+      title: title,
+      body: body,
+      orderCode: orderCode,
+      status: status,
+    );
+  }
+
+  void _notifyAdminNewOrder(OrderItem order) => _notifyAdmin(
+    'Pesanan baru',
+    '${order.customer} memesan ${order.lines.length} barang, '
+        'total ${formatRupiah(order.total)} (${order.code}).',
+    orderCode: order.code,
+    status: order.status,
+  );
+
+  void _notifyAdminPaid(OrderItem order) => _notifyAdmin(
+    'Pembayaran diterima',
+    'Pesanan ${order.code} dari ${order.customer} sudah dibayar '
+        '(${formatRupiah(order.total)}).',
+    orderCode: order.code,
+    status: order.status,
+  );
+
+  void _notifyAdminUnpaid(OrderItem order) => _notifyAdmin(
+    'Pesanan dibatalkan',
+    'Pesanan ${order.code} dari ${order.customer} dibatalkan karena '
+        'pembayaran gagal atau kedaluwarsa.',
+    orderCode: order.code,
+    status: order.status,
+  );
+
+  void _notifyAdminLowStock(Product product) => _notifyAdmin(
+    product.stock <= 0 ? 'Stok habis' : 'Stok menipis',
+    product.stock <= 0
+        ? '${product.name} sudah habis.'
+        : '${product.name} tinggal ${product.stock} unit.',
+  );
+
+  /// Mencatat notifikasi untuk pembeli pemilik [order]. [from] = status
+  /// sebelumnya, null jika pesanan baru dibuat.
+  void _notifyOrder(OrderItem order, String? from) {
+    final owner = order.accountId;
+    if (owner == null) return;
+    final (title, body) = NotificationStore.orderMessage(
+      order.code,
+      order.status,
+      from: from,
+    );
+    notifications.add(
+      accountId: owner,
+      title: title,
+      body: body,
+      orderCode: order.code,
+      status: order.status,
+    );
+  }
+
   /// Mengubah status pesanan. Stok dikembalikan saat pesanan menjadi
   /// "Dibatalkan", dan dikurangi lagi jika pesanan diaktifkan kembali.
   /// Produk yang sudah dihapus dilewati.
   void updateOrderStatus(OrderItem order, String status) {
-    final wasCancelled = order.status == cancelledStatus;
+    final from = order.status;
+    final wasCancelled = from == cancelledStatus;
     final isCancelled = status == cancelledStatus;
     order.status = status;
+    if (from != status) _notifyOrder(order, from);
 
     if (wasCancelled != isCancelled) {
       final direction = isCancelled ? 1 : -1;
@@ -1078,7 +1227,7 @@ class Store extends ChangeNotifier {
   /// Item keranjang yang jumlahnya melebihi stok saat ini, sebagai pesan siap
   /// tampil. Kosong jika semua item masih tersedia.
   List<String> get cartStockProblems => [
-    for (final item in cart)
+    for (final item in checkoutItems)
       if (item.qty > item.product.stock)
         item.product.stock <= 0
             ? '${item.product.name} sudah habis.'
@@ -1088,10 +1237,14 @@ class Store extends ChangeNotifier {
   /// Menyesuaikan keranjang dengan stok: qty dipangkas ke stok, item yang
   /// stoknya habis dikeluarkan.
   void trimCartToStock() {
-    for (final item in cart) {
+    for (final item in checkoutItems) {
       if (item.qty > item.product.stock) item.qty = item.product.stock;
     }
-    cart.removeWhere((item) => item.qty <= 0);
+    if (_buyNow != null) {
+      if (_buyNow!.qty <= 0) _buyNow = null;
+    } else {
+      cart.removeWhere((item) => item.qty <= 0);
+    }
     notifyListeners();
   }
 
@@ -1116,11 +1269,13 @@ class Store extends ChangeNotifier {
     String? code,
     DateTime? now,
   }) {
-    if (cart.isEmpty || cartStockProblems.isNotEmpty) return false;
+    if (checkoutItems.isEmpty || cartStockProblems.isNotEmpty) return false;
 
     final createdAt = now ?? DateTime.now();
     final orderCode = code ?? newOrderCode(createdAt);
-    for (final item in cart) {
+    final items = List<CartItem>.of(checkoutItems);
+    final itemsTotal = checkoutTotal;
+    for (final item in items) {
       item.product.stock = (item.product.stock - item.qty).clamp(0, 1 << 30);
     }
     orders.insert(
@@ -1128,7 +1283,7 @@ class Store extends ChangeNotifier {
       OrderItem(
         code: orderCode,
         customer: customer,
-        total: cartTotal + shippingCost,
+        total: itemsTotal + shippingCost,
         status: payment == null ? 'Diproses' : awaitingPaymentStatus,
         accountId: currentAccountId,
         createdAt: createdAt,
@@ -1136,7 +1291,7 @@ class Store extends ChangeNotifier {
         paymentMethod: paymentMethod,
         payment: payment,
         lines: [
-          for (final item in cart)
+          for (final item in items)
             OrderLine(
               productId: item.product.id,
               name: item.product.name,
@@ -1146,7 +1301,15 @@ class Store extends ChangeNotifier {
         ],
       ),
     );
-    clearCart();
+    _notifyOrder(orders.first, null);
+    _notifyAdminNewOrder(orders.first);
+    for (final item in items) {
+      final stock = item.product.stock;
+      if (stock < lowStockThreshold && stock + item.qty >= lowStockThreshold) {
+        _notifyAdminLowStock(item.product);
+      }
+    }
+    _clearCheckoutItems();
     return true;
   }
 
@@ -1177,7 +1340,7 @@ class Store extends ChangeNotifier {
       );
       return ok ? null : problems;
     }
-    if (cart.isEmpty) return const [];
+    if (checkoutItems.isEmpty) return const [];
 
     final orderCode = code ?? newOrderCode();
     try {
@@ -1193,7 +1356,7 @@ class Store extends ChangeNotifier {
             'paymentMethod': paymentMethod,
             'payment': payment?.toJson(),
             'lines': [
-              for (final item in cart)
+              for (final item in checkoutItems)
                 {'productId': item.product.id, 'qty': item.qty},
             ],
           },
@@ -1203,7 +1366,7 @@ class Store extends ChangeNotifier {
       if (e.isConflict) return [e.message];
       rethrow;
     }
-    clearCart();
+    _clearCheckoutItems();
     return null;
   }
 
@@ -1221,6 +1384,7 @@ class Store extends ChangeNotifier {
   bool markOrderPaid(OrderItem order) {
     if (order.status != awaitingPaymentStatus) return false;
     updateOrderStatus(order, 'Diproses');
+    if (!isRemote) _notifyAdminPaid(order);
     return true;
   }
 
@@ -1229,6 +1393,7 @@ class Store extends ChangeNotifier {
   bool cancelUnpaidOrder(OrderItem order) {
     if (order.status != awaitingPaymentStatus) return false;
     updateOrderStatus(order, cancelledStatus);
+    if (!isRemote) _notifyAdminUnpaid(order);
     return true;
   }
 

@@ -7,6 +7,7 @@ import 'package:motopart/core/product_image_storage.dart';
 import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/store/remote_sync.dart';
 import 'package:motopart/store/auth_store.dart';
+import 'package:motopart/store/notification_store.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/theme_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
   await themeController.attach(prefs);
   await store.attach(prefs);
   await auth.attach(prefs); // setelah store: memulihkan sesi login
+  await notifications.attach(prefs);
   final payments = paymentApi;
   if (payments is DemoPaymentApi) await payments.attach(prefs);
   if (ApiConfig.enabled) {

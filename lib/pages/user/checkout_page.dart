@@ -184,7 +184,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       bottomNavigationBar: AnimatedBuilder(
         animation: store,
         builder: (context, _) => CheckoutBottomBar(
-          total: store.cartTotal + shippingCost,
+          total: store.checkoutTotal + shippingCost,
           buttonText: 'Lanjutkan Pembayaran',
           icon: Icons.arrow_forward_rounded,
           onPressed: next,

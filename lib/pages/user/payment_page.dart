@@ -56,7 +56,7 @@ class _PaymentPageState extends State<PaymentPage> {
   Future<void> pay() async {
     if (paying) return;
     final problems = store.cartStockProblems;
-    if (store.cart.isEmpty || problems.isNotEmpty) {
+    if (store.checkoutItems.isEmpty || problems.isNotEmpty) {
       _stockChanged(problems);
       return;
     }
@@ -95,7 +95,7 @@ class _PaymentPageState extends State<PaymentPage> {
     // (stok ditahan sampai dibayar atau kedaluwarsa).
     setState(() => paying = true);
     final code = store.newOrderCode();
-    final amount = store.cartTotal + widget.shippingCost;
+    final amount = store.checkoutTotal + widget.shippingCost;
     try {
       final snapshot = await paymentApi.create(
         orderCode: code,
@@ -235,7 +235,7 @@ class _PaymentPageState extends State<PaymentPage> {
       bottomNavigationBar: AnimatedBuilder(
         animation: store,
         builder: (context, _) => CheckoutBottomBar(
-          total: store.cartTotal + widget.shippingCost,
+          total: store.checkoutTotal + widget.shippingCost,
           buttonText: paying ? 'Membuat tagihan...' : 'Bayar Sekarang',
           icon: Icons.lock_rounded,
           onPressed: paying ? null : pay,

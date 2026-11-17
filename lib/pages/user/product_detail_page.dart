@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/models/product.dart';
+import 'package:motopart/pages/user/checkout_page.dart';
 import 'package:motopart/pages/user/product_image_viewer.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
@@ -33,6 +34,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void _add() {
     final added = addToCartWithFeedback(context, product, qty: qty);
     if (added > 0) setState(() => qty = 1);
+  }
+
+  /// "Beli Sekarang": checkout hanya barang ini (keranjang tidak tersentuh),
+  /// lalu lanjut alamat dan pembayaran.
+  Future<void> _buyNow(int amount) async {
+    store.startBuyNow(product, amount);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CheckoutPage()),
+    );
+    // Dibatalkan (kembali) atau selesai: keluar dari mode beli langsung.
+    store.endBuyNow();
   }
 
   @override
@@ -201,6 +214,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         qty: qty,
         onQtyChanged: (value) => setState(() => qty = value),
         onAdd: _add,
+        onBuyNow: _buyNow,
       ),
     );
   }
@@ -229,18 +243,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 }
 
-/// Bar bawah yang menempel: pemilih jumlah dan tombol tambah ke keranjang.
+/// Bar bawah yang menempel: pemilih jumlah, tombol Beli Sekarang, dan tombol
+/// tambah ke keranjang.
 class _BottomBar extends StatelessWidget {
   final Product product;
   final int qty;
   final ValueChanged<int> onQtyChanged;
   final VoidCallback onAdd;
+  final ValueChanged<int> onBuyNow;
 
   const _BottomBar({
     required this.product,
     required this.qty,
     required this.onQtyChanged,
     required this.onAdd,
+    required this.onBuyNow,
   });
 
   @override
@@ -277,26 +294,37 @@ class _BottomBar extends StatelessWidget {
                 AppSpacing.page,
                 AppSpacing.md,
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _QuantityPicker(
-                    qty: shownQty,
-                    canDecrease: canAdd && shownQty > 1,
-                    canIncrease: canAdd && shownQty < available,
-                    onChanged: onQtyChanged,
+                  Row(
+                    children: [
+                      _QuantityPicker(
+                        qty: shownQty,
+                        canDecrease: canAdd && shownQty > 1,
+                        canIncrease: canAdd && shownQty < available,
+                        onChanged: onQtyChanged,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: PrimaryButton(
+                          text: 'Beli Sekarang',
+                          icon: Icons.flash_on_rounded,
+                          onPressed: soldOut ? null : () => onBuyNow(shownQty),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: PrimaryButton(
-                      text: soldOut
-                          ? 'Stok Habis'
-                          : maxedOut
-                          ? 'Sudah Maksimum di Keranjang'
-                          : 'Tambah ke Keranjang',
-                      icon: Icons.add_shopping_cart_rounded,
-                      outline: !canAdd,
-                      onPressed: canAdd ? onAdd : null,
-                    ),
+                  const SizedBox(height: AppSpacing.sm),
+                  PrimaryButton(
+                    text: soldOut
+                        ? 'Stok Habis'
+                        : maxedOut
+                        ? 'Sudah Maksimum di Keranjang'
+                        : 'Tambah ke Keranjang',
+                    icon: Icons.add_shopping_cart_rounded,
+                    outline: true,
+                    onPressed: canAdd ? onAdd : null,
                   ),
                 ],
               ),
