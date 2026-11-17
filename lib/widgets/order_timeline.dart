@@ -66,6 +66,26 @@ class OrderTimeline extends StatelessWidget {
 
     final current = steps.indexOf(status).clamp(0, steps.length - 1);
 
+    // Garis terisi bertahap dari langkah pertama sampai status sekarang. Saat
+    // status berubah, hanya selisihnya yang beranimasi.
+    return TweenAnimationBuilder<double>(
+      tween: Tween(
+        begin: UiConfig.animate ? 0 : current.toDouble(),
+        end: current.toDouble(),
+      ),
+      duration: UiConfig.motion(Duration(milliseconds: 380 * current)),
+      curve: Curves.easeInOut,
+      builder: (context, progress, _) => _steps(palette, progress, current),
+    );
+  }
+
+  /// Jarak [progress] melewati ambang [from]..[from]+0.5, dibatasi 0..1.
+  static double _fill(double progress, double from) =>
+      ((progress - from) / 0.5).clamp(0.0, 1.0);
+
+  Widget _steps(AppPalette palette, double progress, int current) {
+    const duration = Duration(milliseconds: 180);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -76,49 +96,53 @@ class OrderTimeline extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        height: 3,
-                        color: i == 0
-                            ? Colors.transparent
-                            : (i <= current
-                                  ? AppColors.primary
-                                  : palette.border),
-                      ),
+                      child: i == 0
+                          ? const SizedBox(height: 3)
+                          : _Bar(
+                              fill: _fill(progress, i - 0.5),
+                              track: palette.border,
+                            ),
                     ),
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: i <= current
-                            ? AppColors.primary
-                            : palette.surfaceAlt,
-                        border: Border.all(
-                          color: i <= current
-                              ? AppColors.primary
-                              : palette.border,
-                          width: 1.4,
-                        ),
-                      ),
-                      child: Icon(
-                        i < current
-                            ? Icons.check_rounded
-                            : orderStatusIcon(steps[i]),
-                        size: 16,
-                        color: i <= current
-                            ? AppColors.onPrimary
-                            : palette.textMuted,
-                      ),
+                    // Langkah menyala saat garis sampai ke sana.
+                    Builder(
+                      builder: (context) {
+                        final reached = progress >= i - 0.01;
+                        final passed = progress >= i + 0.5;
+                        return AnimatedContainer(
+                          duration: UiConfig.motion(duration),
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: reached
+                                ? AppColors.primary
+                                : palette.surfaceAlt,
+                            border: Border.all(
+                              color: reached
+                                  ? AppColors.primary
+                                  : palette.border,
+                              width: 1.4,
+                            ),
+                          ),
+                          child: Icon(
+                            passed
+                                ? Icons.check_rounded
+                                : orderStatusIcon(steps[i]),
+                            size: 16,
+                            color: reached
+                                ? AppColors.onPrimary
+                                : palette.textMuted,
+                          ),
+                        );
+                      },
                     ),
                     Expanded(
-                      child: Container(
-                        height: 3,
-                        color: i == steps.length - 1
-                            ? Colors.transparent
-                            : (i < current
-                                  ? AppColors.primary
-                                  : palette.border),
-                      ),
+                      child: i == steps.length - 1
+                          ? const SizedBox(height: 3)
+                          : _Bar(
+                              fill: _fill(progress, i.toDouble()),
+                              track: palette.border,
+                            ),
                     ),
                   ],
                 ),
@@ -140,6 +164,34 @@ class OrderTimeline extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Garis penghubung setebal 3 yang terisi warna utama sebesar [fill] (0..1)
+/// dari kiri.
+class _Bar extends StatelessWidget {
+  final double fill;
+  final Color track;
+
+  const _Bar({required this.fill, required this.track});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 3,
+      child: Stack(
+        children: [
+          Positioned.fill(child: ColoredBox(color: track)),
+          Positioned.fill(
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: fill,
+              child: const ColoredBox(color: AppColors.primary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -15,6 +15,9 @@ class ProductPicture extends StatelessWidget {
   final double iconSize;
   final double radius;
 
+  /// Cara foto mengisi kotaknya (bawaan memotong agar penuh).
+  final BoxFit fit;
+
   const ProductPicture({
     super.key,
     required this.imagePath,
@@ -23,6 +26,7 @@ class ProductPicture extends StatelessWidget {
     this.height,
     this.iconSize = 32,
     this.radius = AppRadius.md,
+    this.fit = BoxFit.cover,
   });
 
   /// Untuk produk; produk null (sudah dihapus) memakai ikon umum.
@@ -33,6 +37,7 @@ class ProductPicture extends StatelessWidget {
     double? height,
     double iconSize = 32,
     double radius = AppRadius.md,
+    BoxFit fit = BoxFit.cover,
   }) {
     return ProductPicture(
       key: key,
@@ -42,6 +47,7 @@ class ProductPicture extends StatelessWidget {
       height: height,
       iconSize: iconSize,
       radius: radius,
+      fit: fit,
     );
   }
 
@@ -78,7 +84,7 @@ class ProductPicture extends StatelessWidget {
         File(imagePath!),
         width: width,
         height: height,
-        fit: BoxFit.cover,
+        fit: fit,
         errorBuilder: (context, error, stack) => fallback,
       ),
     );

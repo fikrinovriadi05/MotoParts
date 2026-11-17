@@ -71,14 +71,18 @@ class CartPage extends StatelessWidget {
                       );
                     }
                     final item = items[index - 1];
-                    return Dismissible(
-                      key: ValueKey('cart-${item.product.id}'),
-                      direction: DismissDirection.endToStart,
-                      onDismissed: (_) => _remove(context, item),
-                      background: const _DismissBackground(),
-                      child: _CartItemCard(
-                        item: item,
-                        onDelete: () => _remove(context, item),
+                    return _RemovableRow(
+                      key: ValueKey('row-${item.product.id}'),
+                      builder: (context, remove) => Dismissible(
+                        key: ValueKey('cart-${item.product.id}'),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (_) => _remove(context, item),
+                        background: const _DismissBackground(),
+                        child: _CartItemCard(
+                          item: item,
+                          // Tombol hapus: baris menciut dulu, baru dihapus.
+                          onDelete: () => remove(() => _remove(context, item)),
+                        ),
                       ),
                     );
                   },
@@ -88,6 +92,71 @@ class CartPage extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Membungkus satu baris keranjang agar bisa "keluar" dengan animasi: menciut,
+/// memudar, dan bergeser ke kiri, baru kemudian aksi hapus dijalankan.
+class _RemovableRow extends StatefulWidget {
+  /// Dipanggil dengan fungsi `remove(aksi)`: memutar animasi keluar lalu
+  /// menjalankan [aksi] (mis. menghapus dari keranjang).
+  final Widget Function(
+    BuildContext context,
+    void Function(VoidCallback onGone) remove,
+  )
+  builder;
+
+  const _RemovableRow({super.key, required this.builder});
+
+  @override
+  State<_RemovableRow> createState() => _RemovableRowState();
+}
+
+class _RemovableRowState extends State<_RemovableRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 280),
+    value: 1,
+  );
+  late final Animation<double> curved = CurvedAnimation(
+    parent: controller,
+    curve: Curves.easeInCubic,
+  );
+  bool removing = false;
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _remove(VoidCallback onGone) async {
+    if (removing) return; // ketukan berulang saat animasi berjalan
+    removing = true;
+    if (UiConfig.animate) {
+      await controller.reverse();
+      if (!mounted) return;
+    }
+    onGone();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+      sizeFactor: curved,
+      alignment: Alignment.topCenter,
+      child: FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(-0.25, 0),
+            end: Offset.zero,
+          ).animate(curved),
+          child: widget.builder(context, _remove),
+        ),
       ),
     );
   }

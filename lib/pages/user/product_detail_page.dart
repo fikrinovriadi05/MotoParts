@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/core/motor_matching.dart';
 import 'package:motopart/models/product.dart';
+import 'package:motopart/pages/user/product_image_viewer.dart';
 import 'package:motopart/store/store.dart';
 import 'package:motopart/theme/app_theme.dart';
 import 'package:motopart/widgets/cart_feedback.dart';
@@ -52,11 +53,44 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           AppSpacing.xl,
         ),
         children: [
-          ProductImage(
-            product: product,
-            height: 260,
-            iconSize: 110,
-            radius: AppRadius.xl,
+          Semantics(
+            button: true,
+            label: 'Gambar ${product.name}, ketuk untuk memperbesar',
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (_) => ProductImageViewer(product: product),
+                ),
+              ),
+              child: Stack(
+                children: [
+                  ProductImage(
+                    product: product,
+                    height: 260,
+                    iconSize: 110,
+                    radius: AppRadius.xl,
+                  ),
+                  Positioned(
+                    right: AppSpacing.md,
+                    bottom: AppSpacing.md,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.zoom_out_map_rounded,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
           Text(
