@@ -17,10 +17,10 @@ String? register(AuthStore a, {String email = 'siti@email.com'}) => a.register(
   name: 'Siti',
   email: email,
   phone: '081234567890',
-  password: 'rahasia1',
+  password: 'Rahasia1!',
 );
 
-String? loginUser(AuthStore a, [String password = 'rahasia1']) => a.login(
+String? loginUser(AuthStore a, [String password = 'Rahasia1!']) => a.login(
   email: 'siti@email.com',
   password: password,
   role: AccountRole.user,
@@ -43,12 +43,12 @@ void main() {
 
     test('berhasil: password lama tidak berlaku, yang baru berlaku', () {
       expect(
-        a.changePassword(oldPassword: 'rahasia1', newPassword: 'baru1234'),
+        a.changePassword(oldPassword: 'Rahasia1!', newPassword: 'baru1234'),
         isNull,
       );
 
       a.logout();
-      expect(loginUser(a, 'rahasia1'), 'Email atau password salah.');
+      expect(loginUser(a, 'Rahasia1!'), 'Email atau password salah.');
       expect(loginUser(a, 'baru1234'), isNull);
     });
 
@@ -61,11 +61,11 @@ void main() {
 
     test('password baru terlalu pendek atau sama ditolak', () {
       expect(
-        a.changePassword(oldPassword: 'rahasia1', newPassword: '123'),
+        a.changePassword(oldPassword: 'Rahasia1!', newPassword: '123'),
         'Password baru minimal 6 karakter.',
       );
       expect(
-        a.changePassword(oldPassword: 'rahasia1', newPassword: 'rahasia1'),
+        a.changePassword(oldPassword: 'Rahasia1!', newPassword: 'Rahasia1!'),
         'Password baru harus berbeda dari password lama.',
       );
     });
@@ -74,7 +74,7 @@ void main() {
       a.logout();
 
       expect(
-        a.changePassword(oldPassword: 'rahasia1', newPassword: 'baru1234'),
+        a.changePassword(oldPassword: 'Rahasia1!', newPassword: 'baru1234'),
         'Anda belum masuk.',
       );
     });
@@ -82,7 +82,7 @@ void main() {
     test('salt dan hash berganti', () {
       final before = a.currentAccount!;
 
-      a.changePassword(oldPassword: 'rahasia1', newPassword: 'baru1234');
+      a.changePassword(oldPassword: 'Rahasia1!', newPassword: 'baru1234');
 
       expect(a.currentAccount!.salt, isNot(before.salt));
       expect(a.currentAccount!.passwordHash, isNot(before.passwordHash));
@@ -95,13 +95,13 @@ void main() {
       await first.attach(prefs);
       register(first);
       loginUser(first);
-      first.changePassword(oldPassword: 'rahasia1', newPassword: 'baru1234');
+      first.changePassword(oldPassword: 'Rahasia1!', newPassword: 'baru1234');
 
       final reloaded = newAuth();
       await reloaded.attach(prefs);
       reloaded.logout();
 
-      expect(loginUser(reloaded, 'rahasia1'), isNotNull);
+      expect(loginUser(reloaded, 'Rahasia1!'), isNotNull);
       expect(loginUser(reloaded, 'baru1234'), isNull);
     });
   });
@@ -200,7 +200,7 @@ void main() {
       expect(a.resetPassword(siti, 'sementara1'), isNull);
 
       a.logout();
-      expect(loginUser(a, 'rahasia1'), 'Email atau password salah.');
+      expect(loginUser(a, 'Rahasia1!'), 'Email atau password salah.');
       expect(loginUser(a, 'sementara1'), isNull);
     });
 
@@ -254,7 +254,7 @@ void main() {
       bigScreen(tester);
       await tester.pumpWidget(const MaterialApp(home: ChangePasswordPage()));
 
-      await tester.enterText(find.byType(TextField).at(0), 'rahasia1');
+      await tester.enterText(find.byType(TextField).at(0), 'Rahasia1!');
       await tester.enterText(find.byType(TextField).at(1), 'baru1234');
       await tester.enterText(find.byType(TextField).at(2), 'beda1234');
       await tester.tap(find.text('Simpan Password'));
@@ -287,7 +287,7 @@ void main() {
       await tester.tap(find.text('buka'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).at(0), 'rahasia1');
+      await tester.enterText(find.byType(TextField).at(0), 'Rahasia1!');
       await tester.enterText(find.byType(TextField).at(1), 'baru1234');
       await tester.enterText(find.byType(TextField).at(2), 'baru1234');
       await tester.tap(find.text('Simpan Password'));
@@ -372,7 +372,7 @@ void main() {
       await tester.tap(find.text('Lupa password?'));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Hubungi admin toko'), findsOneWidget);
+      expect(find.textContaining('hubungi admin toko'), findsOneWidget);
     });
   });
 }

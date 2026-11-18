@@ -46,11 +46,11 @@ void login() {
     name: 'Siti Aminah',
     email: 'siti-demo@email.com',
     phone: '081234567890',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
   );
   auth.login(
     email: 'siti-demo@email.com',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
     role: AccountRole.user,
   );
 }

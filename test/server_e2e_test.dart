@@ -99,7 +99,7 @@ void main() {
           name: 'Penguji E2E',
           email: email,
           phone: '081234567890',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         ),
         isNull,
       );
@@ -108,7 +108,7 @@ void main() {
           name: 'Penguji E2E',
           email: email,
           phone: '081234567890',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         ),
         'Email sudah terdaftar.',
       );
@@ -123,7 +123,7 @@ void main() {
       expect(
         await auth.loginAsync(
           email: email,
-          password: 'rahasia1',
+          password: 'Rahasia1!',
           role: AccountRole.user,
         ),
         isNull,
@@ -221,7 +221,7 @@ void main() {
       // --- Pembeli: ulasan dan wishlist.
       await auth.loginAsync(
         email: email,
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       final bought = store.products.firstWhere((p) => p.id == kampas.id);
@@ -248,7 +248,7 @@ void main() {
       // --- Ganti password lewat server.
       expect(
         await auth.changePasswordAsync(
-          oldPassword: 'rahasia1',
+          oldPassword: 'Rahasia1!',
           newPassword: 'baru-baru-1',
         ),
         isNull,
@@ -257,7 +257,7 @@ void main() {
       expect(
         await auth.loginAsync(
           email: email,
-          password: 'rahasia1',
+          password: 'Rahasia1!',
           role: AccountRole.user,
         ),
         'Email atau password salah.',

@@ -197,11 +197,11 @@ void main() {
         name: 'B',
         email: 'b-stok@e.com',
         phone: '0812345678',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'b-stok@e.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       addTearDown(() {

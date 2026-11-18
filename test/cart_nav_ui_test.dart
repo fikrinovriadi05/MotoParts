@@ -323,11 +323,11 @@ void main() {
         name: 'Siti Aminah',
         email: 'siti@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       await pumpProfile(tester);

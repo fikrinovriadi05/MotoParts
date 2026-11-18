@@ -306,7 +306,7 @@ void main() {
 
       final error = await auth.loginAsync(
         email: 'budi@mail.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
 
@@ -318,7 +318,7 @@ void main() {
       expect(store.ordersForCurrentAccount, hasLength(1));
       expect(gateway.bodies.first, {
         'email': 'budi@mail.com',
-        'password': 'rahasia1',
+        'password': 'Rahasia1!',
         'role': 'user',
       });
       final prefs = await SharedPreferences.getInstance();
@@ -348,7 +348,7 @@ void main() {
         name: 'Budi',
         email: 'budi@mail.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       expect(error, isNull);
       expect(auth.isLoggedIn, isFalse);
@@ -365,7 +365,7 @@ void main() {
           name: 'Budi',
           email: 'budi@mail.com',
           phone: '081234567890',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         ),
         'Email sudah terdaftar.',
       );

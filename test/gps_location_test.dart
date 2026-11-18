@@ -32,11 +32,11 @@ void login() {
     name: 'Siti Aminah',
     email: 'siti-gps@email.com',
     phone: '081234567890',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
   );
   auth.login(
     email: 'siti-gps@email.com',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
     role: AccountRole.user,
   );
 }
@@ -294,11 +294,11 @@ void main() {
         name: 'Siti',
         email: 'siti@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       a.login(
         email: 'siti@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
     });
@@ -357,11 +357,11 @@ void main() {
         name: 'Siti',
         email: 'siti@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       first.login(
         email: 'siti@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       first.addAddress(

@@ -68,9 +68,9 @@ void registerAndLogin({String name = 'Siti Aminah', String email = 's@e.com'}) {
     name: name,
     email: email,
     phone: '081234567890',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
   );
-  auth.login(email: email, password: 'rahasia1', role: AccountRole.user);
+  auth.login(email: email, password: 'Rahasia1!', role: AccountRole.user);
 }
 
 /// Menambah alamat ke akun yang sedang login.
@@ -538,18 +538,17 @@ void main() {
   });
 
   group('login, daftar, onboarding', () {
-    testWidgets('tab Admin terbaca di mode terang maupun gelap', (
+    testWidgets('login satu pintu: tanpa tab peran, ada tombol Google', (
       tester,
     ) async {
       for (final mode in [ThemeMode.light, ThemeMode.dark]) {
         size(tester, 400, 1000);
         await tester.pumpWidget(app(const LoginPage(), mode: mode));
-        await tester.tap(find.text('Admin').first);
         await tester.pump();
 
-        final text = tester.widget<Text>(find.text('Admin').first);
-        // Teks tab terpilih harus kontras terhadap latar oranye.
-        expect(text.style!.color, AppColors.onPrimary);
+        expect(find.text('Admin'), findsNothing);
+        expect(find.text('User'), findsNothing);
+        expect(find.text('Lanjutkan dengan Google'), findsOneWidget);
         expect(tester.takeException(), isNull);
       }
     });

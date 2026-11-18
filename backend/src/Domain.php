@@ -70,8 +70,26 @@ final class Validate
         if (self::digits($phone) < 8) {
             return 'Nomor telepon tidak valid.';
         }
-        if (strlen($password) < self::MIN_PASSWORD) {
+        return self::passwordStrength($password);
+    }
+
+    /**
+     * Aturan password akun baru (sama dengan AuthStore.passwordStrengthError di
+     * aplikasi): panjang minimal, huruf kapital, angka, dan simbol.
+     */
+    public static function passwordStrength(string $password): ?string
+    {
+        if (mb_strlen($password) < self::MIN_PASSWORD) {
             return 'Password minimal ' . self::MIN_PASSWORD . ' karakter.';
+        }
+        if (!preg_match('/\p{Lu}/u', $password)) {
+            return 'Password harus mengandung huruf kapital.';
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            return 'Password harus mengandung angka.';
+        }
+        if (!preg_match('/[^\p{L}\p{N}\s]/u', $password)) {
+            return 'Password harus mengandung simbol.';
         }
         return null;
     }

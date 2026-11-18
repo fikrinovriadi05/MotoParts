@@ -357,11 +357,11 @@ void main() {
         name: 'Siti',
         email: 'siti-motor@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti-motor@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       if (withMotor) {
@@ -775,11 +775,11 @@ void main() {
         name: 'Siti',
         email: 'siti-akun@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti-akun@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       if (withMotor) {

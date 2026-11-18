@@ -24,6 +24,10 @@ $config = [
     // Akun admin bawaan yang dibuat oleh tool/setup.php.
     'admin_email' => 'admin@motopart.id',
     'admin_password' => 'admin123',
+    // ID klien OAuth Google yang diterima untuk "Masuk dengan Google" (mis.
+    // klien Web dan Android). Kosong = fitur dimatikan (jawaban 503). Isi di
+    // config.local.php.
+    'google_client_ids' => [],
 ];
 
 $local = __DIR__ . '/config.local.php';

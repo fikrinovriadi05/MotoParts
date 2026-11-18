@@ -16,7 +16,7 @@ String? registerSiti(AuthStore a, {String email = 'siti@email.com'}) =>
       name: 'Siti',
       email: email,
       phone: '081234567890',
-      password: 'rahasia1',
+      password: 'Rahasia1!',
     );
 
 String? loginUser(AuthStore a, String email, String password) =>
@@ -40,9 +40,9 @@ void main() {
       registerSiti(a);
       final account = a.accounts.firstWhere((x) => x.email == 'siti@email.com');
 
-      expect(account.passwordHash, isNot('rahasia1'));
-      expect(account.passwordHash.contains('rahasia1'), isFalse);
-      expect(account.toJson().toString().contains('rahasia1'), isFalse);
+      expect(account.passwordHash, isNot('Rahasia1!'));
+      expect(account.passwordHash.contains('Rahasia1!'), isFalse);
+      expect(account.toJson().toString().contains('Rahasia1!'), isFalse);
       expect(account.salt, isNotEmpty);
     });
   });
@@ -102,7 +102,7 @@ void main() {
           name: 'Siti',
           email: 'siti@email.com',
           phone: '123',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         ),
         'Nomor telepon tidak valid.',
       );
@@ -128,7 +128,7 @@ void main() {
     test(
       'berhasil dengan email (tanpa membedakan huruf) dan password benar',
       () {
-        expect(loginUser(a, ' SITI@email.com ', 'rahasia1'), isNull);
+        expect(loginUser(a, ' SITI@email.com ', 'Rahasia1!'), isNull);
 
         expect(a.currentAccount?.name, 'Siti');
         expect(store.currentAccountId, a.currentAccount!.id);
@@ -139,7 +139,7 @@ void main() {
       const message = 'Email atau password salah.';
 
       expect(loginUser(a, 'siti@email.com', 'salah'), message);
-      expect(loginUser(a, 'tidak@ada.com', 'rahasia1'), message);
+      expect(loginUser(a, 'tidak@ada.com', 'Rahasia1!'), message);
       expect(a.isLoggedIn, isFalse);
     });
 
@@ -150,7 +150,7 @@ void main() {
     test('pembeli tidak bisa masuk lewat tab admin', () {
       final error = a.login(
         email: 'siti@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.admin,
       );
 
@@ -176,7 +176,7 @@ void main() {
     });
 
     test('logout mengakhiri sesi dan mengembalikan store ke tamu', () {
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
 
       a.logout();
 
@@ -197,7 +197,7 @@ void main() {
     test('akun dan sesi tersimpan lalu dipulihkan', () async {
       final (a, prefs) = await attached();
       registerSiti(a);
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
 
       final store = Store();
       final reloaded = AuthStore(store: store);
@@ -208,13 +208,13 @@ void main() {
       expect(store.currentAccountId, reloaded.currentAccount!.id);
       // Password yang sama masih bisa dipakai login setelah dimuat ulang.
       reloaded.logout();
-      expect(loginUser(reloaded, 'siti@email.com', 'rahasia1'), isNull);
+      expect(loginUser(reloaded, 'siti@email.com', 'Rahasia1!'), isNull);
     });
 
     test('logout tersimpan: sesi tidak dipulihkan', () async {
       final (a, prefs) = await attached();
       registerSiti(a);
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       a.logout();
 
       final reloaded = newAuth();
@@ -248,36 +248,36 @@ void main() {
     });
 
     test('keranjang tidak bocor antar akun', () {
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       store.addToCart(store.products[0]);
       expect(store.cartCount, 1);
 
       a.logout();
       expect(store.cartCount, 0, reason: 'tamu tidak mewarisi keranjang');
 
-      loginUser(a, 'budi@email.com', 'rahasia1');
+      loginUser(a, 'budi@email.com', 'Rahasia1!');
       expect(store.cartCount, 0);
       store.addToCart(store.products[1]);
       store.addToCart(store.products[1]);
 
       a.logout();
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       expect(store.cartCount, 1);
       expect(store.cart.single.product.id, store.products[0].id);
     });
 
     test('wishlist tidak bocor antar akun', () {
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       store.toggleWishlist(store.products[0]);
 
       a.logout();
-      loginUser(a, 'budi@email.com', 'rahasia1');
+      loginUser(a, 'budi@email.com', 'Rahasia1!');
 
       expect(store.isWishlisted(store.products[0]), isFalse);
     });
 
     test('riwayat pesanan hanya milik akun sendiri; admin melihat semua', () {
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       store.addToCart(store.products[0]);
       store.checkout(customer: 'Siti', shippingCost: 0);
 
@@ -285,7 +285,7 @@ void main() {
       expect(store.ordersForCurrentAccount.single.customer, 'Siti');
 
       a.logout();
-      loginUser(a, 'budi@email.com', 'rahasia1');
+      loginUser(a, 'budi@email.com', 'Rahasia1!');
       expect(store.ordersForCurrentAccount, isEmpty);
 
       // Admin memakai store.orders: pesanan Siti dan pesanan contoh.
@@ -299,30 +299,30 @@ void main() {
 
     test('menghapus produk mengosongkannya dari keranjang semua akun', () {
       final product = store.products[0];
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       store.addToCart(product);
       a.logout();
-      loginUser(a, 'budi@email.com', 'rahasia1');
+      loginUser(a, 'budi@email.com', 'Rahasia1!');
       store.addToCart(product);
       store.toggleWishlist(product);
 
       store.deleteProduct(product);
       a.logout();
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
 
       expect(store.cart, isEmpty);
     });
 
     test('mengurangi stok memangkas keranjang akun lain', () {
       final product = store.products[0];
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
       for (var i = 0; i < 5; i++) {
         store.addToCart(product);
       }
       a.logout();
 
       store.updateProduct(product, stock: 2);
-      loginUser(a, 'siti@email.com', 'rahasia1');
+      loginUser(a, 'siti@email.com', 'Rahasia1!');
 
       expect(store.qtyInCart(product), 2);
     });
@@ -337,7 +337,7 @@ void main() {
         final a1 = AuthStore(store: s1);
         await a1.attach(prefs);
         registerSiti(a1);
-        loginUser(a1, 'siti@email.com', 'rahasia1');
+        loginUser(a1, 'siti@email.com', 'Rahasia1!');
         s1.addToCart(s1.products[0]);
         s1.toggleWishlist(s1.products[2]);
         s1.addToCart(s1.products[1]);
@@ -390,7 +390,7 @@ void main() {
       await pumpLogin(tester);
 
       await tester.enterText(find.byType(TextField).at(0), 'siti@email.com');
-      await tester.enterText(find.byType(TextField).at(1), 'rahasia1');
+      await tester.enterText(find.byType(TextField).at(1), 'Rahasia1!');
       await tester.tap(find.text('Masuk').last);
       await tester.pumpAndSettle();
 
@@ -398,13 +398,12 @@ void main() {
       expect(auth.currentAccount?.name, 'Siti');
     });
 
-    testWidgets('login admin lewat tab Admin membuka dashboard admin', (
+    testWidgets('admin masuk lewat form yang sama dan membuka dashboard', (
       tester,
     ) async {
       await pumpLogin(tester);
 
-      await tester.tap(find.text('Admin').first);
-      await tester.pump();
+      expect(find.text('Admin'), findsNothing, reason: 'tidak ada tab peran');
       await tester.enterText(
         find.byType(TextField).at(0),
         AuthStore.adminEmail,
@@ -430,7 +429,8 @@ void main() {
       await tester.enterText(find.byType(TextField).at(0), 'Siti Lain');
       await tester.enterText(find.byType(TextField).at(1), 'siti@email.com');
       await tester.enterText(find.byType(TextField).at(2), '081234567890');
-      await tester.enterText(find.byType(TextField).at(3), 'rahasia1');
+      await tester.enterText(find.byType(TextField).at(3), 'Rahasia1!');
+      await tester.enterText(find.byType(TextField).at(4), 'Rahasia1!');
       await tester.tap(find.text('Daftar').last);
       await tester.pump();
 

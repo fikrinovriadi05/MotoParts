@@ -69,7 +69,8 @@ sesuai. Token dikirim lewat header `Authorization: Bearer <token>`.
 | `GET /health` | publik | Cek server + database |
 | `GET /sync` | publik / masuk | Semua data untuk pengguna ini sekaligus |
 | `POST /auth/register` | publik | Daftar → `{token, user}` |
-| `POST /auth/login` | publik | `{email, password, role: user\|admin}` |
+| `POST /auth/login` | publik | `{email, password}` — pembeli dan admin satu pintu (`role: user\|admin` opsional; jika diberi, akun harus berperan itu) |
+| `POST /auth/google` | publik | `{idToken}` — masuk dengan Google; server memverifikasi ID token ke Google. Butuh `google_client_ids` di `config.local.php` (kosong → 503). Akun admin ditolak |
 | `POST /auth/logout` | masuk | Cabut token |
 | `GET /me`, `PUT /me` | masuk | Profil, data motor, metode bayar favorit |
 | `PUT /me/password` | masuk | Ganti password |

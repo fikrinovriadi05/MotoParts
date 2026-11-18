@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
+import 'package:motopart/core/receipt.dart';
+import 'package:motopart/pages/shared/receipt_page.dart';
 import 'package:motopart/models/order_item.dart';
 import 'package:motopart/models/product.dart';
 import 'package:motopart/pages/user/payment_waiting_page.dart';
@@ -182,6 +184,20 @@ class OrderDetailPage extends StatelessWidget {
                       store.updateOrderStatus(order, value);
                     }
                   },
+                ),
+              ],
+              if (Receipt.availableFor(order)) ...[
+                const SizedBox(height: AppSpacing.lg),
+                PrimaryButton(
+                  text: 'Lihat Struk',
+                  icon: Icons.description_outlined,
+                  outline: true,
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ReceiptPage(order: order),
+                    ),
+                  ),
                 ),
               ],
             ],

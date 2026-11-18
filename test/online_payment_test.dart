@@ -52,11 +52,11 @@ void login() {
     name: 'Siti Aminah',
     email: 'siti-pay@email.com',
     phone: '081234567890',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
   );
   auth.login(
     email: 'siti-pay@email.com',
-    password: 'rahasia1',
+    password: 'Rahasia1!',
     role: AccountRole.user,
   );
 }

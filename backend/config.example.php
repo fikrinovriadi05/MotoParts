@@ -18,4 +18,8 @@ return [
 
     // Password admin awal (dipakai tool/setup.php). Ganti setelah login.
     'admin_password' => 'admin123',
+
+    // "Masuk dengan Google": ID klien OAuth yang diterima server (sama dengan
+    // GOOGLE_CLIENT_ID / GOOGLE_SERVER_CLIENT_ID di aplikasi). Kosong = mati.
+    // 'google_client_ids' => ['1234567890-abc.apps.googleusercontent.com'],
 ];

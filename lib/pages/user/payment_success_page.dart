@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:motopart/core/format.dart';
 import 'package:motopart/core/navigation.dart';
+import 'package:motopart/core/receipt.dart';
+import 'package:motopart/pages/shared/receipt_page.dart';
 import 'package:motopart/pages/user/orders_page.dart';
 import 'package:motopart/pages/user/user_shell.dart';
 import 'package:motopart/store/store.dart';
@@ -116,6 +118,20 @@ class PaymentSuccessPage extends StatelessWidget {
                         icon: Icons.receipt_long_rounded,
                         onPressed: () => _viewOrders(context),
                       ),
+                      if (order != null && Receipt.availableFor(order)) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        PrimaryButton(
+                          text: 'Lihat Struk',
+                          icon: Icons.description_outlined,
+                          outline: true,
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ReceiptPage(order: order),
+                            ),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.md),
                       PrimaryButton(
                         text: 'Kembali ke Beranda',

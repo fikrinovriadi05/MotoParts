@@ -76,22 +76,34 @@ check('bentuk produk', isset($list['products'][0]['imagePath']) || array_key_exi
 
 // ---- Registrasi
 $email = 'uji' . random_int(1000, 999999) . '@mail.com';
-expect('daftar: nama kosong', call('POST', '/auth/register', ['name' => '', 'email' => $email, 'phone' => '081234567890', 'password' => 'rahasia1']), 422);
-expect('daftar: email buruk', call('POST', '/auth/register', ['name' => 'Uji', 'email' => 'bukanemail', 'phone' => '081234567890', 'password' => 'rahasia1']), 422);
+expect('daftar: nama kosong', call('POST', '/auth/register', ['name' => '', 'email' => $email, 'phone' => '081234567890', 'password' => 'Rahasia1!']), 422);
+expect('daftar: email buruk', call('POST', '/auth/register', ['name' => 'Uji', 'email' => 'bukanemail', 'phone' => '081234567890', 'password' => 'Rahasia1!']), 422);
 expect('daftar: password pendek', call('POST', '/auth/register', ['name' => 'Uji', 'email' => $email, 'phone' => '081234567890', 'password' => '123']), 422);
-[$s, $reg] = call('POST', '/auth/register', ['name' => 'Penguji Satu', 'email' => $email, 'phone' => '081234567890', 'password' => 'rahasia1']);
+expect('daftar: tanpa huruf kapital', call('POST', '/auth/register', ['name' => 'Uji', 'email' => $email, 'phone' => '081234567890', 'password' => 'rahasia1!']), 422, 'huruf kapital');
+expect('daftar: tanpa angka', call('POST', '/auth/register', ['name' => 'Uji', 'email' => $email, 'phone' => '081234567890', 'password' => 'Rahasia!!']), 422, 'angka');
+expect('daftar: tanpa simbol', call('POST', '/auth/register', ['name' => 'Uji', 'email' => $email, 'phone' => '081234567890', 'password' => 'Rahasia11']), 422, 'simbol');
+[$s, $reg] = call('POST', '/auth/register', ['name' => 'Penguji Satu', 'email' => $email, 'phone' => '081234567890', 'password' => 'Rahasia1!']);
 check('daftar berhasil', $s === 201 && strlen($reg['token'] ?? '') === 64, [$s, $reg]);
 check('hash tidak bocor', !isset($reg['user']['passwordHash']) && !str_contains(json_encode($reg), '$2y$'), $reg);
 $ut = $reg['token'];
 $uid = $reg['user']['id'];
-expect('daftar: email ganda', call('POST', '/auth/register', ['name' => 'Lain', 'email' => $email, 'phone' => '081234567890', 'password' => 'rahasia1']), 409, 'sudah terdaftar');
+expect('daftar: email ganda', call('POST', '/auth/register', ['name' => 'Lain', 'email' => $email, 'phone' => '081234567890', 'password' => 'Rahasia1!']), 409, 'sudah terdaftar');
 
 // ---- Login
 expect('login salah password', call('POST', '/auth/login', ['email' => $email, 'password' => 'salah123', 'role' => 'user']), 401);
-expect('login user lewat tab admin', call('POST', '/auth/login', ['email' => $email, 'password' => 'rahasia1', 'role' => 'admin']), 403, 'bukan akun admin');
+expect('login user lewat tab admin', call('POST', '/auth/login', ['email' => $email, 'password' => 'Rahasia1!', 'role' => 'admin']), 403, 'bukan akun admin');
 expect('login admin lewat tab user', call('POST', '/auth/login', ['email' => 'admin@motopart.id', 'password' => 'admin123', 'role' => 'user']), 403, 'tab Admin');
-[$s, $lg] = call('POST', '/auth/login', ['email' => $email, 'password' => 'rahasia1', 'role' => 'user']);
+[$s, $lg] = call('POST', '/auth/login', ['email' => $email, 'password' => 'Rahasia1!', 'role' => 'user']);
 check('login user', $s === 200 && ($lg['user']['id'] ?? '') === $uid, [$s, $lg]);
+// Satu pintu: tanpa peran, pembeli maupun admin bisa masuk.
+[$s, $lg] = call('POST', '/auth/login', ['email' => $email, 'password' => 'Rahasia1!']);
+check('login tanpa peran (user)', $s === 200 && ($lg['user']['role'] ?? '') === 'user', [$s, $lg]);
+[$s, $lg] = call('POST', '/auth/login', ['email' => 'admin@motopart.id', 'password' => 'admin123']);
+check('login tanpa peran (admin)', $s === 200 && ($lg['user']['role'] ?? '') === 'admin', [$s, $lg]);
+// Google: tanpa google_client_ids di config server fitur mati (503); token
+// ngawur tidak pernah diterima.
+[$s] = call('POST', '/auth/google', ['idToken' => 'bukan-token']);
+check('google: ditolak tanpa konfigurasi / token palsu', in_array($s, [503, 401, 502], true), $s);
 
 // ---- Sesi
 expect('me tanpa token', call('GET', '/me'), 401);
@@ -110,10 +122,10 @@ expect('metode bayar tak dikenal', call('PUT', '/me', ['preferredPayment' => 'bi
 
 // ---- Password
 expect('ganti password: lama salah', call('PUT', '/me/password', ['oldPassword' => 'x', 'newPassword' => 'barubaru1'], $ut), 422, 'lama salah');
-expect('ganti password: sama', call('PUT', '/me/password', ['oldPassword' => 'rahasia1', 'newPassword' => 'rahasia1'], $ut), 422, 'berbeda');
-expect('ganti password', call('PUT', '/me/password', ['oldPassword' => 'rahasia1', 'newPassword' => 'barubaru1'], $ut), 200);
+expect('ganti password: sama', call('PUT', '/me/password', ['oldPassword' => 'Rahasia1!', 'newPassword' => 'Rahasia1!'], $ut), 422, 'berbeda');
+expect('ganti password', call('PUT', '/me/password', ['oldPassword' => 'Rahasia1!', 'newPassword' => 'barubaru1'], $ut), 200);
 expect('login password baru', call('POST', '/auth/login', ['email' => $email, 'password' => 'barubaru1', 'role' => 'user']), 200);
-expect('login password lama', call('POST', '/auth/login', ['email' => $email, 'password' => 'rahasia1', 'role' => 'user']), 401);
+expect('login password lama', call('POST', '/auth/login', ['email' => $email, 'password' => 'Rahasia1!', 'role' => 'user']), 401);
 
 // ---- Alamat
 $addr = ['label' => 'Rumah', 'recipient' => 'Penguji', 'phone' => '081234567890', 'street' => 'Jl. Merdeka No. 1',
@@ -132,7 +144,7 @@ check('ubah alamat', in_array('Kantor Baru', array_column($a4['user']['addresses
 check('hapus alamat utama -> pindah', $a5['user']['defaultAddressId'] === $a1['addressId'] && count($a5['user']['addresses']) === 1, $a5);
 
 // Akun lain tidak boleh menyentuh alamat orang
-[, $other] = call('POST', '/auth/register', ['name' => 'Penguji Lain', 'email' => 'lain' . random_int(1000, 999999) . '@mail.com', 'phone' => '081234567891', 'password' => 'rahasia1']);
+[, $other] = call('POST', '/auth/register', ['name' => 'Penguji Lain', 'email' => 'lain' . random_int(1000, 999999) . '@mail.com', 'phone' => '081234567891', 'password' => 'Rahasia1!']);
 $ot = $other['token'];
 expect('alamat milik orang lain', call('DELETE', '/addresses/' . $a1['addressId'], null, $ot), 404);
 

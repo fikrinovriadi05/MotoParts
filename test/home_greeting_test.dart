@@ -41,9 +41,9 @@ void main() {
         name: name,
         email: email,
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
-      auth.login(email: email, password: 'rahasia1', role: AccountRole.user);
+      auth.login(email: email, password: 'Rahasia1!', role: AccountRole.user);
     }
 
     testWidgets('memakai nama saat daftar, bukan nama tetap', (tester) async {
@@ -64,11 +64,11 @@ void main() {
         name: 'Dewi Lestari',
         email: 'dewi@email.com',
         phone: '081234567891',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'dewi@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       await tester.pump();

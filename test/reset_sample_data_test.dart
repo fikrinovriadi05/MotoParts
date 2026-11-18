@@ -262,11 +262,11 @@ void main() {
         name: 'Siti',
         email: 's@e.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 's@e.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       store.addToCart(store.products.first);

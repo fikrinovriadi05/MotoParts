@@ -20,6 +20,35 @@ flutter run -d <perangkat>        # mis. emulator Android atau Chrome
 
 Akun admin bawaan: `admin@motopart.id`. Password awalnya ada di
 `AuthStore.adminInitialPassword`; **ganti segera** lewat Dashboard Admin.
+Pembeli dan admin masuk lewat form yang sama (email + password); halaman yang
+terbuka mengikuti peran akunnya.
+
+### Masuk dengan Google
+
+Tombol **Lanjutkan dengan Google** di layar masuk aktif setelah ID klien OAuth
+diatur (tanpa itu, tombol hanya menampilkan petunjuk):
+
+1. Di [Google Cloud Console](https://console.cloud.google.com/) buat proyek,
+   atur **OAuth consent screen**, lalu buat **OAuth client ID**:
+   - **Web** (untuk Chrome/web): tambahkan *Authorized JavaScript origins*,
+     mis. `http://localhost:5000` (pakai port tetap: `flutter run -d chrome
+     --web-port=5000`).
+   - **Android**: isi nama paket + SHA-1 sertifikat penandatangan.
+   - **iOS**: isi bundle ID.
+2. Jalankan dengan ID klien:
+
+   ```bash
+   flutter run -d chrome --web-port=5000 --dart-define=GOOGLE_CLIENT_ID=XXXX.apps.googleusercontent.com
+   # Android: sertakan juga ID klien tipe Web sebagai server client
+   flutter run --dart-define=GOOGLE_SERVER_CLIENT_ID=XXXX.apps.googleusercontent.com
+   ```
+3. Mode database: tambahkan ID klien yang sama ke `backend/config.local.php`
+   (`'google_client_ids' => ['XXXX.apps.googleusercontent.com']`). Server
+   memverifikasi ID token ke Google sebelum masuk.
+
+Email Google yang sudah terdaftar langsung masuk ke akun itu; email baru
+dibuatkan akun pembeli (nomor telepon diisi lewat Edit Profil). Akun admin
+hanya bisa masuk dengan email dan password.
 Pembeli mendaftar sendiri di layar Daftar, lalu bisa melengkapi data motor
 (nama, tipe, tahun), alamat pengiriman, dan metode pembayaran favorit di menu
 Akun.
@@ -52,7 +81,7 @@ Admin bawaan: `admin@motopart.id` / `admin123` (ganti dari menu Akun).
 
 ## Panel admin
 
-Login admin lewat tab **Admin** di layar masuk. Menu: **Dashboard**, **Produk**,
+Admin masuk lewat layar masuk yang sama dengan pembeli. Menu: **Dashboard**, **Produk**,
 **Pesanan**, **Kategori**, **Pengaturan**. Di HP berupa bilah navigasi bawah;
 di layar lebar (> 900) berupa sidebar di kiri (dengan logo dan nama admin).
 Halaman admin tidak bisa dibuka tanpa login admin.
@@ -286,3 +315,5 @@ versi yang harus naik di setiap rilis ke Play Store).
   database (server database belum menerima notifikasi/webhook dari Midtrans),
   dan server pembayaran mempercayai jumlah dari aplikasi (lihat
   `server/README.md`). Belum siap untuk uang sungguhan.
+#   M o t o P a r t s  
+ 

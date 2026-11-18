@@ -29,12 +29,12 @@ AuthStore loggedIn({String email = 'siti@email.com'}) {
       name: 'Siti Aminah',
       email: email,
       phone: '081234567890',
-      password: 'rahasia1',
+      password: 'Rahasia1!',
     ),
     isNull,
   );
   expect(
-    a.login(email: email, password: 'rahasia1', role: AccountRole.user),
+    a.login(email: email, password: 'Rahasia1!', role: AccountRole.user),
     isNull,
   );
   return a;
@@ -333,13 +333,13 @@ void main() {
           name: 'Budi',
           email: 'budi@email.com',
           phone: '081200000000',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         ),
         isNull,
       );
       a.login(
         email: 'budi@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
 
@@ -480,11 +480,11 @@ void main() {
           name: 'Siti',
           email: 'siti@email.com',
           phone: '081234567890',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         );
         first.login(
           email: 'siti@email.com',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
           role: AccountRole.user,
         );
         first.updateProfile(
@@ -535,11 +535,11 @@ void main() {
         name: 'Siti Aminah',
         email: 'siti-ui@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti-ui@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
     }

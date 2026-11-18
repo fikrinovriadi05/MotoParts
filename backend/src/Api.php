@@ -18,6 +18,7 @@ final class Api
 
         $r->add('POST', '/auth/register', [self::class, 'register']);
         $r->add('POST', '/auth/login', [self::class, 'login']);
+        $r->add('POST', '/auth/google', [self::class, 'googleLogin']);
         $r->add('POST', '/auth/logout', [self::class, 'logout']);
 
         $r->add('GET', '/me', [self::class, 'me']);
@@ -161,7 +162,9 @@ final class Api
     {
         $email = Validate::str($req->get('email'));
         $password = (string) $req->get('password', '');
-        $role = Validate::str($req->get('role', 'user'));
+        // Peran opsional: login pembeli dan admin satu pintu. Jika diberi, akun
+        // harus berperan itu (klien lama yang masih memakai tab peran).
+        $role = Validate::str($req->get('role', ''));
 
         if ($email === '' || $password === '') {
             throw new HttpError(422, 'Email dan password wajib diisi.');
@@ -173,7 +176,7 @@ final class Api
             throw new HttpError(401, 'Email atau password salah.');
         }
         $isAdmin = $user['role'] === 'admin';
-        if (($role === 'admin') !== $isAdmin) {
+        if ($role !== '' && ($role === 'admin') !== $isAdmin) {
             throw new HttpError(403, $isAdmin
                 ? 'Akun admin masuk lewat tab Admin.'
                 : 'Akun ini bukan akun admin.');
@@ -184,6 +187,105 @@ final class Api
             'token' => Auth::createToken($user['id'], (int) $config['token_days']),
             'user' => Serialize::user($user),
         ];
+    }
+
+    /**
+     * Masuk dengan Google. Klien mengirim ID token; server memverifikasinya ke
+     * Google (tokeninfo), lalu masuk ke akun dengan email itu atau membuat akun
+     * pembeli baru. Akun admin tidak bisa masuk lewat Google.
+     *
+     * Butuh `google_client_ids` (daftar ID klien OAuth) di config.local.php.
+     */
+    public static function googleLogin(Request $req): array
+    {
+        $config = require __DIR__ . '/../config.php';
+        $clientIds = array_values(array_filter(array_map('strval', (array) ($config['google_client_ids'] ?? []))));
+        if ($clientIds === []) {
+            throw new HttpError(503, 'Masuk dengan Google belum diatur di server.');
+        }
+        $idToken = Validate::str($req->get('idToken'));
+        if ($idToken === '') {
+            throw new HttpError(422, 'ID token Google wajib diisi.');
+        }
+
+        $claims = self::verifyGoogleToken($idToken, $clientIds);
+        $email = Validate::str((string) $claims['email']);
+        $pdo = Db::pdo();
+
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if ($user && $user['role'] === 'admin') {
+            throw new HttpError(403, 'Akun admin masuk dengan email dan password.');
+        }
+        if (!$user) {
+            $name = Validate::str((string) ($claims['name'] ?? ''));
+            if ($name === '') {
+                $name = explode('@', $email)[0];
+            }
+            $id = Auth::newId('u');
+            try {
+                // Kata sandi acak yang tidak diketahui siapa pun; nomor telepon
+                // diisi pengguna nanti lewat Edit Profil.
+                $pdo->prepare(
+                    'INSERT INTO users (id, name, email, phone, role, password_hash, created_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)'
+                )->execute([$id, $name, $email, '-', 'user', Auth::hashPassword(bin2hex(random_bytes(24))), Db::now()]);
+            } catch (\PDOException $e) {
+                if ($e->getCode() !== '23000') { // email ganda bersamaan: pakai yang sudah ada
+                    throw $e;
+                }
+            }
+            $stmt->execute([$email]);
+            $user = $stmt->fetch() ?: throw new HttpError(500, 'Gagal membuat akun.');
+        }
+
+        return [
+            'token' => Auth::createToken($user['id'], (int) $config['token_days']),
+            'user' => Serialize::user($user),
+        ];
+    }
+
+    /**
+     * Memverifikasi ID token Google lewat endpoint tokeninfo Google (tanda
+     * tangan dan kedaluwarsa diperiksa Google), lalu memeriksa penerbit,
+     * audiens (ID klien kita), dan email terverifikasi.
+     *
+     * @param string[] $clientIds
+     * @return array<string,mixed>
+     */
+    private static function verifyGoogleToken(string $idToken, array $clientIds): array
+    {
+        $url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' . rawurlencode($idToken);
+        $raw = false;
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10]);
+            $raw = curl_exec($ch);
+            curl_close($ch);
+        } else {
+            $raw = @file_get_contents($url, false, stream_context_create(['http' => [
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ]]));
+        }
+        if ($raw === false || $raw === '') {
+            throw new HttpError(502, 'Tidak dapat menghubungi Google. Coba lagi.');
+        }
+        $claims = json_decode((string) $raw, true);
+        if (!is_array($claims) || isset($claims['error']) || empty($claims['email'])) {
+            throw new HttpError(401, 'Token Google tidak valid.');
+        }
+        $issuerOk = in_array($claims['iss'] ?? '', ['accounts.google.com', 'https://accounts.google.com'], true);
+        $audienceOk = in_array((string) ($claims['aud'] ?? ''), $clientIds, true);
+        $verified = ($claims['email_verified'] ?? false);
+        $verified = $verified === true || $verified === 'true';
+        $notExpired = (int) ($claims['exp'] ?? 0) > time();
+        if (!$issuerOk || !$audienceOk || !$verified || !$notExpired) {
+            throw new HttpError(401, 'Token Google tidak valid.');
+        }
+        return $claims;
     }
 
     public static function logout(Request $req): array

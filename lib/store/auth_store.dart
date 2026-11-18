@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:motopart/core/google_sign_in_service.dart';
 import 'package:motopart/core/payment_methods.dart';
 import 'package:motopart/core/remote_gateway.dart';
 import 'package:motopart/core/safe_save.dart';
@@ -21,12 +22,56 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// * **Lokal** (tanpa `API_URL`, juga dipakai di tes): akun di perangkat dengan
 ///   password SHA-256 + salt acak. Ini hanya mencegah password terbaca
 ///   langsung dari penyimpanan perangkat.
+/// Satu aturan password: label yang ditampilkan dan pengujinya.
+class PasswordRule {
+  final String label;
+  final bool Function(String password) test;
+
+  const PasswordRule(this.label, this.test);
+}
+
 class AuthStore extends ChangeNotifier {
   static const storageKey = 'motopart_auth_v1';
 
   /// Token sesi untuk mode database.
   static const tokenKey = 'motopart_token_v1';
   static const minPasswordLength = 6;
+
+  /// Aturan password untuk akun baru (ditampilkan di layar Daftar): huruf
+  /// kapital, angka, dan simbol, selain panjang minimal. Server memakai aturan
+  /// yang sama.
+  static final passwordRules = <PasswordRule>[
+    PasswordRule(
+      'Minimal $minPasswordLength karakter',
+      (p) => p.length >= minPasswordLength,
+    ),
+    PasswordRule(
+      'Mengandung huruf kapital (A-Z)',
+      (p) => RegExp(r'\p{Lu}', unicode: true).hasMatch(p),
+    ),
+    PasswordRule('Mengandung angka (0-9)', (p) => RegExp(r'\d').hasMatch(p)),
+    PasswordRule(
+      'Mengandung simbol (mis. ! @ # \$ %)',
+      (p) => RegExp(r'[^\p{L}\p{N}\s]', unicode: true).hasMatch(p),
+    ),
+  ];
+
+  /// Pesan untuk aturan pertama yang belum dipenuhi [password], atau null.
+  static String? passwordStrengthError(String password) {
+    if (password.length < minPasswordLength) {
+      return 'Password minimal $minPasswordLength karakter.';
+    }
+    if (!passwordRules[1].test(password)) {
+      return 'Password harus mengandung huruf kapital.';
+    }
+    if (!passwordRules[2].test(password)) {
+      return 'Password harus mengandung angka.';
+    }
+    if (!passwordRules[3].test(password)) {
+      return 'Password harus mengandung simbol.';
+    }
+    return null;
+  }
 
   /// Akun admin bawaan, dibuat otomatis jika belum ada.
   static const adminEmail = 'admin@motopart.id';
@@ -111,6 +156,7 @@ class AuthStore extends ChangeNotifier {
     required String email,
     required String phone,
     required String password,
+    String? confirmPassword,
   }) {
     if (name.trim().isEmpty ||
         email.trim().isEmpty ||
@@ -124,8 +170,10 @@ class AuthStore extends ChangeNotifier {
     if (phone.replaceAll(RegExp(r'\D'), '').length < 8) {
       return 'Nomor telepon tidak valid.';
     }
-    if (password.length < minPasswordLength) {
-      return 'Password minimal $minPasswordLength karakter.';
+    final weak = passwordStrengthError(password);
+    if (weak != null) return weak;
+    if (confirmPassword != null && confirmPassword != password) {
+      return 'Konfirmasi password tidak sama.';
     }
     if (_findByEmail(email) != null) {
       return 'Email sudah terdaftar.';
@@ -147,12 +195,14 @@ class AuthStore extends ChangeNotifier {
     return null;
   }
 
-  /// Masuk ke akun. [role] adalah tab yang dipilih di layar login. Mengembalikan
-  /// pesan kesalahan, atau `null` jika berhasil.
+  /// Masuk ke akun; pembeli dan admin memakai pintu yang sama, perannya
+  /// ditentukan oleh akunnya. Jika [role] diberi, akun harus berperan itu
+  /// (untuk pemanggil yang memang membatasi). Mengembalikan pesan kesalahan,
+  /// atau `null` jika berhasil.
   String? login({
     required String email,
     required String password,
-    required AccountRole role,
+    AccountRole? role,
   }) {
     if (email.trim().isEmpty || password.isEmpty) {
       return 'Email dan password wajib diisi.';
@@ -161,7 +211,7 @@ class AuthStore extends ChangeNotifier {
     if (account == null || !_passwordMatches(account, password)) {
       return 'Email atau password salah.';
     }
-    if (account.role != role) {
+    if (role != null && account.role != role) {
       return account.isAdmin
           ? 'Akun admin masuk lewat tab Admin.'
           : 'Akun ini bukan akun admin.';
@@ -171,6 +221,66 @@ class AuthStore extends ChangeNotifier {
     _store?.setCurrentAccount(account.id, isAdmin: _current?.isAdmin ?? false);
     notifyListeners();
     return null;
+  }
+
+  /// Masuk dengan akun Google yang sudah diverifikasi Google (mode lokal).
+  /// Email yang sudah terdaftar langsung masuk ke akun itu; email baru
+  /// dibuatkan akun pembeli (nomor telepon diisi nanti lewat Edit Profil).
+  /// Akun admin tidak bisa masuk lewat Google. Mengembalikan pesan kesalahan,
+  /// atau `null` jika berhasil.
+  String? loginWithGoogle(GoogleProfile profile) {
+    final email = profile.email.trim();
+    if (email.isEmpty || !_emailPattern.hasMatch(email)) {
+      return 'Akun Google tidak memiliki email yang valid.';
+    }
+
+    var account = _findByEmail(email);
+    if (account == null) {
+      // Kata sandi acak yang tidak diketahui siapa pun: akun ini masuk lewat
+      // Google (atau lewat reset password oleh admin).
+      final salt = _newSalt();
+      account = Account(
+        id: _newId(),
+        name: profile.name.trim().isEmpty
+            ? email.split('@').first
+            : profile.name.trim(),
+        email: email,
+        phone: '-',
+        role: AccountRole.user,
+        passwordHash: hashPassword(_newSalt(), salt),
+        salt: salt,
+      );
+      accounts.add(account);
+    } else if (account.isAdmin) {
+      return 'Akun admin masuk dengan email dan password.';
+    }
+
+    _current = account;
+    _store?.setCurrentAccount(account.id, isAdmin: false);
+    notifyListeners();
+    return null;
+  }
+
+  /// Masuk dengan Google. Di mode database ID token dikirim ke server untuk
+  /// diverifikasi; di mode lokal sama dengan [loginWithGoogle].
+  Future<String?> loginWithGoogleAsync(GoogleProfile profile) async {
+    final gateway = remoteGateway;
+    if (gateway == null) return loginWithGoogle(profile);
+
+    final idToken = profile.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      return 'Google tidak mengirim ID token. Periksa pengaturan ID klien.';
+    }
+    try {
+      final json = await gateway.send(
+        'POST',
+        '/auth/google',
+        body: {'idToken': idToken},
+      );
+      return await _finishRemoteLogin(json);
+    } on RemoteException catch (e) {
+      return e.message;
+    }
   }
 
   // ------------------------------------------- mode database (server)
@@ -183,6 +293,7 @@ class AuthStore extends ChangeNotifier {
     required String email,
     required String phone,
     required String password,
+    String? confirmPassword,
   }) async {
     final gateway = remoteGateway;
     if (gateway == null) {
@@ -191,7 +302,14 @@ class AuthStore extends ChangeNotifier {
         email: email,
         phone: phone,
         password: password,
+        confirmPassword: confirmPassword,
       );
+    }
+    // Di mode database, cek lokal dulu agar pesan cepat dan konsisten.
+    final weak = passwordStrengthError(password);
+    if (weak != null) return weak;
+    if (confirmPassword != null && confirmPassword != password) {
+      return 'Konfirmasi password tidak sama.';
     }
     try {
       await gateway.send(
@@ -215,7 +333,7 @@ class AuthStore extends ChangeNotifier {
   Future<String?> loginAsync({
     required String email,
     required String password,
-    required AccountRole role,
+    AccountRole? role,
   }) async {
     final gateway = remoteGateway;
     if (gateway == null) {
@@ -225,26 +343,36 @@ class AuthStore extends ChangeNotifier {
       final json = await gateway.send(
         'POST',
         '/auth/login',
-        body: {'email': email, 'password': password, 'role': role.name},
+        body: {
+          'email': email,
+          'password': password,
+          if (role != null) 'role': role.name,
+        },
       );
-      gateway.token = json['token'] as String;
-      unawaited(_prefs?.setString(tokenKey, gateway.token!));
-      _current = Account.fromJson(json['user'] as Map<String, dynamic>);
-      _store?.setCurrentAccount(
-        _current!.id,
-        isAdmin: _current?.isAdmin ?? false,
-      );
-      notifyListeners();
-      // Data pribadi (pesanan, wishlist, daftar pengguna untuk admin).
-      try {
-        await RemoteSync.pull();
-      } on RemoteException {
-        // Login sudah berhasil; data menyusul pada sinkronisasi berikutnya.
-      }
-      return null;
+      return await _finishRemoteLogin(json);
     } on RemoteException catch (e) {
       return e.message;
     }
+  }
+
+  /// Menyimpan token + akun dari jawaban login server, lalu menarik data
+  /// pribadi (pesanan, wishlist, daftar pengguna untuk admin).
+  Future<String?> _finishRemoteLogin(Map<String, dynamic> json) async {
+    final gateway = remoteGateway!;
+    gateway.token = json['token'] as String;
+    unawaited(_prefs?.setString(tokenKey, gateway.token!));
+    _current = Account.fromJson(json['user'] as Map<String, dynamic>);
+    _store?.setCurrentAccount(
+      _current!.id,
+      isAdmin: _current?.isAdmin ?? false,
+    );
+    notifyListeners();
+    try {
+      await RemoteSync.pull();
+    } on RemoteException {
+      // Login sudah berhasil; data menyusul pada sinkronisasi berikutnya.
+    }
+    return null;
   }
 
   /// Menerapkan hasil `GET /sync` (mode database): akun yang sedang masuk dan,

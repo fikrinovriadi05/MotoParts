@@ -214,11 +214,11 @@ void main() {
         name: 'Siti',
         email: 'siti@e.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti@e.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       size(tester, 400, 800);

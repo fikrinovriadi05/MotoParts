@@ -129,14 +129,14 @@ void main() {
           name: 'Siti',
           email: 'siti-web@email.com',
           phone: '081234567890',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
         ),
         isNull,
       );
       expect(
         a.login(
           email: 'siti-web@email.com',
-          password: 'rahasia1',
+          password: 'Rahasia1!',
           role: AccountRole.user,
         ),
         isNull,
@@ -316,11 +316,11 @@ void main() {
         name: 'Siti',
         email: 'siti-cod@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti-cod@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
       auth.setPreferredPayment('E-Wallet|GoPay'); // favorit lama yang online
@@ -352,11 +352,11 @@ void main() {
         name: 'Siti',
         email: 'siti-cod2@email.com',
         phone: '081234567890',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
       );
       auth.login(
         email: 'siti-cod2@email.com',
-        password: 'rahasia1',
+        password: 'Rahasia1!',
         role: AccountRole.user,
       );
 
@@ -427,11 +427,11 @@ void main() {
                 name: 'Siti Aminah',
                 email: 'lebar@email.com',
                 phone: '081234567890',
-                password: 'rahasia1',
+                password: 'Rahasia1!',
               );
               auth.login(
                 email: 'lebar@email.com',
-                password: 'rahasia1',
+                password: 'Rahasia1!',
                 role: AccountRole.user,
               );
               auth.updateProfile(
